@@ -136,6 +136,51 @@
     padding: 0 2.5vw; font-size: 2.2vh; color: #555f78;
   }
   #foot .r { float: right; }
+
+  /* =========== THEMES (picked automatically by day, see CONFIG.theme) =========== */
+
+  /* Chicago Bears: navy + orange (Sunday - Friday) */
+  body.t-bears { background: #050a14; }
+  .t-bears #top, .t-bears #crawlbar { background: #0B162A; border-color: #C83803; }
+  .t-bears #brand span, .t-bears #crawl .lg, .t-bears .rk { color: #E65C1E; }
+  .t-bears .tab { color: #7d8aa6; }
+  .t-bears .tab.on { background: #C83803; color: #ffffff; }
+  .t-bears .tab.empty { color: #26324a; }
+  .t-bears .card { background: #0f1d36; border-color: #1b2c4c; }
+  .t-bears .row + .row { border-color: #1b2c4c; }
+  .t-bears .abbr { background: #1a2d52; }
+  .t-bears .status { background: #0B162A; }
+  .t-bears .card.fav { border-color: #C83803; }
+  .t-bears .card.live { border-color: #ff3b3b; }
+  .t-bears .card.live.fav { border-color: #C83803; }
+  .t-bears #crawllabel { background: #C83803; color: #ffffff; }
+
+  /* USC Trojans: cardinal + gold (Saturday) */
+  body.t-usc { background: #120304; }
+  .t-usc #top, .t-usc #crawlbar { background: #990000; border-color: #FFC72C; }
+  .t-usc #brand, .t-usc #clock { color: #ffffff; }
+  .t-usc #brand span, .t-usc #crawl .lg, .t-usc .rk { color: #FFC72C; }
+  .t-usc #clock small { color: #ffd9a0; }
+  .t-usc .tab { color: #f0b9b0; }
+  .t-usc .tab.on { background: #FFC72C; color: #990000; }
+  .t-usc .tab.empty { color: #6b1a1a; }
+  .t-usc #heading .sub, .t-usc #heading .page { color: #c9a9a3; }
+  .t-usc .card { background: #2a0a0d; border-color: #451519; }
+  .t-usc .row + .row { border-color: #451519; }
+  .t-usc .abbr { background: #4d171c; }
+  .t-usc .name { color: #e2c7c0; }
+  .t-usc .lose .score, .t-usc .lose .abbr { color: #8c6a66; }
+  .t-usc .status { background: #1c0507; color: #e2c7c0; }
+  .t-usc .card.fav { border-color: #FFC72C; }
+  .t-usc .card.live { border-color: #ffffff; }
+  .t-usc .card.live.fav { border-color: #FFC72C; }
+  .t-usc .live .status { background: #990000; color: #ffffff; }
+  .t-usc .dot { background: #FFC72C; }
+  .t-usc #crawllabel { background: #FFC72C; color: #990000; }
+  .t-usc #crawl { color: #ffffff; }
+  .t-usc #crawl .st { color: #ffcf9a; }
+  .t-usc #crawl .lv { color: #FFC72C; }
+  .t-usc #foot { color: #7a4a46; }
 </style>
 </head>
 <body>
@@ -170,6 +215,10 @@ var CONFIG = {
 
   // College football: 'top25' = games with a ranked team, 'fbs' = every FBS game
   cfb: 'top25',
+
+  // Colors: 'auto' = Bears on Sunday-Friday, USC on Saturday.
+  // Or force one: 'bears', 'usc', 'classic' (the original navy + gold)
+  theme: 'auto',
 
   // Your teams (abbreviations, e.g. 'DAL', 'SA', 'KC'). They get a gold border and go first.
   favorites: [],
@@ -239,6 +288,7 @@ function readParams() {
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
+    if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'demo' && v !== '0') DEMO = true;
   }
   for (var j = 0; j < CONFIG.favorites.length; j++) CONFIG.favorites[j] = CONFIG.favorites[j].toUpperCase();
@@ -590,8 +640,17 @@ function renderCrawl() {
   el.style.webkitAnimation = anim; el.style.animation = anim;
 }
 
+/* Saturday = USC, every other day = Bears (unless a theme is forced) */
+function applyTheme(d) {
+  var t = CONFIG.theme;
+  if (t === 'auto') t = d.getDay() === 6 ? 'usc' : 'bears';
+  var cls = t === 'classic' ? '' : 't-' + t;
+  if (document.body.className !== cls) document.body.className = cls;
+}
+
 function renderClock() {
   var d = new Date();
+  applyTheme(d);
   $('clock').innerHTML = '<small>' + DAYS[d.getDay()] + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + '</small>' + timeStr(d);
 }
 

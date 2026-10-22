@@ -13,4 +13,5 @@ Options go on the end of the address:
 - `?leagues=nfl,ncaaf,nba` choose leagues (nfl, ncaaf, nba, mlb, wnba, ncaab, nhl)
 - `?cfb=fbs` every FBS college football game instead of just ranked-team games
 - `?rotate=20` seconds per screen
+- `?theme=bears`, `?theme=usc` or `?theme=classic` force a color scheme (default `auto`: Bears Sunday-Friday, USC on Saturday)
 - `?demo=1` fake games to test the layout
