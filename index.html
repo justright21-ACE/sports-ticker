@@ -220,8 +220,15 @@ var CONFIG = {
   // Or force one: 'bears', 'usc', 'classic' (the original navy + gold)
   theme: 'auto',
 
-  // Your teams (abbreviations, e.g. 'DAL', 'SA', 'KC'). They get a gold border and go first.
-  favorites: [],
+  // Your teams, per league (team abbreviations). They get a highlighted border and go first.
+  // Kept per league so 'CHI' (Bears) doesn't also highlight the Chicago Sky, and 'PHI' (Eagles)
+  // doesn't also highlight the 76ers or Phillies.
+  favorites: {
+    nfl:   ['CHI', 'PHI'],   // Bears, Eagles
+    ncaaf: ['USC', 'WIS'],   // USC Trojans, Wisconsin Badgers
+    nba:   ['SA', 'CHI'],    // Spurs, Bulls
+    mlb:   ['CHW', 'CWS']    // White Sox (both common abbreviations)
+  },
 
   // Leagues that also show games that haven't started yet. The season schedule
   // file is large for MLB, so it's off for MLB by default to go easy on old TVs.
@@ -291,7 +298,6 @@ function readParams() {
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'demo' && v !== '0') DEMO = true;
   }
-  for (var j = 0; j < CONFIG.favorites.length; j++) CONFIG.favorites[j] = CONFIG.favorites[j].toUpperCase();
 }
 
 /* ---------- networking (XMLHttpRequest works everywhere) ---------- */
@@ -530,14 +536,19 @@ function scoreOf(e, side) {
   var t = e.scores && e.scores.total;
   return t && t[side] != null ? t[side] : '';
 }
-function isFav(e) {
-  var a = e.teams && e.teams.away, h = e.teams && e.teams.home;
-  return (a && inList(CONFIG.favorites, a.abbreviation)) || (h && inList(CONFIG.favorites, h.abbreviation));
+function favList(lg) {
+  var f = CONFIG.favorites;
+  if (f && f.length !== undefined) return f;      // ?fav=... in the address applies to every league
+  return (f && f[lg]) || [];
+}
+function isFav(e, lg) {
+  var a = e.teams && e.teams.away, h = e.teams && e.teams.home, list = favList(lg);
+  return (a && inList(list, a.abbreviation)) || (h && inList(list, h.abbreviation));
 }
 function rank(e) { return e.live ? 0 : (isFinal(e) ? 2 : 1); }
-function sortGames(list) {
+function sortGames(list, lg) {
   return list.sort(function (a, b) {
-    var fa = isFav(a) ? 0 : 1, fb = isFav(b) ? 0 : 1;
+    var fa = isFav(a, lg) ? 0 : 1, fb = isFav(b, lg) ? 0 : 1;
     if (fa !== fb) return fa - fb;
     if (rank(a) !== rank(b)) return rank(a) - rank(b);
     var ta = parseDate(a.date).getTime(), tb = parseDate(b.date).getTime();
@@ -555,7 +566,7 @@ function nickname(name) {
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
-  var cls = 'card' + (e.live ? ' live' : '') + (isFav(e) ? ' fav' : '');
+  var cls = 'card' + (e.live ? ' live' : '') + (isFav(e, lg) ? ' fav' : '');
   function row(t, s, lose) {
     return '<div class="row' + (lose ? ' lose' : '') + '"><span class="abbr">' + esc(t.abbreviation) +
       '</span><span class="name">' + (t.rank ? '<b class="rk">' + t.rank + '</b>' : '') +
@@ -570,7 +581,7 @@ function buildPages() {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], d = state.data[lg];
     if (!d || !d.games.length) continue;
-    var games = sortGames(d.games.slice(0)), per = CONFIG.cardsPerPage;
+    var games = sortGames(d.games.slice(0), lg), per = CONFIG.cardsPerPage;
     var total = Math.ceil(games.length / per);
     for (var p = 0; p < total; p++) {
       pages.push({ lg: lg, label: d.label, games: games.slice(p * per, (p + 1) * per), num: p + 1, of: total });
@@ -617,7 +628,7 @@ function renderCrawl() {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], d = state.data[lg];
     if (!d || !d.games.length) continue;
-    var games = sortGames(d.games.slice(0));
+    var games = sortGames(d.games.slice(0), lg);
     html += '<span class="lg">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
     for (var j = 0; j < games.length; j++) {
       var e = games[j], a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');

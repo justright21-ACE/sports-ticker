@@ -9,7 +9,8 @@ Data (both free, no API key):
 - ESPN scoreboard feed: NCAA football (also NCAA men's basketball and NHL)
 
 Options go on the end of the address:
-- `?fav=DAL,TEX` highlight your teams
+- Favorites are set per league in the CONFIG block (Bears, Eagles, USC, Wisconsin, Spurs, Bulls, White Sox)
+- `?fav=DAL,TEX` override favorites for every league
 - `?leagues=nfl,ncaaf,nba` choose leagues (nfl, ncaaf, nba, mlb, wnba, ncaab, nhl)
 - `?cfb=fbs` every FBS college football game instead of just ranked-team games
 - `?rotate=20` seconds per screen
