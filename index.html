@@ -96,6 +96,13 @@
     color: #a5aec4; text-transform: uppercase;
   }
   .live .status { background: #3a0f14; color: #ffd5d5; }
+  .lines {
+    height: 4vh; line-height: 4vh; padding: 0 1.1vw;
+    border-top: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden;
+    font-size: 2.5vh; font-weight: 600; color: #c9d0e0;
+  }
+  .lines .lbl { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; margin-right: 0.8vw; }
+  .lines .ou { float: right; }
   .dot {
     display: inline-block; width: 1.4vh; height: 1.4vh; border-radius: 50%;
     background: #ff4545; margin-right: 0.7vw; vertical-align: middle; position: relative; top: -0.2vh;
@@ -150,6 +157,8 @@
   .t-bears .row + .row { border-color: #1b2c4c; }
   .t-bears .abbr { background: #1a2d52; }
   .t-bears .status { background: #0B162A; }
+  .t-bears .lines { border-color: #1b2c4c; }
+  .t-bears .lines .lbl { color: #E65C1E; }
   .t-bears .card.fav { border-color: #C83803; }
   .t-bears .card.live { border-color: #ff3b3b; }
   .t-bears .card.live.fav { border-color: #C83803; }
@@ -171,6 +180,8 @@
   .t-usc .name { color: #e2c7c0; }
   .t-usc .lose .score, .t-usc .lose .abbr { color: #8c6a66; }
   .t-usc .status { background: #1c0507; color: #e2c7c0; }
+  .t-usc .lines { border-color: #451519; color: #f0dcd6; }
+  .t-usc .lines .lbl { color: #FFC72C; }
   .t-usc .card.fav { border-color: #FFC72C; }
   .t-usc .card.live { border-color: #ffffff; }
   .t-usc .card.live.fav { border-color: #FFC72C; }
@@ -202,7 +213,7 @@
     <div id="crawllabel">SCORES</div>
   </div>
 
-  <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN</span></div>
+  <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Opening lines: DraftKings</span></div>
 </div>
 
 <script>
@@ -354,6 +365,7 @@ function fromEspn(ev) {
     total[side] = cp.score != null ? cp.score : '';
   }
   if (!teams.away || !teams.home) return null;
+  recordLine(ev, c);
   var desc = ty.description || '', state = ty.state;
   var live = state === 'in';
   var fin = state === 'post' && !/postpon|cancel|suspend|delay/i.test(desc);
@@ -363,6 +375,76 @@ function fromEspn(ev) {
     detail: ty.shortDetail || '', espn: true,
     scores: (live || fin) ? { total: total } : null
   };
+}
+
+/* ---- Opening spread & over/under (DraftKings, via ESPN) ----
+   ESPN can drop the lines once a game starts, so each opening line is saved the first
+   time it's seen (in memory + the browser's storage) and kept until the game is old. */
+var ESPN_ODDS_PATHS = { nfl: 'football/nfl', nba: 'basketball/nba', mlb: 'baseball/mlb', wnba: 'basketball/wnba' };
+var LINES_KEY = 'tickerOpenLines';
+var lines = (function () {
+  try { return JSON.parse(window.localStorage.getItem(LINES_KEY)) || {}; } catch (e) { return {}; }
+})();
+function saveLines() {
+  if (DEMO) return;                                // never store fake demo lines
+  try {
+    var cut = ymd(addDays(new Date(), -10));
+    for (var k in lines) if (lines.hasOwnProperty(k) && k.substr(0, 10) < cut) delete lines[k];
+    window.localStorage.setItem(LINES_KEY, JSON.stringify(lines));
+  } catch (e) {}
+}
+function gameKey(dateStr, awayName, homeName) {
+  return ymd(parseDate(dateStr)) + '|' + nickname(awayName).toLowerCase() + '@' + nickname(homeName).toLowerCase();
+}
+function keyOf(e) { return gameKey(e.date, e.teams.away.name, e.teams.home.name); }
+function recordLine(ev, c) {
+  var o = c && c.odds && c.odds[0];
+  if (!o) return;
+  var comps = c.competitors || [], names = {};
+  for (var i = 0; i < comps.length; i++) {
+    names[comps[i].homeAway === 'home' ? 'home' : 'away'] = (comps[i].team || {}).displayName;
+  }
+  if (!names.away || !names.home) return;
+  var key = gameKey(ev.date, names.away, names.home);
+  if (lines[key]) return;                          // opening line never changes: keep the first one
+  var ps = o.pointSpread || {};
+  var hl = ps.home && ps.home.open && ps.home.open.line, al = ps.away && ps.away.open && ps.away.open.line;
+  var tl = o.total && o.total.over && o.total.over.open && o.total.over.open.line;
+  var rec = {};
+  if (hl || al) {
+    if (/^-/.test(hl)) { rec.side = 'home'; rec.line = hl; }
+    else if (/^-/.test(al)) { rec.side = 'away'; rec.line = al; }
+    else rec.line = 'PK';
+  }
+  if (tl) rec.total = String(tl).replace(/^[ou]\s*/i, '');
+  if (rec.line || rec.total) lines[key] = rec;
+}
+/* Pro leagues get scores from SportsBlaze, so look up their lines on ESPN by date + team. */
+function fetchLines(lg, games, cb) {
+  if (DEMO) { demoLines(games); return cb(); }
+  var path = ESPN_ODDS_PATHS[lg];
+  if (!path) return cb();                          // ESPN leagues already recorded theirs
+  cache.linesAt = cache.linesAt || {};
+  var now = new Date().getTime(), seen = {}, list = [], i;
+  for (i = 0; i < games.length; i++) {
+    if (lines[keyOf(games[i])]) continue;
+    var d = ymd(parseDate(games[i].date));
+    if (!seen[d]) { seen[d] = true; list.push(d); }
+  }
+  list = list.slice(0, 8);
+  var n = 0;
+  function step() {
+    if (n >= list.length) return cb();
+    var d = list[n++], ck = lg + d;
+    if (cache.linesAt[ck] && now - cache.linesAt[ck] < 30 * 60000) return step();
+    getJSON(ESPN_API + path + '/scoreboard?dates=' + d.replace(/-/g, ''), function (err, data) {
+      cache.linesAt[ck] = now;
+      var evs = (!err && data && data.events) || [];
+      for (var j = 0; j < evs.length; j++) recordLine(evs[j], evs[j].competitions && evs[j].competitions[0]);
+      step();
+    });
+  }
+  step();
 }
 
 function boxscores(lg, dateStr, cb) {
@@ -563,6 +645,21 @@ function nickname(name) {
   return w[w.length - 1];
 }
 
+/* "MIA -3.5" style spread text, using the card's own team abbreviation */
+function spreadText(e) {
+  var o = e.open;
+  if (!o || !o.line) return '';
+  if (o.line === 'PK') return 'PK';
+  var t = e.teams[o.side];
+  return (t ? t.abbreviation + ' ' : '') + o.line;
+}
+function lineHTML(e) {
+  var o = e.open, sp = spreadText(e);
+  if (!o) return '<div class="lines">&nbsp;</div>';
+  return '<div class="lines">' + (o.total ? '<span class="ou">O/U ' + esc(o.total) + '</span>' : '') +
+    '<span class="lbl">OPEN</span>' + (sp ? esc(sp) : '') + '</div>';
+}
+
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
@@ -573,6 +670,7 @@ function cardHTML(e, lg) {
       esc(t.short || nickname(t.name)) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
   return '<div class="' + cls + '">' + row(a, sa, loseA) + row(h, sh, loseH) +
+    lineHTML(e) +
     '<div class="status">' + (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
 }
 
@@ -635,8 +733,13 @@ function renderCrawl() {
       var st = statusText(e, lg);
       var body = sa !== '' ? esc(a.abbreviation) + ' ' + esc(sa) + '  ' + esc(h.abbreviation) + ' ' + esc(sh)
                            : esc(a.abbreviation) + ' @ ' + esc(h.abbreviation);
-      html += '<span class="g">' + body + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(st) + '</span></span>';
-      key += body + st;
+      var ln = '';
+      if (e.open && !e.live && !isFinal(e)) {      // lines in the crawl for games not started yet
+        ln = spreadText(e) + (e.open.total ? (spreadText(e) ? '  ' : '') + 'O/U ' + e.open.total : '');
+      }
+      html += '<span class="g">' + body + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(st) + '</span>' +
+              (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') + '</span>';
+      key += body + st + ln;
     }
   }
   if (key === state.crawlKey) return;           // unchanged: don't restart the scroll
@@ -678,15 +781,19 @@ function refreshAll() {
     if (i >= CONFIG.leagues.length) return finished();
     var lg = CONFIG.leagues[i++];
     loadLeague(lg, function (err, res) {
-      if (err) { errs++; }                       // keep the last good data on screen
-      else {
+      if (err) { errs++; return next(); }        // keep the last good data on screen
+      fetchLines(lg, res.games, function () {
+        for (var k = 0; k < res.games.length; k++) {
+          res.games[k].open = lines[keyOf(res.games[k])] || null;
+          if (res.games[k].live) anyLive = true;
+        }
         state.data[lg] = res;
-        for (var k = 0; k < res.games.length; k++) if (res.games[k].live) anyLive = true;
-      }
-      next();
+        next();
+      });
     });
   }
   function finished() {
+    saveLines();
     if (errs < CONFIG.leagues.length) { state.lastOk = new Date(); state.failures = 0; }
     else state.failures++;
     if (!state.lastOk && state.failures) {
@@ -714,6 +821,13 @@ function antiBurn() {
 }
 
 /* ---------- demo data (?demo=1) ---------- */
+function demoLines(games) {
+  for (var i = 0; i < games.length; i++) {
+    if (i % 4 === 3) continue;                     // leave some games without a line
+    var k = keyOf(games[i]);
+    if (!lines[k]) lines[k] = { side: i % 2 ? 'home' : 'away', line: '-' + (1.5 + i * 2), total: '' + (44.5 + i * 3) };
+  }
+}
 function demoEvents(lg, dateStr) {
   var today = ymd(new Date());
   if (lg === 'ncaaf') {

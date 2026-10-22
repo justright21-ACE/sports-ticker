@@ -8,6 +8,8 @@ Data (both free, no API key):
 - SportsBlaze: NFL, NBA, MLB, WNBA
 - ESPN scoreboard feed: NCAA football (also NCAA men's basketball and NHL)
 
+Each card also shows the opening spread and over/under (DraftKings, via ESPN) when available.
+
 Options go on the end of the address:
 - Favorites are set per league in the CONFIG block (Bears, Eagles, USC, Wisconsin, Spurs, Bulls, White Sox)
 - `?fav=DAL,TEX` override favorites for every league
