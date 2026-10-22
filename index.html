@@ -370,6 +370,29 @@ function nextGameDay(lg, now, cb) {
   step();
 }
 
+/* College football: every game from tomorrow through Saturday, so the week's slate is
+   always on screen. Cached 30 min so it adds only a few requests per half hour. */
+function weekAhead(lg, now, cb) {
+  if (lg !== 'ncaaf') return cb([]);
+  var key = 'week_' + lg, c = cache.lookback[key];
+  if (c && now.getTime() - c.at < 30 * 60000) return cb(c.events);
+  var days = 6 - now.getDay(), n = 1, all = [];   // Sun..Fri -> through Saturday; Sat -> none
+  function step() {
+    if (n > days) { cache.lookback[key] = { at: now.getTime(), events: all }; return cb(all); }
+    dayGames(lg, ymd(addDays(now, n)), function (err, evs) {
+      if (!err) all = all.concat(evs);
+      n++; step();
+    });
+  }
+  step();
+}
+function addNew(list, more) {
+  var ids = {}, i, out = list.slice(0);
+  for (i = 0; i < list.length; i++) ids[list[i].id] = true;
+  for (i = 0; i < more.length; i++) if (!ids[more[i].id]) { ids[more[i].id] = true; out.push(more[i]); }
+  return out;
+}
+
 function loadLeague(lg, cb) {
   var now = new Date(), today = ymd(now);
   dayGames(lg, today, function (err, todays) {
@@ -393,10 +416,15 @@ function loadLeague(lg, cb) {
           if (ymd(parseDate(up[i].date)) === today) upToday.push(up[i]); else upLater.push(up[i]);
         }
         games = games.concat(upToday);
-        if (hasToday || upToday.length) return cb(null, { games: games, label: 'Today' });
+        if (hasToday || upToday.length) {
+          return weekAhead(lg, now, function (ahead) {
+            cb(null, { games: addNew(games, ahead), label: ahead.length ? 'Today & this week' : 'Today' });
+          });
+        }
         latestResults(lg, now, function (recent) {
-          nextGameDay(lg, now, function (nextDay) {
-            var later = upLater.concat(nextDay).slice(0, 16);
+          var findNext = lg === 'ncaaf' ? weekAhead : nextGameDay;
+          findNext(lg, now, function (nextDay) {
+            var later = addNew(upLater, nextDay).slice(0, lg === 'ncaaf' ? 60 : 16);
             var label = recent.length && later.length ? 'Recent & upcoming' :
                         (recent.length ? 'Latest results' : (later.length ? 'Coming up' : ''));
             cb(null, { games: recent.concat(later), label: label });
@@ -619,6 +647,13 @@ function antiBurn() {
 function demoEvents(lg, dateStr) {
   var today = ymd(new Date());
   if (lg === 'ncaaf') {
+    var sat = addDays(new Date(), 6 - new Date().getDay());
+    if (dateStr === ymd(sat) && dateStr !== today) {
+      var k1 = new Date(sat.getTime()); k1.setHours(11, 0, 0, 0);
+      return [{ id: 'cf9', espn: true, teams: { away: { abbreviation: 'PITT', name: 'Pittsburgh', short: 'Pittsburgh', rank: 0 },
+        home: { abbreviation: 'MIA', name: 'Miami', short: 'Miami', rank: 1 } }, date: k1.toISOString(),
+        live: false, status: 'Scheduled', detail: '' }];
+    }
     if (dateStr !== today) return [];
     var at = new Date(); at.setHours(19, 0, 0, 0);
     function tm(ab, short, rank) { return { abbreviation: ab, name: short, short: short, rank: rank }; }
