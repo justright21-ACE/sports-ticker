@@ -680,9 +680,17 @@ function buildPages() {
     var lg = CONFIG.leagues[i], d = state.data[lg];
     if (!d || !d.games.length) continue;
     var games = sortGames(d.games.slice(0), lg), per = CONFIG.cardsPerPage;
-    var total = Math.ceil(games.length / per);
+    // Favorite teams' games are pinned: they appear on every screen of their league,
+    // and the other games rotate through the remaining spots.
+    var pinned = [], others = [];
+    for (var g = 0; g < games.length; g++) {
+      if (isFav(games[g], lg) && pinned.length < per - 2) pinned.push(games[g]); else others.push(games[g]);
+    }
+    var slots = per - pinned.length;
+    var total = Math.max(1, Math.ceil(others.length / slots));
     for (var p = 0; p < total; p++) {
-      pages.push({ lg: lg, label: d.label, games: games.slice(p * per, (p + 1) * per), num: p + 1, of: total });
+      pages.push({ lg: lg, label: d.label, games: pinned.concat(others.slice(p * slots, (p + 1) * slots)),
+                   num: p + 1, of: total });
     }
   }
   state.pages = pages;
