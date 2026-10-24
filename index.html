@@ -236,6 +236,13 @@ var CONFIG = {
   //   From ESPN:        ncaaf (college football), ncaab (men's college basketball), nhl
   leagues: ['nfl', 'ncaaf', 'nba', 'mlb', 'wnba'],
 
+  // Season change: starting on this date, WNBA comes off and men's college basketball
+  // goes on (right after the NBA). Happens by itself; no update needed that day.
+  seasonSwitch: { on: '2026-11-01', remove: 'wnba', add: 'ncaab', after: 'nba' },
+
+  // Men's college basketball: 'top25' = games with a ranked team, 'all' = every Division I game
+  cbb: 'top25',
+
   // College football: 'top25' = games with a ranked team, 'fbs' = every FBS game
   cfb: 'top25',
 
@@ -316,7 +323,8 @@ function readParams() {
   for (var i = 0; i < q.length; i++) {
     var kv = q[i].split('='), k = kv[0], v = decodeURIComponent(kv[1] || '');
     if (!k) continue;
-    if (k === 'leagues' && v) CONFIG.leagues = v.toLowerCase().split(',');
+    if (k === 'leagues' && v) { CONFIG.leagues = v.toLowerCase().split(','); CONFIG.seasonSwitch = null; }
+    if (k === 'cbb' && v) CONFIG.cbb = v.toLowerCase();
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
@@ -363,7 +371,7 @@ function dayGames(lg, dateStr, cb) {
 function espnDay(lg, dateStr, cb) {
   var url = ESPN_API + ESPN_PATHS[lg] + '/scoreboard?dates=' + dateStr.replace(/-/g, '');
   if (lg === 'ncaaf' && CONFIG.cfb === 'fbs') url += '&groups=80&limit=200';
-  if (lg === 'ncaab') url += '&groups=50&limit=200';
+  if (lg === 'ncaab' && CONFIG.cbb === 'all') url += '&groups=50&limit=400';
   getJSON(url, function (err, data) {
     if (err) return cb(err);
     var evs = (data && data.events) || [], out = [];
@@ -919,7 +927,25 @@ function renderFoot(errs) {
 }
 
 /* ---------- main loop ---------- */
+/* Swap leagues when the season-change date arrives (checked on every refresh). */
+function applySeasonSwitch() {
+  var s = CONFIG.seasonSwitch;
+  if (!s || ymd(new Date()) < s.on) return;
+  var out = [], i, added = inList(CONFIG.leagues, s.add);
+  for (i = 0; i < CONFIG.leagues.length; i++) {
+    var lg = CONFIG.leagues[i];
+    if (lg === s.remove) continue;
+    out.push(lg);
+    if (lg === s.after && !added) { out.push(s.add); added = true; }
+  }
+  if (!added) out.push(s.add);
+  CONFIG.leagues = out;
+  delete state.data[s.remove];
+  CONFIG.seasonSwitch = null;                      // done
+}
+
 function refreshAll() {
+  applySeasonSwitch();
   var i = 0, errs = 0, anyLive = false;
   function next() {
     if (i >= CONFIG.leagues.length) return finished();
