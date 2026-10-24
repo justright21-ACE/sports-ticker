@@ -135,6 +135,13 @@
   #crawl .g { margin-right: 2.6vw; }
   #crawl .st { color: #8892aa; margin-left: 0.6vw; font-weight: 500; }
   #crawl .lv { color: #ff6b6b; }
+  #crawl .sx { color: #c9d0e0; font-size: 3.1vh; font-weight: 500; margin-left: 1.2vw; }
+  #crawl .hl {
+    display: inline-block; background: #f5b800; color: #05070d; font-weight: 700;
+    padding: 0 1vw; margin: 0 1.6vw 0 3vw; line-height: 5.4vh; border-radius: 0.5vh; font-size: 3.2vh;
+  }
+  #crawl .n { margin-right: 3.4vw; font-weight: 500; }
+  #crawl .nl { color: #f5b800; font-weight: 700; margin-right: 0.8vw; }
   @-webkit-keyframes crawl { from { -webkit-transform: translateX(0); } to { -webkit-transform: translateX(-50%); } }
   @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
@@ -163,6 +170,8 @@
   .t-bears .card.live { border-color: #ff3b3b; }
   .t-bears .card.live.fav { border-color: #C83803; }
   .t-bears #crawllabel { background: #C83803; color: #ffffff; }
+  .t-bears #crawl .hl { background: #C83803; color: #ffffff; }
+  .t-bears #crawl .nl { color: #E65C1E; }
 
   /* USC Trojans: cardinal + gold (Saturday) */
   body.t-usc { background: #120304; }
@@ -191,6 +200,9 @@
   .t-usc #crawl { color: #ffffff; }
   .t-usc #crawl .st { color: #ffcf9a; }
   .t-usc #crawl .lv { color: #FFC72C; }
+  .t-usc #crawl .sx { color: #f0dcd6; }
+  .t-usc #crawl .hl { background: #FFC72C; color: #990000; }
+  .t-usc #crawl .nl { color: #FFC72C; }
   .t-usc #foot { color: #7a4a46; }
 </style>
 </head>
@@ -250,7 +262,10 @@ var CONFIG = {
   rotateSec: 8,          // seconds each screen of cards stays up
   cardsPerPage: 8,       // 2 rows of 4
   lookbackDays: 7,       // if a league has no games today, show its most recent results
-  crawlSpeed: 90         // bottom ticker speed (pixels per second)
+  crawlSpeed: 90,        // bottom ticker speed (pixels per second)
+  crawlStats: true,      // key stats in the bottom bar for live games + your teams' games
+  crawlNews: true,       // league headlines in the bottom bar
+  newsPerLeague: 3       // headlines per league
 };
 /* ======================================================== */
 
@@ -307,6 +322,8 @@ function readParams() {
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
+    if (k === 'stats') CONFIG.crawlStats = v !== '0';
+    if (k === 'news') CONFIG.crawlNews = v !== '0';
     if (k === 'demo' && v !== '0') DEMO = true;
   }
 }
@@ -366,6 +383,7 @@ function fromEspn(ev) {
   }
   if (!teams.away || !teams.home) return null;
   recordLine(ev, c);
+  readExtras(ev, c);
   var desc = ty.description || '', state = ty.state;
   var live = state === 'in';
   var fin = state === 'post' && !/postpon|cancel|suspend|delay/i.test(desc);
@@ -419,28 +437,112 @@ function recordLine(ev, c) {
   if (tl) rec.total = String(tl).replace(/^[ou]\s*/i, '');
   if (rec.line || rec.total) lines[key] = rec;
 }
-/* Pro leagues get scores from SportsBlaze, so look up their lines on ESPN by date + team. */
+/* ---- Key game stats for the bottom bar (ESPN): who has the ball + top performers ---- */
+var extras = {};
+var STAT_LABELS = { passingYards: 'PASS', rushingYards: 'RUSH', receivingYards: 'REC', points: 'PTS',
+                    rebounds: 'REB', assists: 'AST', goals: 'G', hits: 'H', homeRuns: 'HR', RBIs: 'RBI' };
+function athleteName(ent) {
+  var a = ent && ent.athlete;
+  return a ? (a.shortName || a.displayName || '') : '';
+}
+function readExtras(ev, c) {
+  if (!c) return;
+  var ty = (ev.status && ev.status.type) || (c.status && c.status.type) || {};
+  if (ty.state !== 'in' && ty.state !== 'post') return;
+  var comps = c.competitors || [], names = {}, abbrById = {}, i, parts = [];
+  for (i = 0; i < comps.length; i++) {
+    var t = comps[i].team || {};
+    names[comps[i].homeAway === 'home' ? 'home' : 'away'] = t.displayName;
+    if (t.id) abbrById[t.id] = t.abbreviation;
+    if (comps[i].id) abbrById[comps[i].id] = t.abbreviation;
+  }
+  if (!names.away || !names.home) return;
+  var s = c.situation;                             // football: ball + down & distance while live
+  if (s && ty.state === 'in') {
+    var dd = s.downDistanceText || s.shortDownDistanceText;
+    var who = s.possession ? abbrById[s.possession] : '';
+    if (dd) parts.push((who ? who + ' ball, ' : '') + dd + (s.isRedZone ? ' (RED ZONE)' : ''));
+  }
+  var L = c.leaders || [];                         // football: game leaders by category
+  for (i = 0; i < L.length && i < 3; i++) {
+    var ent = L[i].leaders && L[i].leaders[0];
+    if (ent && ent.displayValue) {
+      var lab = STAT_LABELS[L[i].name] || L[i].abbreviation || L[i].shortDisplayName || '';
+      parts.push(String(lab).toUpperCase() + ' ' + athleteName(ent) + ' ' + ent.displayValue);
+    }
+  }
+  if (!L.length) {                                 // basketball/hockey: each team's top scorer
+    for (i = 0; i < comps.length; i++) {
+      var cl = comps[i].leaders || [];
+      for (var k = 0; k < cl.length; k++) {
+        if (cl[k].name !== 'points' && cl[k].name !== 'goals') continue;
+        var e2 = cl[k].leaders && cl[k].leaders[0];
+        if (e2) parts.push((comps[i].team || {}).abbreviation + ' ' + athleteName(e2) + ' ' +
+                           e2.displayValue + ' ' + STAT_LABELS[cl[k].name]);
+      }
+    }
+  }
+  if (parts.length) extras[gameKey(ev.date, names.away, names.home)] = parts.join('  ·  ');
+}
+
+/* Pro leagues get scores from SportsBlaze, so look up their lines (and live stats) on ESPN
+   by date + team. Today's board is re-read every refresh while games are live. */
 function fetchLines(lg, games, cb) {
   if (DEMO) { demoLines(games); return cb(); }
   var path = ESPN_ODDS_PATHS[lg];
   if (!path) return cb();                          // ESPN leagues already recorded theirs
   cache.linesAt = cache.linesAt || {};
-  var now = new Date().getTime(), seen = {}, list = [], i;
+  var now = new Date().getTime(), today = ymd(new Date()), seen = {}, list = [], i, liveToday = false;
   for (i = 0; i < games.length; i++) {
-    if (lines[keyOf(games[i])]) continue;
     var d = ymd(parseDate(games[i].date));
+    if (d === today && (games[i].live || (isFinal(games[i]) && isFav(games[i], lg)))) liveToday = true;
+    if (lines[keyOf(games[i])]) continue;
     if (!seen[d]) { seen[d] = true; list.push(d); }
   }
+  if (CONFIG.crawlStats && liveToday && !seen[today]) list.unshift(today);
   list = list.slice(0, 8);
   var n = 0;
   function step() {
     if (n >= list.length) return cb();
     var d = list[n++], ck = lg + d;
-    if (cache.linesAt[ck] && now - cache.linesAt[ck] < 30 * 60000) return step();
+    var ttl = (d === today && liveToday) ? 45000 : 30 * 60000;
+    if (cache.linesAt[ck] && now - cache.linesAt[ck] < ttl) return step();
     getJSON(ESPN_API + path + '/scoreboard?dates=' + d.replace(/-/g, ''), function (err, data) {
       cache.linesAt[ck] = now;
       var evs = (!err && data && data.events) || [];
-      for (var j = 0; j < evs.length; j++) recordLine(evs[j], evs[j].competitions && evs[j].competitions[0]);
+      for (var j = 0; j < evs.length; j++) {
+        var c = evs[j].competitions && evs[j].competitions[0];
+        recordLine(evs[j], c);
+        readExtras(evs[j], c);
+      }
+      step();
+    });
+  }
+  step();
+}
+
+/* ---- Headlines (ESPN news), refreshed every 15 minutes ---- */
+var news = { at: 0, items: [] };
+function loadNews(cb) {
+  if (!CONFIG.crawlNews) { news.items = []; return cb(); }
+  if (DEMO) { news.items = demoNews(); return cb(); }
+  var now = new Date().getTime();
+  if (news.at && now - news.at < 15 * 60000) return cb();
+  var items = [], i = 0, ok = 0;
+  function step() {
+    if (i >= CONFIG.leagues.length) {
+      if (ok) news.items = items;                  // keep old headlines if every request failed
+      news.at = now;
+      return cb();
+    }
+    var lg = CONFIG.leagues[i++], path = ESPN_ODDS_PATHS[lg] || ESPN_PATHS[lg];
+    if (!path) return step();
+    getJSON(ESPN_API + path + '/news?limit=' + CONFIG.newsPerLeague, function (err, data) {
+      var arts = (!err && data && data.articles) || [];
+      if (!err) ok++;
+      for (var j = 0; j < arts.length && j < CONFIG.newsPerLeague; j++) {
+        if (arts[j].headline) items.push({ lg: lg, h: arts[j].headline });
+      }
       step();
     });
   }
@@ -734,7 +836,7 @@ function renderCrawl() {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], d = state.data[lg];
     if (!d || !d.games.length) continue;
-    var games = sortGames(d.games.slice(0), lg);
+    var games = sortGames(d.games.slice(0), lg), statCount = 0;
     html += '<span class="lg">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
     for (var j = 0; j < games.length; j++) {
       var e = games[j], a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
@@ -745,22 +847,56 @@ function renderCrawl() {
       if (e.open && !e.live && !isFinal(e)) {      // lines in the crawl for games not started yet
         ln = spreadText(e) + (e.open.total ? (spreadText(e) ? '  ' : '') + 'O/U ' + e.open.total : '');
       }
+      // key stats: live games and your teams' games (max 6 per league so the bar stays readable)
+      var sx = '';
+      if (CONFIG.crawlStats && e.extra && (e.live || (isFav(e, lg) && isFinal(e))) && statCount < 6) {
+        sx = e.extra; statCount++;
+      }
       html += '<span class="g">' + body + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(st) + '</span>' +
-              (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') + '</span>';
-      key += body + st + ln;
+              (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') +
+              (sx ? '<span class="sx">' + esc(sx) + '</span>' : '') + '</span>';
+      key += body + st + ln + sx;
     }
   }
-  if (key === state.crawlKey) return;           // unchanged: don't restart the scroll
+  if (CONFIG.crawlNews && news.items.length) {
+    html += '<span class="hl">HEADLINES</span>';
+    for (var n = 0; n < news.items.length; n++) {
+      var it = news.items[n];
+      html += '<span class="n"><span class="nl">' + (LEAGUE_NAMES[it.lg] || it.lg.toUpperCase()) + '</span>' + esc(it.h) + '</span>';
+      key += it.h;
+    }
+  }
+  if (key === state.crawlKey) return;
   state.crawlKey = key;
+  setCrawl(html);
+}
+
+/* New bottom-bar content waits until the current pass finishes, so a long bar
+   isn't restarted from the beginning every time a score changes. */
+function setCrawl(html) {
+  state.crawlNext = html;
+  if (!state.crawlLive) return applyCrawl();
+  if (!state.crawlTimer) {                       // backup in case this browser never reports the loop end
+    state.crawlTimer = setTimeout(applyCrawl, ((state.crawlSecs || 60) + 5) * 1000);
+  }
+}
+function applyCrawl() {
+  if (state.crawlTimer) { clearTimeout(state.crawlTimer); state.crawlTimer = null; }
+  var html = state.crawlNext;
+  if (html === null || html === undefined) return;
+  state.crawlNext = null;
   var el = $('crawl');
-  if (!html) { el.innerHTML = ''; el.style.webkitAnimation = el.style.animation = 'none'; return; }
+  if (!html) { el.innerHTML = ''; el.style.webkitAnimation = el.style.animation = 'none'; state.crawlLive = false; return; }
   el.innerHTML = html + html;                   // doubled for a seamless loop
   var w = el.offsetWidth / 2, secs = Math.max(20, Math.round(w / CONFIG.crawlSpeed));
+  state.crawlSecs = secs;
   var anim = 'crawl ' + secs + 's linear infinite';
   el.style.webkitAnimation = 'none'; el.style.animation = 'none';
   void el.offsetWidth;                          // restart animation
   el.style.webkitAnimation = anim; el.style.animation = anim;
+  state.crawlLive = true;
 }
+function onCrawlLoop() { if (state.crawlNext !== null && state.crawlNext !== undefined) applyCrawl(); }
 
 /* Saturday = USC, every other day = Bears (unless a theme is forced) */
 function applyTheme(d) {
@@ -793,6 +929,7 @@ function refreshAll() {
       fetchLines(lg, res.games, function () {
         for (var k = 0; k < res.games.length; k++) {
           res.games[k].open = lines[keyOf(res.games[k])] || null;
+          res.games[k].extra = extras[keyOf(res.games[k])] || '';
           if (res.games[k].live) anyLive = true;
         }
         state.data[lg] = res;
@@ -809,9 +946,11 @@ function refreshAll() {
       m.innerHTML = 'Can&rsquo;t reach SportsBlaze<small>Check that this screen is connected to the internet. ' +
         'Retrying automatically&hellip;</small>';
     }
-    buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    setTimeout(refreshAll, wait * 1000);
+    loadNews(function () {
+      buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
+      setTimeout(refreshAll, wait * 1000);
+    });
   }
   next();
 }
@@ -829,7 +968,18 @@ function antiBurn() {
 }
 
 /* ---------- demo data (?demo=1) ---------- */
+function demoNews() {
+  return [{ lg: 'nfl', h: 'Bears activate starting left tackle ahead of Sunday matchup' },
+          { lg: 'ncaaf', h: 'USC moves up two spots in latest AP poll after road win' },
+          { lg: 'nba', h: 'Spurs extend win streak behind big night from their center' }];
+}
 function demoLines(games) {
+  for (var j = 0; j < games.length; j++) {
+    var g = games[j];
+    if (g.live) extras[keyOf(g)] = g.espn ? 'OSU ball, 2nd & 7 at IU 34  ·  PASS W. Howard 14/20, 180 YDS  ·  RUSH T. Henderson 12 CAR, 88 YDS'
+                                          : g.teams.away.abbreviation + ' A. Player 24 PTS  ·  ' + g.teams.home.abbreviation + ' B. Player 19 PTS';
+    if (isFinal(g) && g.teams.away.abbreviation === 'SA') extras[keyOf(g)] = 'SA V. Wembanyama 31 PTS  ·  DAL L. Player 27 PTS';
+  }
   for (var i = 0; i < games.length; i++) {
     if (i % 4 === 3) continue;                     // leave some games without a line
     var k = keyOf(games[i]);
@@ -894,6 +1044,13 @@ function demoEvents(lg, dateStr) {
 
 /* ---------- start ---------- */
 readParams();
+(function () {
+  var el = $('crawl');
+  if (el.addEventListener) {
+    el.addEventListener('animationiteration', onCrawlLoop, false);
+    el.addEventListener('webkitAnimationIteration', onCrawlLoop, false);
+  }
+})();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
 refreshAll();
