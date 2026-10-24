@@ -370,15 +370,18 @@ function getJSON(url, cb) {
 }
 
 /* One day of games for any league, whichever feed it comes from. */
+/* Pro leagues switch to ESPN for the rest of the session if SportsBlaze comes up empty. */
+var viaEspn = {};
+function fromEspnFeed(lg) { return !!(ESPN_PATHS[lg] || viaEspn[lg]); }
 function dayGames(lg, dateStr, cb) {
   if (DEMO) return cb(null, demoEvents(lg, dateStr));
-  if (ESPN_PATHS[lg]) return espnDay(lg, dateStr, cb);
+  if (fromEspnFeed(lg)) return espnDay(lg, dateStr, cb);
   boxscores(lg, dateStr, cb);
 }
 
 /* ---- ESPN feed (college football etc.), converted to the same shape as SportsBlaze ---- */
 function espnDay(lg, dateStr, cb) {
-  var url = ESPN_API + ESPN_PATHS[lg] + '/scoreboard?dates=' + dateStr.replace(/-/g, '');
+  var url = ESPN_API + (ESPN_PATHS[lg] || ESPN_ODDS_PATHS[lg]) + '/scoreboard?dates=' + dateStr.replace(/-/g, '');
   if (lg === 'ncaaf' && CONFIG.cfb === 'fbs') url += '&groups=80&limit=200';
   if (lg === 'ncaab' && CONFIG.cbb === 'all') url += '&groups=50&limit=400';
   getJSON(url, function (err, data) {
@@ -507,8 +510,8 @@ function readExtras(ev, c) {
    by date + team. Today's board is re-read every refresh while games are live. */
 function fetchLines(lg, games, cb) {
   if (DEMO) { demoLines(games); return cb(); }
-  var path = ESPN_ODDS_PATHS[lg];
-  if (!path) return cb();                          // ESPN leagues already recorded theirs
+  var path = fromEspnFeed(lg) ? '' : ESPN_ODDS_PATHS[lg];
+  if (!path) return cb();                          // ESPN-fed leagues already recorded theirs
   cache.linesAt = cache.linesAt || {};
   var now = new Date().getTime(), today = ymd(new Date()), seen = {}, list = [], i, liveToday = false;
   for (i = 0; i < games.length; i++) {
@@ -578,7 +581,7 @@ function boxscores(lg, dateStr, cb) {
 
 /* Season schedule: only used to find games that haven't started yet. Cached 30 min. */
 function upcomingGames(lg, now, cb) {
-  if (!inList(CONFIG.upcoming, lg) || DEMO) return cb([]);
+  if (!inList(CONFIG.upcoming, lg) || DEMO || fromEspnFeed(lg)) return cb([]);
   var c = cache.schedule[lg];
   if (c && now.getTime() - c.at < 30 * 60000) return cb(c.events);
   getJSON(API + '/schedule/' + lg + '/' + seasonYear(lg, now), function (err, data) {
@@ -614,7 +617,7 @@ function latestResults(lg, now, cb) {
 
 /* ESPN leagues: if nothing today, look ahead day by day to the next game day. Cached 30 min. */
 function nextGameDay(lg, now, cb) {
-  if (!ESPN_PATHS[lg] && !DEMO) return cb([]);
+  if (!fromEspnFeed(lg) && !DEMO) return cb([]);
   var key = 'next_' + lg, c = cache.lookback[key];
   if (c && now.getTime() - c.at < 30 * 60000) return cb(c.events);
   var n = 1;
@@ -715,6 +718,18 @@ function fromFight(c, idx, count) {
 
 function loadLeague(lg, cb) {
   if (lg === 'ufc') return loadUfc(cb);
+  loadLeagueOnce(lg, function (err, res) {
+    // SportsBlaze failed or has nothing (e.g. playoff games it doesn't carry): use ESPN instead
+    if ((err || !res.games.length) && !fromEspnFeed(lg) && ESPN_ODDS_PATHS[lg] && !DEMO) {
+      viaEspn[lg] = true;
+      delete cache.lookback[lg]; delete cache.lookback['next_' + lg]; delete cache.lookback['week_' + lg];
+      return loadLeagueOnce(lg, cb);
+    }
+    cb(err, res);
+  });
+}
+
+function loadLeagueOnce(lg, cb) {
   var now = new Date(), today = ymd(now);
   dayGames(lg, today, function (err, todays) {
     if (err) return cb(err);
