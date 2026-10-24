@@ -270,9 +270,11 @@ var CONFIG = {
   cardsPerPage: 8,       // 2 rows of 4
   lookbackDays: 7,       // if a league has no games today, show its most recent results
   crawlSpeed: 90,        // bottom ticker speed (pixels per second)
+  crawlPerSegment: 5,    // games per bottom-bar segment
+  crawlMaxPerLeague: 10, // most games per league in the bottom bar (your teams + live first)
   crawlStats: true,      // key stats in the bottom bar for live games + your teams' games
   crawlNews: true,       // league headlines in the bottom bar
-  newsPerLeague: 3       // headlines per league
+  newsPerLeague: 2       // headlines per league
 };
 /* ======================================================== */
 
@@ -466,10 +468,11 @@ function readExtras(ev, c) {
   }
   if (!names.away || !names.home) return;
   var s = c.situation;                             // football: ball + down & distance while live
+  var sit = '';
   if (s && ty.state === 'in') {
     var dd = s.downDistanceText || s.shortDownDistanceText;
     var who = s.possession ? abbrById[s.possession] : '';
-    if (dd) parts.push((who ? who + ' ball, ' : '') + dd + (s.isRedZone ? ' (RED ZONE)' : ''));
+    if (dd) { sit = (who ? who + ' ball, ' : '') + dd + (s.isRedZone ? ' (RED ZONE)' : ''); parts.push(sit); }
   }
   var L = c.leaders || [];                         // football: game leaders by category
   for (i = 0; i < L.length && i < 3; i++) {
@@ -490,7 +493,7 @@ function readExtras(ev, c) {
       }
     }
   }
-  if (parts.length) extras[gameKey(ev.date, names.away, names.home)] = parts.join('  ·  ');
+  if (parts.length) extras[gameKey(ev.date, names.away, names.home)] = { all: parts.join('  ·  '), sit: sit };
 }
 
 /* Pro leagues get scores from SportsBlaze, so look up their lines (and live stats) on ESPN
@@ -839,72 +842,96 @@ function renderPage() {
   $('cards').innerHTML = html;
 }
 
+/* ---------- bottom bar ----------
+   The bar plays one short segment at a time (one league, a few games), and the box on the
+   left names what's scrolling. Short segments keep each pass quick and stay within what
+   older TV browsers can draw. */
+function crawlRelevant(e, lg, today) {
+  if (e.live || isFav(e, lg)) return true;                  // live games + your teams, any day
+  return ymd(parseDate(e.date)) === today;                  // otherwise just today's games
+}
+function crawlGameHTML(e, lg, sx) {
+  var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
+  var st = statusText(e, lg);
+  var body = sa !== '' ? esc(a.abbreviation) + ' ' + esc(sa) + '  ' + esc(h.abbreviation) + ' ' + esc(sh)
+                       : esc(a.abbreviation) + ' @ ' + esc(h.abbreviation);
+  var ln = '';
+  if (e.open && !e.live && !isFinal(e)) {
+    ln = spreadText(e) + (e.open.total ? (spreadText(e) ? '  ' : '') + 'O/U ' + e.open.total : '');
+  }
+  return '<span class="g">' + body + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(st) + '</span>' +
+         (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') +
+         (sx ? '<span class="sx">' + esc(sx) + '</span>' : '') + '</span>';
+}
 function renderCrawl() {
-  var html = '', key = '';
+  var groups = [], today = ymd(new Date());
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], d = state.data[lg];
     if (!d || !d.games.length) continue;
-    var games = sortGames(d.games.slice(0), lg), statCount = 0;
-    html += '<span class="lg">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
-    for (var j = 0; j < games.length; j++) {
-      var e = games[j], a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
-      var st = statusText(e, lg);
-      var body = sa !== '' ? esc(a.abbreviation) + ' ' + esc(sa) + '  ' + esc(h.abbreviation) + ' ' + esc(sh)
-                           : esc(a.abbreviation) + ' @ ' + esc(h.abbreviation);
-      var ln = '';
-      if (e.open && !e.live && !isFinal(e)) {      // lines in the crawl for games not started yet
-        ln = spreadText(e) + (e.open.total ? (spreadText(e) ? '  ' : '') + 'O/U ' + e.open.total : '');
+    var all = sortGames(d.games.slice(0), lg), games = [], segs = [];
+    for (var j = 0; j < all.length; j++) if (crawlRelevant(all[j], lg, today)) games.push(all[j]);
+    games = games.slice(0, CONFIG.crawlMaxPerLeague);
+    var name = LEAGUE_NAMES[lg] || lg.toUpperCase();
+    for (var k = 0; k < games.length; k += CONFIG.crawlPerSegment) {
+      var html = '';
+      for (var m = k; m < k + CONFIG.crawlPerSegment && m < games.length; m++) {
+        var e = games[m], sx = '';
+        if (CONFIG.crawlStats) {
+          if (isFav(e, lg) && (e.live || isFinal(e))) sx = e.extra;   // your teams: full stats
+          else if (e.live) sx = e.sit;                                // others: just ball + down
+        }
+        html += crawlGameHTML(e, lg, sx);
       }
-      // key stats: live games and your teams' games (max 6 per league so the bar stays readable)
-      var sx = '';
-      if (CONFIG.crawlStats && e.extra && (e.live || (isFav(e, lg) && isFinal(e))) && statCount < 6) {
-        sx = e.extra; statCount++;
-      }
-      html += '<span class="g">' + body + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(st) + '</span>' +
-              (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') +
-              (sx ? '<span class="sx">' + esc(sx) + '</span>' : '') + '</span>';
-      key += body + st + ln + sx;
+      segs.push({ label: name, html: html });
     }
+    if (segs.length) groups.push(segs);
   }
   if (CONFIG.crawlNews && news.items.length) {
-    html += '<span class="hl">HEADLINES</span>';
-    for (var n = 0; n < news.items.length; n++) {
-      var it = news.items[n];
-      html += '<span class="n"><span class="nl">' + (LEAGUE_NAMES[it.lg] || it.lg.toUpperCase()) + '</span>' + esc(it.h) + '</span>';
-      key += it.h;
+    var ns = [];
+    for (var n = 0; n < news.items.length; n += 3) {
+      var nh = '';
+      for (var q = n; q < n + 3 && q < news.items.length; q++) {
+        var it = news.items[q];
+        nh += '<span class="n"><span class="nl">' + (LEAGUE_NAMES[it.lg] || it.lg.toUpperCase()) + '</span>' + esc(it.h) + '</span>';
+      }
+      ns.push({ label: 'HEADLINES', html: nh });
     }
+    groups.push(ns);
   }
-  if (key === state.crawlKey) return;
-  state.crawlKey = key;
-  setCrawl(html);
-}
-
-/* New bottom-bar content waits until the current pass finishes, so a long bar
-   isn't restarted from the beginning every time a score changes. */
-function setCrawl(html) {
-  state.crawlNext = html;
-  if (!state.crawlLive) return applyCrawl();
-  if (!state.crawlTimer) {                       // backup in case this browser never reports the loop end
-    state.crawlTimer = setTimeout(applyCrawl, ((state.crawlSecs || 60) + 5) * 1000);
+  // take turns: first segment of each league, then the second of each, and so on
+  var out = [], more = true;
+  for (var r = 0; more; r++) {
+    more = false;
+    for (var g = 0; g < groups.length; g++) if (groups[g][r]) { out.push(groups[g][r]); more = true; }
   }
+  state.crawlSegs = out;                           // picked up when the current segment finishes
+  if (!state.crawlRunning) playSegment(0);
 }
-function applyCrawl() {
+function setX(el, x, secs) {
+  el.style.webkitTransition = secs ? '-webkit-transform ' + secs + 's linear' : 'none';
+  el.style.transition = secs ? 'transform ' + secs + 's linear' : 'none';
+  el.style.webkitTransform = 'translateX(' + x + 'px)';
+  el.style.transform = 'translateX(' + x + 'px)';
+}
+function playSegment(i) {
+  var segs = state.crawlSegs || [], el = $('crawl');
   if (state.crawlTimer) { clearTimeout(state.crawlTimer); state.crawlTimer = null; }
-  var html = state.crawlNext;
-  if (html === null || html === undefined) return;
-  state.crawlNext = null;
-  var el = $('crawl');
-  if (!html) { el.innerHTML = ''; el.style.webkitAnimation = el.style.animation = 'none'; state.crawlLive = false; return; }
-  el.innerHTML = html + html;                   // doubled for a seamless loop
-  var w = el.offsetWidth / 2, secs = Math.max(20, Math.round(w / CONFIG.crawlSpeed));
-  state.crawlSecs = secs;
-  var anim = 'crawl ' + secs + 's linear infinite';
-  el.style.webkitAnimation = 'none'; el.style.animation = 'none';
-  void el.offsetWidth;                          // restart animation
-  el.style.webkitAnimation = anim; el.style.animation = anim;
-  state.crawlLive = true;
+  if (!segs.length) {
+    el.innerHTML = ''; $('crawllabel').innerHTML = 'SCORES'; state.crawlRunning = false; return;
+  }
+  i = i % segs.length;
+  state.crawlIdx = i;
+  var seg = segs[i];
+  $('crawllabel').innerHTML = esc(seg.label);
+  el.innerHTML = seg.html;
+  var start = $('crawlbar').offsetWidth, w = el.offsetWidth;
+  var secs = Math.max(4, Math.round((start + w) / CONFIG.crawlSpeed));
+  setX(el, start, 0);                              // park just off the right edge
+  void el.offsetWidth;
+  setX(el, -w, secs);                              // scroll until fully off the left edge
+  state.crawlRunning = true;
+  state.crawlTimer = setTimeout(function () { playSegment(state.crawlIdx + 1); }, secs * 1000 + 300);
 }
-function onCrawlLoop() { if (state.crawlNext !== null && state.crawlNext !== undefined) applyCrawl(); }
 
 /* Saturday = USC, every other day = Bears (unless a theme is forced) */
 function applyTheme(d) {
@@ -955,7 +982,9 @@ function refreshAll() {
       fetchLines(lg, res.games, function () {
         for (var k = 0; k < res.games.length; k++) {
           res.games[k].open = lines[keyOf(res.games[k])] || null;
-          res.games[k].extra = extras[keyOf(res.games[k])] || '';
+          var ex = extras[keyOf(res.games[k])] || {};
+          res.games[k].extra = ex.all || '';
+          res.games[k].sit = ex.sit || '';
           if (res.games[k].live) anyLive = true;
         }
         state.data[lg] = res;
@@ -1002,9 +1031,10 @@ function demoNews() {
 function demoLines(games) {
   for (var j = 0; j < games.length; j++) {
     var g = games[j];
-    if (g.live) extras[keyOf(g)] = g.espn ? 'OSU ball, 2nd & 7 at IU 34  ·  PASS W. Howard 14/20, 180 YDS  ·  RUSH T. Henderson 12 CAR, 88 YDS'
-                                          : g.teams.away.abbreviation + ' A. Player 24 PTS  ·  ' + g.teams.home.abbreviation + ' B. Player 19 PTS';
-    if (isFinal(g) && g.teams.away.abbreviation === 'SA') extras[keyOf(g)] = 'SA V. Wembanyama 31 PTS  ·  DAL L. Player 27 PTS';
+    if (g.live) extras[keyOf(g)] = g.espn
+      ? { all: 'OSU ball, 2nd & 7 at IU 34  ·  PASS W. Howard 14/20, 180 YDS  ·  RUSH T. Henderson 12 CAR, 88 YDS', sit: 'OSU ball, 2nd & 7 at IU 34' }
+      : { all: g.teams.away.abbreviation + ' A. Player 24 PTS  ·  ' + g.teams.home.abbreviation + ' B. Player 19 PTS', sit: '' };
+    if (isFinal(g) && g.teams.away.abbreviation === 'SA') extras[keyOf(g)] = { all: 'SA V. Wembanyama 31 PTS  ·  DAL L. Player 27 PTS', sit: '' };
   }
   for (var i = 0; i < games.length; i++) {
     if (i % 4 === 3) continue;                     // leave some games without a line
@@ -1070,13 +1100,6 @@ function demoEvents(lg, dateStr) {
 
 /* ---------- start ---------- */
 readParams();
-(function () {
-  var el = $('crawl');
-  if (el.addEventListener) {
-    el.addEventListener('animationiteration', onCrawlLoop, false);
-    el.addEventListener('webkitAnimationIteration', onCrawlLoop, false);
-  }
-})();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
 refreshAll();
