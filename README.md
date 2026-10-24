@@ -6,7 +6,7 @@ Live page: https://justright21-ace.github.io/sports-ticker/
 
 Data (both free, no API key):
 - SportsBlaze: NFL, NBA, MLB, WNBA
-- ESPN scoreboard feed: NCAA football (also NCAA men's basketball and NHL)
+- ESPN scoreboard feed: NCAA football, UFC main card fights (also NCAA men's basketball and NHL)
 
 Each card also shows the opening spread and over/under (DraftKings, via ESPN) when available.
 

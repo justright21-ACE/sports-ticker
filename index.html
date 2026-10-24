@@ -35,16 +35,16 @@
   }
   #brand {
     position: absolute; left: 2.5vw; top: 0; line-height: 9vh;
-    font-size: 4.6vh; font-weight: 700; letter-spacing: 0.25vw;
+    font-size: 4.2vh; font-weight: 700; letter-spacing: 0.15vw;
     text-transform: uppercase;
   }
   #brand span { color: #f5b800; }
   #tabs { position: absolute; left: 0; right: 0; top: 0; text-align: center; line-height: 9vh; }
   .tab {
     display: inline-block; vertical-align: middle;
-    margin: 0 0.6vw; padding: 0 1.4vw;
+    margin: 0 0.2vw; padding: 0 0.8vw;
     height: 5vh; line-height: 5vh;
-    font-size: 3.2vh; font-weight: 600; letter-spacing: 0.15vw;
+    font-size: 3vh; font-weight: 600; letter-spacing: 0.08vw;
     color: #6f7a94; border-radius: 0.6vh;
   }
   .tab.on { background: #f5b800; color: #05070d; }
@@ -103,6 +103,12 @@
   }
   .lines .lbl { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; margin-right: 0.8vw; }
   .lines .ou { float: right; }
+  .fight .abbr { font-size: 2.7vh; max-width: 14.6vw; padding: 0 0.6vw; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
+  .fight .name { display: none; }
+  .fight .abbr { max-width: 17vw; }
+  .fight .score { color: #f5b800; }
+  .t-bears .fight .score { color: #E65C1E; }
+  .t-usc .fight .score { color: #FFC72C; }
   .dot {
     display: inline-block; width: 1.4vh; height: 1.4vh; border-radius: 50%;
     background: #ff4545; margin-right: 0.7vw; vertical-align: middle; position: relative; top: -0.2vh;
@@ -233,8 +239,9 @@
 var CONFIG = {
   // Leagues to show, in this order.
   //   From SportsBlaze: nfl, nba, mlb, wnba
-  //   From ESPN:        ncaaf (college football), ncaab (men's college basketball), nhl
-  leagues: ['nfl', 'ncaaf', 'nba', 'mlb', 'wnba'],
+  //   From ESPN:        ncaaf (college football), ncaab (men's college basketball), nhl,
+  //                     ufc (main card fights only)
+  leagues: ['nfl', 'ncaaf', 'nba', 'mlb', 'wnba', 'ufc'],
 
   // Season change: starting on this date, WNBA comes off and men's college basketball
   // goes on (right after the NBA). Happens by itself; no update needed that day.
@@ -281,7 +288,7 @@ var CONFIG = {
 var API = 'https://cache.sportsblaze.com';
 var ESPN_API = 'https://site.api.espn.com/apis/site/v2/sports/';
 var ESPN_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-college-basketball', nhl: 'hockey/nhl' };
-var LEAGUE_NAMES = { nfl: 'NFL', nba: 'NBA', mlb: 'MLB', wnba: 'WNBA', ncaaf: 'NCAAF', ncaab: 'NCAAB', nhl: 'NHL' };
+var LEAGUE_NAMES = { nfl: 'NFL', nba: 'NBA', mlb: 'MLB', wnba: 'WNBA', ncaaf: 'NCAAF', ncaab: 'NCAAB', nhl: 'NHL', ufc: 'UFC' };
 var DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -546,7 +553,7 @@ function loadNews(cb) {
       news.at = now;
       return cb();
     }
-    var lg = CONFIG.leagues[i++], path = ESPN_ODDS_PATHS[lg] || ESPN_PATHS[lg];
+    var lg = CONFIG.leagues[i++], path = ESPN_ODDS_PATHS[lg] || ESPN_PATHS[lg] || (lg === 'ufc' ? 'mma/ufc' : '');
     if (!path) return step();
     getJSON(ESPN_API + path + '/news?limit=' + CONFIG.newsPerLeague, function (err, data) {
       var arts = (!err && data && data.articles) || [];
@@ -644,7 +651,70 @@ function addNew(list, more) {
   return out;
 }
 
+/* ---- UFC (ESPN): the current or next event, main card fights only ---- */
+function loadUfc(cb) {
+  if (DEMO) return cb(null, demoUfc());
+  getJSON(ESPN_API + 'mma/ufc/scoreboard', function (err, data) {
+    if (err) return cb(err);
+    var evs = (data && data.events) || [], now = new Date().getTime(), best = null, bestT = 0, i;
+    for (i = 0; i < evs.length; i++) {             // live event first
+      var st = evs[i].status && evs[i].status.type && evs[i].status.type.state;
+      if (st === 'in') { best = evs[i]; break; }
+    }
+    if (!best) {                                   // else the next one (from 12h ago on)...
+      for (i = 0; i < evs.length; i++) {
+        var t = parseDate(evs[i].date).getTime();
+        if (t >= now - 12 * 3600000 && (!best || t < bestT)) { best = evs[i]; bestT = t; }
+      }
+    }
+    if (!best) {                                   // ...or the most recent, up to 2 days back
+      for (i = 0; i < evs.length; i++) {
+        var t2 = parseDate(evs[i].date).getTime();
+        if (t2 >= now - 2 * 86400000 && (!best || t2 > bestT)) { best = evs[i]; bestT = t2; }
+      }
+    }
+    if (!best) return cb(null, { games: [], label: '' });
+    var comps = best.competitions || [], fights = [], main = [];
+    for (i = 0; i < comps.length; i++) { var f = fromFight(comps[i], i, comps.length); if (f) fights.push(f); }
+    for (i = 0; i < fights.length; i++) if (fights[i].main) main.push(fights[i]);
+    fights.sort(function (a, b) { return a.order - b.order; });
+    if (!main.length) main = fights.slice(0, 5);   // no card labels: top 5 bouts
+    main.sort(function (a, b) { return a.order - b.order; });
+    if (main.length) main[0].mainEvent = true;
+    var d = parseDate(best.date), day = ymd(d) === ymd(new Date()) ? 'Tonight' : DAYS[d.getDay()].charAt(0) + DAYS[d.getDay()].substr(1).toLowerCase();
+    cb(null, { games: main, label: (best.shortName || best.name || 'UFC') + ' · Main card · ' + day });
+  });
+}
+function fromFight(c, idx, count) {
+  var cps = (c.competitors || []).slice(0);
+  if (cps.length < 2) return null;
+  cps.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+  function fighter(cp) {
+    var at = cp.athlete || {}, full = at.displayName || at.fullName || '';
+    var last = at.shortName ? at.shortName.replace(/^[A-Z][a-z]*\.\s*/, '') : full.split(' ').slice(-1)[0];
+    var rec = cp.records && cp.records[0] && cp.records[0].summary;
+    return { abbreviation: String(last || full).toUpperCase(), name: full, short: rec || '', rank: 0 };
+  }
+  var seg = c.cardSegment, segText = typeof seg === 'string' ? seg : (seg && (seg.description || seg.displayName || seg.name)) || '';
+  var stt = c.status || {}, ty = stt.type || {}, live = ty.state === 'in', fin = ty.state === 'post';
+  var r = stt.result, method = (r && (r.shortDisplayName || r.displayName || r.name)) || '';
+  var rnd = stt.period ? 'R' + stt.period : '', clk = stt.displayClock && stt.displayClock !== '0:00' ? stt.displayClock : '';
+  var detail = fin ? ((method + ' ' + rnd + ' ' + clk).replace(/\s+/g, ' ').replace(/^\s|\s$/g, '') || ty.shortDetail || 'FINAL')
+                   : (live ? ((rnd + ' ' + clk).replace(/^\s|\s$/g, '') || ty.shortDetail || '') : '');
+  var a = cps[0], b = cps[1];
+  return {
+    id: 'ufc' + c.id, ufc: true, teams: { away: fighter(a), home: fighter(b) },
+    date: c.date || c.startDate, live: live, status: live ? 'In Progress' : (fin ? 'Final' : (ty.description || 'Scheduled')),
+    detail: detail, main: /main/i.test(segText),
+    wclass: (c.type && (c.type.text || c.type.abbreviation)) || '',
+    order: c.matchNumber ? +c.matchNumber : (count - idx),   // 1 = main event
+    winner: a.winner ? 'away' : (b.winner ? 'home' : ''),
+    scores: fin ? { total: { away: a.winner ? 'W' : '', home: b.winner ? 'W' : '' } } : null
+  };
+}
+
 function loadLeague(lg, cb) {
+  if (lg === 'ufc') return loadUfc(cb);
   var now = new Date(), today = ymd(now);
   dayGames(lg, today, function (err, todays) {
     if (err) return cb(err);
@@ -696,6 +766,12 @@ function periodCount(e) {
 function statusText(e, lg) {
   var st = e.status || '', d = parseDate(e.date), today = ymd(new Date());
   var dayTag = ymd(d) === today ? '' : DAYS[d.getDay()] + ' ';
+  if (e.ufc) {
+    if (e.live) return ('LIVE ' + (e.detail || '')).toUpperCase();
+    if (isFinal(e)) return (e.detail || 'FINAL').toUpperCase();
+    if (/postpon|cancel/i.test(st)) return st.toUpperCase();
+    return dayTag + timeStr(d);
+  }
   if (e.espn) {                                   // ESPN already writes a good status line
     if (e.live) return (e.detail || 'LIVE').toUpperCase();
     if (isFinal(e)) return (e.detail || 'FINAL').toUpperCase() + (dayTag ? ' · ' + DAYS[d.getDay()] : '');
@@ -742,6 +818,7 @@ function isFav(e, lg) {
 }
 function rank(e) { return e.live ? 0 : (isFinal(e) ? 2 : 1); }
 function sortGames(list, lg) {
+  if (lg === 'ufc') return list.sort(function (a, b) { return a.order - b.order; });
   return list.sort(function (a, b) {
     var fa = isFav(a, lg) ? 0 : 1, fb = isFav(b, lg) ? 0 : 1;
     if (fa !== fb) return fa - fb;
@@ -767,6 +844,10 @@ function spreadText(e) {
   return (t ? t.abbreviation + ' ' : '') + o.line;
 }
 function lineHTML(e) {
+  if (e.ufc) {
+    return '<div class="lines">' + (e.mainEvent ? '<span class="ou">MAIN EVENT</span>' : '') +
+      '<span class="lbl">' + esc(String(e.wclass || 'BOUT').toUpperCase()) + '</span></div>';
+  }
   var o = e.open, sp = spreadText(e);
   if (!o) return '<div class="lines">&nbsp;</div>';
   return '<div class="lines">' + (o.total ? '<span class="ou">O/U ' + esc(o.total) + '</span>' : '') +
@@ -776,7 +857,8 @@ function lineHTML(e) {
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
-  var cls = 'card' + (e.live ? ' live' : '') + (isFav(e, lg) ? ' fav' : '');
+  if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
+  var cls = 'card' + (e.live ? ' live' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '');
   function row(t, s, lose) {
     return '<div class="row' + (lose ? ' lose' : '') + '"><span class="abbr">' + esc(t.abbreviation) +
       '</span><span class="name">' + (t.rank ? '<b class="rk">' + t.rank + '</b>' : '') +
@@ -852,6 +934,11 @@ function crawlRelevant(e, lg, today) {
 }
 function crawlGameHTML(e, lg, sx) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
+  if (e.ufc) {
+    var w = e.winner === 'away' ? a : (e.winner === 'home' ? h : null), l = w === a ? h : a;
+    var txt = isFinal(e) && w ? esc(w.abbreviation) + ' def. ' + esc(l.abbreviation) : esc(a.abbreviation) + ' vs ' + esc(h.abbreviation);
+    return '<span class="g">' + txt + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(statusText(e, lg)) + '</span></span>';
+  }
   var st = statusText(e, lg);
   var body = sa !== '' ? esc(a.abbreviation) + ' ' + esc(sa) + '  ' + esc(h.abbreviation) + ' ' + esc(sh)
                        : esc(a.abbreviation) + ' @ ' + esc(h.abbreviation);
@@ -1023,6 +1110,20 @@ function antiBurn() {
 }
 
 /* ---------- demo data (?demo=1) ---------- */
+function demoUfc() {
+  var at = new Date(); at.setHours(21, 0, 0, 0);
+  function f(n, last, rec) { return { abbreviation: last, name: n, short: rec, rank: 0 }; }
+  var g = [
+    { id: 'u1', ufc: true, teams: { away: f('Fighter One', 'MAKHACHEV', '27-1-0'), home: f('Fighter Two', 'DELLA MADDALENA', '18-2-0') },
+      date: at.toISOString(), live: false, status: 'Scheduled', wclass: 'Welterweight', order: 1, mainEvent: true },
+    { id: 'u2', ufc: true, teams: { away: f('Fighter Three', 'SHEVCHENKO', '24-4-1'), home: f('Fighter Four', 'ZHANG', '25-3-0') },
+      date: at.toISOString(), live: true, status: 'In Progress', detail: 'R2 3:21', wclass: "Women's Flyweight", order: 2 },
+    { id: 'u3', ufc: true, teams: { away: f('Fighter Five', 'PRATES', '22-6-0'), home: f('Fighter Six', 'GARRY', '16-1-0') },
+      date: at.toISOString(), live: false, status: 'Final', detail: 'KO/TKO R1 4:31', wclass: 'Welterweight', order: 3,
+      winner: 'away', scores: { total: { away: 'W', home: '' } } }
+  ];
+  return { games: g, label: 'UFC 322 · Main card · Tonight' };
+}
 function demoNews() {
   return [{ lg: 'nfl', h: 'Bears activate starting left tackle ahead of Sunday matchup' },
           { lg: 'ncaaf', h: 'USC moves up two spots in latest AP poll after road win' },
