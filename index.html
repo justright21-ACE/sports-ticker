@@ -718,14 +718,21 @@ function fromFight(c, idx, count) {
 
 function loadLeague(lg, cb) {
   if (lg === 'ufc') return loadUfc(cb);
+  function switchToEspn() {
+    viaEspn[lg] = true;
+    delete cache.lookback[lg]; delete cache.lookback['next_' + lg]; delete cache.lookback['week_' + lg];
+    loadLeagueOnce(lg, cb);
+  }
   loadLeagueOnce(lg, function (err, res) {
+    if (fromEspnFeed(lg) || !ESPN_ODDS_PATHS[lg] || DEMO) return cb(err, res);
     // SportsBlaze failed or has nothing (e.g. playoff games it doesn't carry): use ESPN instead
-    if ((err || !res.games.length) && !fromEspnFeed(lg) && ESPN_ODDS_PATHS[lg] && !DEMO) {
-      viaEspn[lg] = true;
-      delete cache.lookback[lg]; delete cache.lookback['next_' + lg]; delete cache.lookback['week_' + lg];
-      return loadLeagueOnce(lg, cb);
-    }
-    cb(err, res);
+    if (err || !res.games.length) return switchToEspn();
+    if (res.label === 'Today') return cb(err, res);
+    // SportsBlaze shows nothing today: if ESPN does have games today, SportsBlaze is missing them
+    espnDay(lg, ymd(new Date()), function (e2, espnToday) {
+      if (!e2 && espnToday.length) return switchToEspn();
+      cb(err, res);
+    });
   });
 }
 
