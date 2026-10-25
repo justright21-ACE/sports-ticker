@@ -1334,6 +1334,7 @@ function ptHTML(g, kind) {
   var ca = sideComp(c, 'away') || {}, ch = sideComp(c, 'home') || {};
   var fin = isFinal(g), pre = !g.live && !fin, lg = 'nfl';
   var hc = homeColor(h, lg), det = ptDetail[g.eid] || {}, ex = g.raw || {};
+  if (!det.stats) det = { stats: {}, drive: det.drive || '', series: det.series || '' };
   var abbrById = {}; abbrById[(ca.team || {}).id] = a.abbreviation; abbrById[(ch.team || {}).id] = h.abbreviation;
   var bc = (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || c.broadcast || '';
   var ven = c.venue ? (c.venue.fullName || '') + (c.venue.address && c.venue.address.city ? ', ' + c.venue.address.city : '') : '';
@@ -1490,7 +1491,12 @@ function renderPage() {
   if (pg.pt) {
     renderTabs('pt');
     $('heading').innerHTML = '';
-    $('cards').innerHTML = ptHTML(pg.game, pg.kind);
+    try {
+      $('cards').innerHTML = ptHTML(pg.game, pg.kind);
+    } catch (err) {                                      // never let this screen stop the ticker
+      $('heading').style.display = '';
+      $('cards').innerHTML = cardHTML(pg.game, 'nfl');
+    }
     return;
   }
   renderTabs(pg.lg);
