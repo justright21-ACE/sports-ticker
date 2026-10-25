@@ -301,7 +301,10 @@ var CONFIG = {
 
 var API = 'https://cache.sportsblaze.com';
 var ESPN_API = 'https://site.api.espn.com/apis/site/v2/sports/';
-var ESPN_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-college-basketball', nhl: 'hockey/nhl' };
+var ESPN_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-college-basketball', nhl: 'hockey/nhl',
+                   nfl: 'football/nfl', nba: 'basketball/nba', mlb: 'baseball/mlb', wnba: 'basketball/wnba' };
+/* Leagues SportsBlaze also carries: used as a backup only if ESPN can't be reached. */
+var SB_LEAGUES = { nfl: true, nba: true, mlb: true, wnba: true };
 var LEAGUE_NAMES = { nfl: 'NFL', nba: 'NBA', mlb: 'MLB', wnba: 'WNBA', ncaaf: 'NCAAF', ncaab: 'NCAAB', nhl: 'NHL', ufc: 'UFC' };
 var DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -386,7 +389,8 @@ function getJSON(url, cb) {
 /* One day of games for any league, whichever feed it comes from. */
 /* Pro leagues switch to ESPN for the rest of the session if SportsBlaze comes up empty. */
 var viaEspn = {};
-function fromEspnFeed(lg) { return !!(ESPN_PATHS[lg] || viaEspn[lg]); }
+var useBackup = {};
+function fromEspnFeed(lg) { return !useBackup[lg] && !!(ESPN_PATHS[lg] || viaEspn[lg]); }
 function dayGames(lg, dateStr, cb) {
   if (DEMO) return cb(null, demoEvents(lg, dateStr));
   if (fromEspnFeed(lg)) return espnDay(lg, dateStr, cb);
@@ -649,10 +653,11 @@ function nextGameDay(lg, now, cb) {
 /* College football: every game from tomorrow through Saturday, so the week's slate is
    always on screen. Cached 30 min so it adds only a few requests per half hour. */
 function weekAhead(lg, now, cb) {
-  if (lg !== 'ncaaf') return cb([]);
+  if (lg !== 'ncaaf' && !(lg === 'nfl' && fromEspnFeed(lg))) return cb([]);
   var key = 'week_' + lg, c = cache.lookback[key];
   if (c && now.getTime() - c.at < 30 * 60000) return cb(c.events);
-  var days = 6 - now.getDay(), n = 1, all = [];   // Sun..Fri -> through Saturday; Sat -> none
+  // college: through Saturday (Sat -> none). NFL: the next 7 days.
+  var days = lg === 'nfl' ? 7 : 6 - now.getDay(), n = 1, all = [];
   function step() {
     if (n > days) { cache.lookback[key] = { at: now.getTime(), events: all }; return cb(all); }
     dayGames(lg, ymd(addDays(now, n)), function (err, evs) {
@@ -664,7 +669,7 @@ function weekAhead(lg, now, cb) {
 }
 /* ESPN-fed leagues: tomorrow's games (cached 30 min), for the 24-hour window */
 function tomorrowGames(lg, now, cb) {
-  if (!fromEspnFeed(lg) || lg === 'ncaaf') return cb([]);
+  if (!fromEspnFeed(lg) || lg === 'ncaaf' || lg === 'nfl') return cb([]);
   var key = 'tmrw_' + lg, c = cache.lookback[key], day = ymd(addDays(now, 1));
   if (c && c.day === day && now.getTime() - c.at < 30 * 60000) return cb(c.events);
   dayGames(lg, day, function (err, evs) {
@@ -744,13 +749,23 @@ function fromFight(c, idx, count) {
 
 function loadLeague(lg, cb) {
   if (lg === 'ufc') return loadUfc(cb);
-  function switchToEspn() {
-    viaEspn[lg] = true;
+  function clearCaches() {
     delete cache.lookback[lg]; delete cache.lookback['next_' + lg]; delete cache.lookback['week_' + lg];
     delete cache.lookback['yday_' + lg]; delete cache.lookback['tmrw_' + lg];
+  }
+  function switchToEspn() {
+    viaEspn[lg] = true; clearCaches();
     loadLeagueOnce(lg, cb);
   }
   loadLeagueOnce(lg, function (err, res) {
+    // ESPN unreachable: use SportsBlaze for this refresh, then try ESPN again next time
+    if (err && fromEspnFeed(lg) && SB_LEAGUES[lg] && !DEMO) {
+      useBackup[lg] = true; clearCaches();
+      return loadLeagueOnce(lg, function (e2, r2) {
+        useBackup[lg] = false; clearCaches();
+        cb(e2, r2);
+      });
+    }
     if (fromEspnFeed(lg) || !ESPN_ODDS_PATHS[lg] || DEMO) return cb(err, res);
     // SportsBlaze failed or has nothing (e.g. playoff games it doesn't carry): use ESPN instead
     if (err || !res.games.length) return switchToEspn();
@@ -802,7 +817,7 @@ function loadLeagueOnce(lg, cb) {
           });
         }
         latestResults(lg, now, function (recent) {
-          var findNext = lg === 'ncaaf' ? weekAhead : nextGameDay;
+          var findNext = (lg === 'ncaaf' || (lg === 'nfl' && fromEspnFeed(lg))) ? weekAhead : nextGameDay;
           findNext(lg, now, function (nextDay) {
             var later = addNew(upLater, nextDay).slice(0, lg === 'ncaaf' ? 60 : 16);
             var label = recent.length && later.length ? 'Recent & upcoming' :

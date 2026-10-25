@@ -5,7 +5,8 @@ Full-screen live sports scoreboard for an old Samsung web-enabled monitor.
 Live page: https://justright21-ace.github.io/sports-ticker/
 
 Data (both free, no API key):
-- SportsBlaze: NFL, NBA, MLB, WNBA
+- ESPN scoreboard feed (main source for every league)
+- SportsBlaze: backup for NFL, NBA, MLB, WNBA if ESPN can't be reached
 - ESPN scoreboard feed: NCAA football, UFC main card fights (also NCAA men's basketball and NHL)
 
 Each card also shows the opening spread and over/under (DraftKings, via ESPN) when available.
