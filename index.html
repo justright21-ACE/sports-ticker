@@ -172,6 +172,114 @@
   }
   #foot .r { float: right; }
 
+  /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
+  .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
+  .tab.pt.on { background: #f5b800; color: #05070d; }
+  .tab.pt i { display: inline-block; width: 1.3vh; height: 1.3vh; border-radius: 50%; background: #ff4545;
+              margin-right: 0.5vw; vertical-align: middle; position: relative; top: -0.2vh; }
+  .ptv .band { position: relative; height: 21vh; border-radius: 1.2vh; overflow: hidden; background: #111829; border: 0.3vh solid #1b2338; }
+  .ptv.is-live .band { border-color: #e23d3d; }
+  .ptv .bstripe { position: absolute; top: 0; left: 0; right: 0; height: 1vh; }
+  .ptv .side { position: absolute; top: 1vh; bottom: 0; width: 34%; }
+  .ptv .side.away { left: 0; }
+  .ptv .side.home { right: 0; text-align: right; }
+  .ptv .ptlogo { padding-top: 3.2vh; }
+  .ptv .away .ptlogo { float: left; margin-left: 1.6vw; }
+  .ptv .home .ptlogo { float: right; margin-right: 1.6vw; }
+  .ptv .ptlogo .logo { width: 13vh; height: 13vh; margin: 0; }
+  .ptv .ptlogo .logo img { left: 1.2vh; top: 1.2vh; width: 10.6vh; height: 10.6vh; }
+  .ptv .ptlogo .logo.none { background: #1f2a44; }
+  .ptv .txt { padding-top: 3.6vh; }
+  .ptv .away .txt { margin-left: 18.5vh; }
+  .ptv .home .txt { margin-right: 18.5vh; }
+  .ptv .nm { font-size: 6vh; font-weight: 700; letter-spacing: 0.1vw; line-height: 7vh; }
+  .ptv .sub { font-size: 2.6vh; color: #a5aec4; line-height: 3.6vh; }
+  .ptv .to { display: inline-block; width: 2.2vw; height: 0.8vh; background: #f2f4f8; margin: 0 0.15vw; border-radius: 0.4vh; vertical-align: middle; }
+  .ptv .to.used { background: #33405c; }
+  .ptv .ball { display: inline-block; width: 2.4vh; height: 1.5vh; border-radius: 50%; background: #8b4a22; border: 0.2vh solid #f2f4f8;
+               vertical-align: middle; margin: 0 0.6vw; position: relative; top: -0.3vh; }
+  .ptv .center { position: absolute; left: 34%; right: 34%; top: 1vh; bottom: 0; text-align: center; }
+  .ptv .bigsc { font-size: 13vh; font-weight: 700; line-height: 14vh; margin-top: 0.6vh; letter-spacing: 0.2vw; }
+  .ptv .bigsc span { color: #6f7a94; font-weight: 500; margin: 0 1.2vw; }
+  .ptv .clk { font-size: 3.4vh; font-weight: 600; color: #a5aec4; letter-spacing: 0.15vw; text-transform: uppercase; }
+  .ptv.is-live .clk { color: #ffd5d5; }
+  .ptv .kick { font-size: 7vh; font-weight: 700; line-height: 8vh; color: #f2f4f8; }
+  .ptv .cols { margin-top: 1.4vh; height: 46vh; }
+  .ptv .panel { float: left; height: 46vh; background: #111829; border: 0.3vh solid #1b2338; border-radius: 1.2vh;
+                padding: 1.4vh 1.2vw; -webkit-box-sizing: border-box; box-sizing: border-box; overflow: hidden; }
+  .ptv .p1 { width: 31%; } .ptv .p2 { width: 36%; margin: 0 1%; } .ptv .p3 { width: 31%; }
+  .ptv .ph { font-size: 2.2vh; color: #f5b800; font-weight: 700; letter-spacing: 0.2vw; margin-bottom: 1vh; }
+  .ptv .dd { font-size: 4.4vh; font-weight: 700; line-height: 5.2vh; }
+  .ptv .dd small { display: block; font-size: 2.5vh; color: #a5aec4; font-weight: 500; line-height: 3.4vh; }
+  .ptv .field { position: relative; height: 6.4vh; margin: 1.4vh 0 1.2vh 0; border-radius: 0.6vh; background: #1d5a2e; overflow: hidden; }
+  .ptv .field .ez { position: absolute; top: 0; bottom: 0; width: 8%; }
+  .ptv .field .yl { position: absolute; top: 0; bottom: 0; width: 0.1vw; background: rgba(255,255,255,0.35); }
+  .ptv .field .los { position: absolute; top: 0; bottom: 0; width: 0.35vw; background: #4da3ff; }
+  .ptv .field .fd { position: absolute; top: 0; bottom: 0; width: 0.35vw; background: #ffd400; }
+  .ptv .field .fb { position: absolute; top: 2.2vh; width: 2.6vh; height: 1.8vh; margin-left: -1.3vh; border-radius: 50%; background: #8b4a22; border: 0.2vh solid #fff; }
+  .ptv .field .lab { position: absolute; bottom: 0.2vh; font-size: 1.6vh; color: rgba(255,255,255,0.75); }
+  .ptv .note { font-size: 2.4vh; line-height: 3.3vh; color: #c9d0e0; margin-top: 1vh; }
+  .ptv .note b { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; display: block; }
+  .ptv table.q { width: 100%; border-collapse: collapse; font-size: 2.7vh; margin-bottom: 1.2vh; }
+  .ptv table.q th { color: #7d8aa6; font-weight: 600; font-size: 2vh; text-align: center; padding-bottom: 0.4vh; }
+  .ptv table.q td { text-align: center; padding: 0.3vh 0; font-weight: 600; }
+  .ptv table.q td.t { text-align: left; font-weight: 700; }
+  .ptv table.q td.tot { font-weight: 700; font-size: 3vh; }
+  .ptv table.q td.na { color: #4c5872; }
+  .ptv .ts { height: 3.6vh; line-height: 3.6vh; font-size: 2.4vh; position: relative; }
+  .ptv .ts .k { position: absolute; left: 0; right: 0; text-align: center; color: #a5aec4; font-size: 2vh; }
+  .ptv .ts .a { float: left; font-weight: 700; } .ptv .ts .h { float: right; font-weight: 700; }
+  .ptv .bar { height: 0.6vh; margin-top: -0.4vh; margin-bottom: 0.2vh; background: #33405c; position: relative; }
+  .ptv .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #f5b800; }
+  .ptv .ld { margin-bottom: 0.5vh; }
+  .ptv .ld .c { font-size: 2vh; color: #7d8aa6; font-weight: 600; letter-spacing: 0.15vw; }
+  .ptv .ld .p { font-size: 3vh; font-weight: 700; line-height: 3.6vh; }
+  .ptv .ld .p span { font-size: 2.2vh; color: #a5aec4; font-weight: 600; margin-left: 0.4vw; }
+  .ptv .ld .v { font-size: 2.5vh; color: #c9d0e0; }
+  .ptv .ln { margin-top: 1vh; padding-top: 1vh; border-top: 0.2vh solid #1b2338; font-size: 2.5vh; line-height: 3.5vh; }
+  .ptv .ln b { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; margin-right: 0.6vw; }
+  .ptv .ok { color: #7bd88f; font-weight: 600; }
+  .ptv .count { font-size: 7vh; font-weight: 700; letter-spacing: 0.2vw; line-height: 8vh; }
+  .ptv .count small { display: block; font-size: 2.4vh; color: #a5aec4; font-weight: 500; letter-spacing: 0.15vw; line-height: 3vh; }
+  .ptv .pthead { height: 4.6vh; line-height: 4.6vh; font-size: 2.8vh; color: #8892aa; letter-spacing: 0.15vw; text-transform: uppercase; margin-bottom: 1vh; }
+  .ptv .pthead b { color: #f5b800; font-weight: 700; margin-right: 1vw; letter-spacing: 0.2vw; }
+  .ptv .pthead .r { float: right; }
+  /* squarer screens (4:3, 5:4): same layout, smaller type so it fits the narrower width */
+  .narrow .ptv .pthead { font-size: 2.2vh; }
+  .narrow .ptv .ptlogo .logo { width: 10vh; height: 10vh; }
+  .narrow .ptv .ptlogo .logo img { left: 1vh; top: 1vh; width: 8vh; height: 8vh; }
+  .narrow .ptv .ptlogo { padding-top: 4.6vh; }
+  .narrow .ptv .away .txt { margin-left: 14.5vh; } .narrow .ptv .home .txt { margin-right: 14.5vh; }
+  .narrow .ptv .nm { font-size: 4.6vh; line-height: 5.6vh; }
+  .narrow .ptv .sub { font-size: 2vh; line-height: 2.8vh; }
+  .narrow .ptv .to { width: 1.5vw; }
+  .narrow .ptv .bigsc { font-size: 10vh; line-height: 12vh; margin-top: 1.6vh; }
+  .narrow .ptv .clk { font-size: 2.6vh; }
+  .narrow .ptv .kick { font-size: 5.4vh; line-height: 6.4vh; }
+  .narrow .ptv .ph { font-size: 1.8vh; }
+  .narrow .ptv .dd { font-size: 3.2vh; line-height: 4vh; }
+  .narrow .ptv .dd small { font-size: 1.9vh; line-height: 2.6vh; }
+  .narrow .ptv .note { font-size: 1.9vh; line-height: 2.6vh; }
+  .narrow .ptv .note b, .narrow .ptv .ln b { font-size: 1.6vh; }
+  .narrow .ptv table.q { font-size: 2.2vh; } .narrow .ptv table.q th { font-size: 1.6vh; } .narrow .ptv table.q td.tot { font-size: 2.4vh; }
+  .narrow .ptv .ts { font-size: 2vh; height: 3vh; line-height: 3vh; } .narrow .ptv .ts .k { font-size: 1.6vh; }
+  .narrow .ptv .ld .c { font-size: 1.6vh; } .narrow .ptv .ld .p { font-size: 2.4vh; line-height: 3vh; }
+  .narrow .ptv .ld .p span { font-size: 1.8vh; } .narrow .ptv .ld .v { font-size: 2vh; }
+  .narrow .ptv .ln { font-size: 2vh; line-height: 2.8vh; }
+  .narrow .ptv .count { font-size: 5.6vh; line-height: 6.4vh; } .narrow .ptv .count small { font-size: 1.9vh; }
+  .narrow .ptv .field { height: 5vh; } .narrow .ptv .field .fb { top: 1.6vh; }
+  .t-bears .tab.pt { border-color: #C83803; } .t-bears .tab.pt.on { background: #C83803; color: #fff; }
+  .t-bears .ptv .ph, .t-bears .ptv .note b, .t-bears .ptv .ln b, .t-bears .ptv .pthead b { color: #E65C1E; }
+  .t-bears .ptv .bar i { background: #C83803; }
+  .t-bears .ptv .band, .t-bears .ptv .panel { background: #0f1d36; border-color: #1b2c4c; }
+  .t-bears .ptv.is-live .band { border-color: #ff3b3b; }
+  .t-usc .tab.pt { border-color: #FFC72C; } .t-usc .tab.pt.on { background: #FFC72C; color: #990000; }
+  .t-usc .ptv .band, .t-usc .ptv .panel { background: #2a0a0d; border-color: #451519; }
+  .t-usc .ptv.is-live .band { border-color: #ffffff; }
+  .t-usc .ptv .ph, .t-usc .ptv .note b, .t-usc .ptv .ln b, .t-usc .ptv .pthead b { color: #FFC72C; }
+  .t-usc .ptv .bar i { background: #FFC72C; }
+  .t-usc .ptv .sub, .t-usc .ptv .ts .k, .t-usc .ptv .dd small { color: #e2c7c0; }
+
   /* =========== THEMES (picked automatically by day, see CONFIG.theme) =========== */
 
   /* Chicago Bears: navy + orange (Sunday - Friday) */
@@ -291,6 +399,8 @@ var CONFIG = {
   newsEveryMin: 10,      // how often to refresh headlines
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
+  primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
+  primetimeHoldPre: 20,  // ...and before kickoff / after the final (once per loop)
   windowHours: 24,       // screens show live games and games starting within this many hours...
   resultsHours: 12,      // ...plus results of games that ended within this many hours
   cardsPerPage: 6,       // 2 rows of 3 (bigger cards, easier to read from across the room)
@@ -410,11 +520,11 @@ function espnDay(lg, dateStr, cb) {
   getJSON(url, function (err, data) {
     if (err) return cb(err);
     var evs = (data && data.events) || [], out = [];
-    for (var i = 0; i < evs.length; i++) { var g = fromEspn(evs[i]); if (g) out.push(g); }
+    for (var i = 0; i < evs.length; i++) { var g = fromEspn(evs[i], lg); if (g) out.push(g); }
     cb(null, out);
   });
 }
-function fromEspn(ev) {
+function fromEspn(ev, lg) {
   var c = (ev.competitions && ev.competitions[0]) || {}, st = ev.status || c.status || {}, ty = st.type || {};
   var teams = {}, total = { away: '', home: '' }, comps = c.competitors || [];
   for (var i = 0; i < comps.length; i++) {
@@ -434,7 +544,7 @@ function fromEspn(ev) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: lg === 'nfl' ? ev : null,
     scores: (live || fin) ? { total: total } : null
   };
 }
@@ -1101,12 +1211,34 @@ function buildPages() {
                    num: p + 1, of: total });
     }
   }
+  for (var q = 0; q < pages.length; q++) pages[q].key = pages[q].lg + ':' + pages[q].num;
+  // NFL primetime: during the game it comes back after every other screen; otherwise once per loop
+  var ptg = primetimeGames();
+  if (ptg.length) {
+    var ptPages = [], live = false;
+    for (var r = 0; r < ptg.length; r++) {
+      if (ptg[r].live) live = true;
+      ptPages.push({ pt: true, lg: 'nfl', game: ptg[r], kind: ptKind(ptg[r]),
+                     hold: ptg[r].live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre });
+    }
+    var mixed = [], n = 0;
+    var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c); } };
+    addPt();
+    for (var x = 0; x < pages.length; x++) { mixed.push(pages[x]); if (live && x % 2 === 1 && x < pages.length - 1) addPt(); }
+    pages = mixed;
+  }
+  var curKey = state.pages[state.pageIndex] && state.pages[state.pageIndex].key;
   state.pages = pages;
-  if (state.pageIndex >= pages.length) state.pageIndex = 0;
+  state.pageIndex = 0;
+  for (var y = 0; y < pages.length; y++) if (pages[y].key === curKey) { state.pageIndex = y; break; }
 }
 
 function renderTabs(activeLg) {
-  var html = '';
+  var html = '', ptg = primetimeGames();
+  if (ptg.length) {
+    var anyLive = false; for (var p = 0; p < ptg.length; p++) if (ptg[p].live) anyLive = true;
+    html += '<span class="tab pt' + (activeLg === 'pt' ? ' on' : '') + '">' + (anyLive ? '<i></i>' : '') + ptKind(ptg[0])[0] + '</span>';
+  }
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i];
     var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length ? ' empty' : '');
@@ -1114,6 +1246,235 @@ function renderTabs(activeLg) {
   }
   $('tabs').innerHTML = html;
 }
+
+/* =================== NFL PRIMETIME (SNF / MNF / TNF) ===================
+   Evening NFL games on Sunday, Monday and Thursday get their own tab and a detailed
+   screen. During the game it holds for CONFIG.primetimeHoldLive seconds and returns
+   after every other screen; before kickoff / after the final it holds for
+   CONFIG.primetimeHoldPre seconds once per loop. The tab is gone an hour after the final. */
+var PT_NAMES = { 0: ['SNF', 'Sunday Night Football'], 1: ['MNF', 'Monday Night Football'], 4: ['TNF', 'Thursday Night Football'] };
+var ptDetail = {}, finalSeen = {};
+function ptKind(g) {
+  var d = parseDate(g.date), k = PT_NAMES[d.getDay()];
+  return (k && d.getHours() >= 18) ? k : null;
+}
+function primetimeGames() {
+  var d = state.data.nfl, out = [], now = new Date().getTime(), today = ymd(new Date());
+  if (!d) return out;
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (!ptKind(g)) continue;
+    if (isFinal(g)) {
+      if (!finalSeen[g.id]) finalSeen[g.id] = now;
+      if (now - finalSeen[g.id] > 60 * 60000) continue;      // gone an hour after the final
+    } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;   // game day only
+    out.push(g);
+  }
+  return out;
+}
+/* ESPN's detailed game feed: team stats, current drive, season series */
+function loadPtDetails(cb) {
+  var games = primetimeGames(), i = 0;
+  function step() {
+    if (i >= games.length) return cb();
+    var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
+    var ttl = g.live ? 25000 : 10 * 60000;
+    if (!g.eid || DEMO || (c && now - c.at < ttl)) return step();
+    getJSON(ESPN_API + 'football/nfl/summary?event=' + g.eid, function (err, data) {
+      if (!err && data) {
+        var det = { at: now, stats: {}, drive: '', series: '' }, bt = (data.boxscore && data.boxscore.teams) || [];
+        for (var k = 0; k < bt.length; k++) {
+          var tid = bt[k].team && bt[k].team.id, st = {}, list = bt[k].statistics || [];
+          for (var m = 0; m < list.length; m++) st[list[m].name] = list[m].displayValue;
+          if (tid) det.stats[tid] = st;
+        }
+        if (data.drives && data.drives.current) det.drive = data.drives.current.description || '';
+        var ss = data.seasonseries && data.seasonseries[0];
+        if (ss) det.series = ss.summary || ss.description || '';
+        ptDetail[g.eid] = det;
+      }
+      step();
+    });
+  }
+  step();
+}
+function compOf(g) { return g.raw && g.raw.competitions && g.raw.competitions[0]; }
+function sideComp(c, side) {
+  var cs = (c && c.competitors) || [];
+  for (var i = 0; i < cs.length; i++) if ((cs[i].homeAway === 'home') === (side === 'home')) return cs[i];
+  return null;
+}
+function recOf(cp, type) {
+  var r = (cp && cp.records) || [];
+  for (var i = 0; i < r.length; i++) {
+    var t = r[i].type || r[i].name || '';
+    if (type === 'total' ? (t === 'total' || t === 'overall' || i === 0) : (t === type || (type === 'road' && t === 'away'))) return r[i].summary || '';
+  }
+  return '';
+}
+function clockText(g) {
+  var m = String(g.detail || '').match(/^(\d+:\d+)\s*-\s*(\S+)/);
+  if (m) return m[2].toUpperCase() + (/OT/i.test(m[2]) ? '' : ' QTR') + ' · ' + m[1];
+  return String(g.detail || (g.live ? 'LIVE' : '')).toUpperCase();
+}
+function num(v) { var n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
+function ptStatRow(label, a, h, isPct) {
+  if (a === undefined || h === undefined) return '';
+  var av = num(a), hv = num(h);
+  if (isPct) {
+    var pa = String(a).split('-'), ph = String(h).split('-');
+    av = pa[1] > 0 ? pa[0] / pa[1] : 0; hv = ph[1] > 0 ? ph[0] / ph[1] : 0;
+  }
+  var w = av + hv > 0 ? Math.round(100 * av / (av + hv)) : 50;
+  return '<div class="ts"><span class="a">' + esc(a) + '</span><span class="k">' + label + '</span><span class="h">' + esc(h) +
+         '</span></div><div class="bar"><i style="width:' + w + '%"></i></div>';
+}
+function ptHTML(g, kind) {
+  var c = compOf(g) || {}, a = g.teams.away, h = g.teams.home, s = c.situation || {};
+  var ca = sideComp(c, 'away') || {}, ch = sideComp(c, 'home') || {};
+  var fin = isFinal(g), pre = !g.live && !fin, lg = 'nfl';
+  var hc = homeColor(h, lg), det = ptDetail[g.eid] || {}, ex = g.raw || {};
+  var abbrById = {}; abbrById[(ca.team || {}).id] = a.abbreviation; abbrById[(ch.team || {}).id] = h.abbreviation;
+  var bc = (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || c.broadcast || '';
+  var ven = c.venue ? (c.venue.fullName || '') + (c.venue.address && c.venue.address.city ? ', ' + c.venue.address.city : '') : '';
+  var wk = ex.week && ex.week.number ? 'Week ' + ex.week.number : '';
+  var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
+  function timeouts(n) {
+    if (n === undefined || n === null || pre || fin) return '';
+    var o = ''; for (var i = 0; i < 3; i++) o += '<span class="to' + (i < n ? '' : ' used') + '"></span>';
+    return o;
+  }
+  function side(t, cp, which) {
+    var poss = g.live && s.possession && String(s.possession) === String((cp.team || {}).id);
+    var rec = recOf(cp, 'total'), split = pre ? recOf(cp, which === 'home' ? 'home' : 'road') : '';
+    var subTxt = esc(t.short || nickname(t.name)) + (rec ? ' · ' + esc(rec) : '') + (split ? ' · ' + esc(split) + (which === 'home' ? ' home' : ' away') : '');
+    var tos = timeouts(which === 'home' ? s.homeTimeouts : s.awayTimeouts);
+    var tint = which === 'home' && hc ? ' style="background:' + rgba(hc, 0.2) + '"' : '';
+    return '<div class="side ' + which + '"' + tint + '><div class="ptlogo">' + logoHTML(t, lg) + '</div><div class="txt">' +
+      '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"></span>' : '') + esc(t.abbreviation) +
+      (which === 'away' && poss ? '<span class="ball"></span>' : '') + '</div>' +
+      '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div></div></div>';
+  }
+  var center = pre
+    ? '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">KICKOFF</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
+      '</div><div class="clk">' + esc([bc, wx].join(' · ').replace(/^ · | · $/g, '')) + '</div>'
+    : '<div class="bigsc">' + esc(scoreOf(g, 'away')) + '<span>–</span>' + esc(scoreOf(g, 'home')) + '</div><div class="clk">' +
+      (g.live ? '<span class="dot"></span>' + esc(clockText(g)) : 'FINAL' + (/OT/i.test(g.detail) ? ' / OT' : '')) + '</div>';
+  var band = '<div class="band">' + (hc ? '<div class="bstripe" style="background:#' + hc + '"></div>' : '') +
+    side(a, ca, 'away') + '<div class="center">' + center + '</div>' + side(h, ch, 'home') + '</div>';
+
+  // ---- left panel
+  var p1;
+  if (pre) {
+    p1 = '<div class="ph">KICKOFF IN</div><div class="count" id="ptCount" data-t="' + parseDate(g.date).getTime() + '">' + countdown(parseDate(g.date).getTime()) +
+         '<small>HOURS · MIN · SEC</small></div>' + (det.series ? '<div class="note" style="margin-top:2vh"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '');
+  } else if (g.live && (s.downDistanceText || s.shortDownDistanceText)) {
+    var pt = String(s.possessionText || '').match(/^([A-Z]+)\s+(\d+)$/), field = '';
+    var offAway = String(s.possession) === String((ca.team || {}).id);
+    if (pt || /50/.test(s.possessionText || '')) {
+      var yd = pt ? +pt[2] : 50, onSide = pt ? pt[1] : '';
+      var fromLeft = onSide === h.abbreviation ? 100 - yd : yd;          // away goal on the left
+      var toGo = +s.distance || 0, fdL = offAway ? fromLeft + toGo : fromLeft - toGo;
+      var X = function (y) { return (8 + Math.max(0, Math.min(100, y)) * 0.84).toFixed(1) + '%'; };
+      var yls = ''; for (var y = 10; y < 100; y += 10) yls += '<div class="yl" style="left:' + X(y) + '"></div>';
+      field = '<div class="field"><div class="ez" style="left:0;background:#' + (homeColor(a, lg) || '33405c') + '"></div>' +
+              '<div class="ez" style="right:0;background:#' + (hc || '33405c') + '"></div>' + yls +
+              '<div class="los" style="left:' + X(fromLeft) + '"></div>' + (toGo && !/goal/i.test(s.downDistanceText || '') ? '<div class="fd" style="left:' + X(fdL) + '"></div>' : '') +
+              '<div class="fb" style="left:' + X(fromLeft) + '"></div><div class="lab" style="left:9%">' + esc(a.abbreviation) +
+              '</div><div class="lab" style="right:9%">' + esc(h.abbreviation) + '</div></div>';
+    }
+    var who = abbrById[s.possession] || '';
+    p1 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
+         '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
+         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
+  } else {
+    p1 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g)) + '</div>' +
+         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '') +
+         (det.series ? '<div class="note"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '');
+  }
+
+  // ---- middle panel
+  var p2, o = (c.odds && c.odds[0]) || {}, open = g.open;
+  if (pre) {
+    var cur = o.details || '', ou = o.overUnder;
+    var ml = '';
+    if (o.moneyline && o.moneyline.home) {
+      var mh = (o.moneyline.home.close || o.moneyline.home.open || {}).odds, ma = o.moneyline.away && (o.moneyline.away.close || o.moneyline.away.open || {}).odds;
+      if (mh && ma) ml = a.abbreviation + ' ' + ma + ' · ' + h.abbreviation + ' ' + mh;
+    } else if (o.homeTeamOdds && o.awayTeamOdds && o.homeTeamOdds.moneyLine) {
+      var f = function (v) { return v > 0 ? '+' + v : '' + v; };
+      ml = a.abbreviation + ' ' + f(o.awayTeamOdds.moneyLine) + ' · ' + h.abbreviation + ' ' + f(o.homeTeamOdds.moneyLine);
+    }
+    p2 = '<div class="ph">OPENING LINE</div>' +
+         (open && spreadText(g) ? '<div class="dd">' + esc(spreadText(g)) + '<small>' + esc(cur && cur !== spreadText(g) ? 'Now ' + cur : 'DraftKings') + '</small></div>' :
+          (cur ? '<div class="dd">' + esc(cur) + '<small>Current line</small></div>' : '')) +
+         ((open && open.total) || ou ? '<div class="dd" style="margin-top:1.4vh">O/U ' + esc((open && open.total) || ou) +
+           '<small>' + esc(ou && open && open.total && +ou !== +open.total ? 'Now ' + ou : '') + '</small></div>' : '') +
+         (ml ? '<div class="note" style="margin-top:1.4vh"><b>MONEYLINE</b>' + esc(ml) + '</div>' : '');
+  } else {
+    var lsA = ca.linescores || [], lsH = ch.linescores || [], nq = Math.max(4, lsA.length, lsH.length), th = '<th></th>', ra = '', rh = '';
+    for (var q = 0; q < nq; q++) {
+      th += '<th>' + (q < 4 ? q + 1 : 'OT') + '</th>';
+      var va = lsA[q] ? (lsA[q].displayValue || lsA[q].value) : null, vh = lsH[q] ? (lsH[q].displayValue || lsH[q].value) : null;
+      ra += va !== null && va !== undefined ? '<td>' + esc(va) + '</td>' : '<td class="na">–</td>';
+      rh += vh !== null && vh !== undefined ? '<td>' + esc(vh) + '</td>' : '<td class="na">–</td>';
+    }
+    var sa = det.stats[(ca.team || {}).id] || {}, sh = det.stats[(ch.team || {}).id] || {};
+    var stats = ptStatRow('TOTAL YARDS', sa.totalYards, sh.totalYards) + ptStatRow('PASSING', sa.netPassingYards, sh.netPassingYards) +
+                ptStatRow('RUSHING', sa.rushingYards, sh.rushingYards) + ptStatRow('3RD DOWN', sa.thirdDownEff, sh.thirdDownEff, true) +
+                ptStatRow('TURNOVERS', sa.turnovers, sh.turnovers);
+    p2 = '<div class="ph">SCORE BY QUARTER</div><table class="q"><tr>' + th + '<th>T</th></tr>' +
+         '<tr><td class="t">' + esc(a.abbreviation) + '</td>' + ra + '<td class="tot">' + esc(scoreOf(g, 'away')) + '</td></tr>' +
+         '<tr><td class="t">' + esc(h.abbreviation) + '</td>' + rh + '<td class="tot">' + esc(scoreOf(g, 'home')) + '</td></tr></table>' +
+         (stats ? '<div class="ph">TEAM STATS</div>' + stats : '');
+  }
+
+  // ---- right panel: leaders (+ lines during/after the game)
+  var L = c.leaders || [], lead = '';
+  for (var li = 0; li < L.length && li < 3; li++) {
+    var en = L[li].leaders && L[li].leaders[0];
+    if (!en) continue;
+    var cat = { passingYards: 'PASSING', rushingYards: 'RUSHING', receivingYards: 'RECEIVING' }[L[li].name] || String(L[li].displayName || L[li].name || '').toUpperCase();
+    var tm = en.team && abbrById[en.team.id] ? abbrById[en.team.id] : '';
+    lead += '<div class="ld"><div class="c">' + esc(cat) + '</div><div class="p">' + esc(athleteName(en)) + (tm ? '<span>' + esc(tm) + '</span>' : '') +
+            '</div><div class="v">' + esc(String(en.displayValue || '').replace(/,\s+/g, ' · ')) + '</div></div>';
+  }
+  var ln = '';
+  if (!pre && open && (spreadText(g) || open.total)) {
+    var sAway = num(scoreOf(g, 'away')), sHome = num(scoreOf(g, 'home')), cov = '';
+    if (open.line && open.line !== 'PK') {
+      var favHome = open.side === 'home', margin = (favHome ? sHome - sAway : sAway - sHome) + num(open.line);
+      var favAb = favHome ? h.abbreviation : a.abbreviation, dogAb = favHome ? a.abbreviation : h.abbreviation;
+      cov = margin > 0 ? favAb + ' covering' : (margin < 0 ? dogAb + ' covering' : 'Push');
+      if (fin) cov = margin > 0 ? favAb + ' covered' : (margin < 0 ? dogAb + ' covered' : 'Push');
+    }
+    var pace = '', tot = sAway + sHome;
+    var per = (g.raw && g.raw.status && g.raw.status.period) || 0, clk = String((g.raw && g.raw.status && g.raw.status.displayClock) || '15:00').split(':');
+    var elapsed = (Math.min(per, 4) - 1) * 15 + (15 - (num(clk[0]) + num(clk[1]) / 60));
+    if (open.total) {
+      if (fin) pace = 'total ' + tot + (tot > num(open.total) ? ' · over' : (tot < num(open.total) ? ' · under' : ' · push'));
+      else if (g.live && per <= 4 && elapsed >= 5) pace = 'total on pace for ' + Math.round(tot * 60 / elapsed);
+    }
+    ln = '<div class="ln"><b>OPEN</b>' + esc([spreadText(g), open.total ? 'O/U ' + open.total : ''].join(' · ').replace(/^ · | · $/g, '')) +
+         (cov || pace ? '<br>' + (cov ? '<span class="ok">' + esc(cov) + '</span>' : '') + (cov && pace ? ' · ' : '') + esc(pace) : '') + '</div>';
+  }
+  var p3 = '<div class="ph">' + (pre ? 'SEASON LEADERS' : 'GAME LEADERS') + '</div>' + lead + ln;
+
+  var head = '<div class="pthead"><b>' + esc(kind[1]) + '</b>' + esc([bc, ven].join(' · ').replace(/^ · | · $/g, '')) +
+             (wk ? '<span class="r">' + esc(wk) + '</span>' : '') + '</div>';
+  return '<div class="ptv' + (g.live ? ' is-live' : '') + '">' + head + band +
+    '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
+}
+function countdown(t) {
+  var s = Math.max(0, Math.floor((t - new Date().getTime()) / 1000));
+  return Math.floor(s / 3600) + ':' + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
+}
+setInterval(function () {                               // tick the kickoff countdown
+  var el = document.getElementById('ptCount');
+  if (!el) return;
+  var t = +el.getAttribute('data-t');
+  if (el.firstChild && el.firstChild.nodeType === 3) el.firstChild.nodeValue = countdown(t);
+}, 1000);
 
 function renderPage() {
   var pg = state.pages[state.pageIndex];
@@ -1125,6 +1486,13 @@ function renderPage() {
     return;
   }
   $('msg').style.display = 'none';
+  $('heading').style.display = pg.pt ? 'none' : '';
+  if (pg.pt) {
+    renderTabs('pt');
+    $('heading').innerHTML = '';
+    $('cards').innerHTML = ptHTML(pg.game, pg.kind);
+    return;
+  }
   renderTabs(pg.lg);
   var live = 0;
   for (var i = 0; i < pg.games.length; i++) if (pg.games[i].live) live++;
@@ -1304,17 +1672,22 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () {
       buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
-    }); });
+    }); }); });
   }
   next();
 }
 
 function rotate() {
   if (state.pages.length > 1) { state.pageIndex = (state.pageIndex + 1) % state.pages.length; renderPage(); }
-  setTimeout(rotate, CONFIG.rotateSec * 1000);
+  scheduleRotate();
+}
+function scheduleRotate() {                              // each screen can have its own hold time
+  if (state.rotTimer) clearTimeout(state.rotTimer);
+  var pg = state.pages[state.pageIndex];
+  state.rotTimer = setTimeout(rotate, ((pg && pg.hold) || CONFIG.rotateSec) * 1000);
 }
 
 /* nudge everything a few pixels every 10 min to protect older screens from burn-in */
@@ -1419,7 +1792,7 @@ readParams();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
 refreshAll();
-setTimeout(rotate, CONFIG.rotateSec * 1000);
+scheduleRotate();
 setInterval(antiBurn, 10 * 60000);
 setTimeout(function () { window.location.reload(); }, 6 * 3600000); // fresh start every 6 hours
 </script>
