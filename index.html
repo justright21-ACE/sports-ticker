@@ -274,6 +274,8 @@ var CONFIG = {
   refreshLiveSec: 60,    // how often to refresh while any game is live
   refreshIdleSec: 300,   // how often to refresh when nothing is live
   rotateSec: 8,          // seconds each screen of cards stays up
+  windowHours: 24,       // screens show live games and games starting within this many hours...
+  resultsHours: 12,      // ...plus results of games that ended within this many hours
   cardsPerPage: 8,       // 2 rows of 4
   lookbackDays: 7,       // if a league has no games today, show its most recent results
   crawlSpeed: 90,        // bottom ticker speed (pixels per second)
@@ -647,6 +649,17 @@ function weekAhead(lg, now, cb) {
   }
   step();
 }
+/* ESPN-fed leagues: tomorrow's games (cached 30 min), for the 24-hour window */
+function tomorrowGames(lg, now, cb) {
+  if (!fromEspnFeed(lg) || lg === 'ncaaf') return cb([]);
+  var key = 'tmrw_' + lg, c = cache.lookback[key], day = ymd(addDays(now, 1));
+  if (c && c.day === day && now.getTime() - c.at < 30 * 60000) return cb(c.events);
+  dayGames(lg, day, function (err, evs) {
+    if (err) return cb(c ? c.events : []);
+    cache.lookback[key] = { at: now.getTime(), day: day, events: evs };
+    cb(evs);
+  });
+}
 function addNew(list, more) {
   var ids = {}, i, out = list.slice(0);
   for (i = 0; i < list.length; i++) ids[list[i].id] = true;
@@ -721,6 +734,7 @@ function loadLeague(lg, cb) {
   function switchToEspn() {
     viaEspn[lg] = true;
     delete cache.lookback[lg]; delete cache.lookback['next_' + lg]; delete cache.lookback['week_' + lg];
+    delete cache.lookback['yday_' + lg]; delete cache.lookback['tmrw_' + lg];
     loadLeagueOnce(lg, cb);
   }
   loadLeagueOnce(lg, function (err, res) {
@@ -741,19 +755,26 @@ function loadLeagueOnce(lg, cb) {
   dayGames(lg, today, function (err, todays) {
     if (err) return cb(err);
     var got = todays.slice(0);
-    // just after midnight, late west-coast games are still filed under yesterday
+    // also yesterday's games: late games still live after midnight, and last night's results
+    // (shown for 12 hours after they end). Cached 10 minutes, except just after midnight.
     var extra = function (next) {
-      if (now.getHours() >= 5) return next();
-      dayGames(lg, ymd(addDays(now, -1)), function (e2, y) {
-        if (!e2) for (var i = 0; i < y.length; i++) if (y[i].live) got.push(y[i]);
+      var yd = ymd(addDays(now, -1)), ck = 'yday_' + lg, c = cache.lookback[ck];
+      function use(y) {
+        for (var i = 0; i < y.length; i++) if (y[i].live || isFinal(y[i])) got.push(y[i]);
         next();
+      }
+      if (c && c.day === yd && now.getHours() >= 5 && now.getTime() - c.at < 10 * 60000) return use(c.events);
+      dayGames(lg, yd, function (e2, y) {
+        if (e2) return next();
+        cache.lookback[ck] = { at: now.getTime(), day: yd, events: y };
+        use(y);
       });
     };
     extra(function () {
       upcomingGames(lg, now, function (up) {
         var ids = {}, i, games = got.slice(0);
         for (i = 0; i < got.length; i++) ids[got[i].id] = true;
-        var hasToday = got.length > 0, upToday = [], upLater = [];
+        var hasToday = todays.length > 0, upToday = [], upLater = [];
         for (i = 0; i < up.length; i++) {
           if (ids[up[i].id]) continue;
           if (ymd(parseDate(up[i].date)) === today) upToday.push(up[i]); else upLater.push(up[i]);
@@ -761,7 +782,10 @@ function loadLeagueOnce(lg, cb) {
         games = games.concat(upToday);
         if (hasToday || upToday.length) {
           return weekAhead(lg, now, function (ahead) {
-            cb(null, { games: addNew(games, ahead), label: ahead.length ? 'Today & this week' : 'Today' });
+            tomorrowGames(lg, now, function (tm) {
+              // tomorrow's games are loaded too, so anything starting in the next 24 hours shows
+              cb(null, { games: addNew(addNew(addNew(games, upLater), ahead), tm), label: ahead.length ? 'Today & this week' : 'Today' });
+            });
           });
         }
         latestResults(lg, now, function (recent) {
@@ -891,12 +915,39 @@ function cardHTML(e, lg) {
     '<div class="status">' + (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
 }
 
+/* The main screens only show what's happening now or soon: live games, games starting
+   within the next 24 hours, and results of games that ended within the last 12 hours
+   (end estimated as ~3 hours after the start). The bottom bar is not limited by this. */
+function inWindow(e, now, today) {
+  if (e.live) return true;
+  var t = parseDate(e.date).getTime();
+  if (isFinal(e)) return t + 3 * 3600000 >= now - CONFIG.resultsHours * 3600000;
+  return t <= now + CONFIG.windowHours * 3600000 && t >= now - 12 * 3600000;
+}
+function windowGames(lg) {
+  var d = state.data[lg], out = [];
+  if (!d) return out;
+  var now = new Date().getTime(), today = ymd(new Date());
+  for (var i = 0; i < d.games.length; i++) if (inWindow(d.games[i], now, today)) out.push(d.games[i]);
+  return out;
+}
+function windowLabel(lg, games) {
+  if (lg === 'ufc') return state.data[lg].label;
+  var today = ymd(new Date()), past = false, future = false;
+  for (var i = 0; i < games.length; i++) {
+    var d = ymd(parseDate(games[i].date));
+    if (d < today) past = true; else if (d > today) future = true;
+  }
+  return (past ? 'Last 12 hrs · ' : '') + (future ? 'Today & tomorrow' : 'Today');
+}
+
 function buildPages() {
   var pages = [];
   for (var i = 0; i < CONFIG.leagues.length; i++) {
-    var lg = CONFIG.leagues[i], d = state.data[lg];
-    if (!d || !d.games.length) continue;
-    var games = sortGames(d.games.slice(0), lg), per = CONFIG.cardsPerPage;
+    var lg = CONFIG.leagues[i], wg = windowGames(lg);
+    if (!wg.length) continue;
+    var label = windowLabel(lg, wg);
+    var games = sortGames(wg, lg), per = CONFIG.cardsPerPage;
     // Favorite teams' games are pinned: they appear on every screen of their league,
     // and the other games rotate through the remaining spots.
     var pinned = [], others = [];
@@ -906,7 +957,7 @@ function buildPages() {
     var slots = per - pinned.length;
     var total = Math.max(1, Math.ceil(others.length / slots));
     for (var p = 0; p < total; p++) {
-      pages.push({ lg: lg, label: d.label, games: pinned.concat(others.slice(p * slots, (p + 1) * slots)),
+      pages.push({ lg: lg, label: label, games: pinned.concat(others.slice(p * slots, (p + 1) * slots)),
                    num: p + 1, of: total });
     }
   }
@@ -917,8 +968,8 @@ function buildPages() {
 function renderTabs(activeLg) {
   var html = '';
   for (var i = 0; i < CONFIG.leagues.length; i++) {
-    var lg = CONFIG.leagues[i], d = state.data[lg];
-    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!d || !d.games.length ? ' empty' : '');
+    var lg = CONFIG.leagues[i];
+    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length ? ' empty' : '');
     html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
   }
   $('tabs').innerHTML = html;
@@ -930,7 +981,7 @@ function renderPage() {
     renderTabs('');
     $('heading').innerHTML = ''; $('cards').innerHTML = '';
     var m = $('msg'); m.style.display = 'block';
-    if (state.lastOk) m.innerHTML = 'No games right now<small>Scores will appear here automatically when games start.</small>';
+    if (state.lastOk) m.innerHTML = 'No games in the next 24 hours<small>Upcoming games and headlines keep scrolling below.</small>';
     return;
   }
   $('msg').style.display = 'none';
