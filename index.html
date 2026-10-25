@@ -411,7 +411,7 @@ function fromEspn(ev) {
     var rk = cp.curatedRank && cp.curatedRank.current;
     teams[side] = { abbreviation: t.abbreviation || '', name: t.displayName || '',
                     short: t.shortDisplayName || t.location || '', rank: rk && rk <= 25 ? rk : 0,
-                    logo: t.logo || '', color: t.color || '', alt: t.alternateColor || '' };
+                    logo: t.logo || '', color: t.color || '', alt: t.alternateColor || '', tid: t.id || '' };
     total[side] = cp.score != null ? cp.score : '';
   }
   if (!teams.away || !teams.home) return null;
@@ -966,16 +966,32 @@ function smallLogo(href) {                          // ask ESPN's image server f
   var m = String(href || '').match(/^https?:\/\/a\.espncdn\.com(\/i\/.*)$/);
   return m ? 'https://a.espncdn.com/combiner/i?img=' + m[1] + '&w=80&h=80' : href;
 }
-function logoErr(img) {                             // small copy failed: try the full one, else hide
-  var full = img.getAttribute('data-full');
-  if (full && img.src !== full) { img.src = full; return; }
+/* ESPN's standard logo address, built from the team's letters (or college team id),
+   used when the feed didn't supply a logo. */
+var LOGO_LEAGUE = { nfl: 'nfl', nba: 'nba', mlb: 'mlb', wnba: 'wnba', nhl: 'nhl', ncaaf: 'ncaa', ncaab: 'ncaa' };
+var LOGO_ABBR = { WAS: 'wsh', UTA: 'utah', NOP: 'no', NYK: 'ny', GSW: 'gs', SAS: 'sa', PHO: 'phx', CWS: 'chw', JAC: 'jax', WSN: 'wsh' };
+function patternLogo(t, lg) {
+  var dir = LOGO_LEAGUE[lg];
+  if (!dir) return '';
+  if (dir === 'ncaa') return t.tid ? 'https://a.espncdn.com/i/teamlogos/ncaa/500/' + t.tid + '.png' : '';
+  var ab = String(t.abbreviation || '').toUpperCase();
+  if (!ab) return '';
+  return 'https://a.espncdn.com/i/teamlogos/' + dir + '/500/' + (LOGO_ABBR[ab] || ab.toLowerCase()) + '.png';
+}
+function logoErr(img) {                             // try the next address in line, else hide
+  var list = (img.getAttribute('data-next') || '').split('|'), next = '';
+  while (list.length && !next) next = list.shift();
+  img.setAttribute('data-next', list.join('|'));
+  if (next) { img.src = next; return; }
   img.style.display = 'none';
   img.parentNode.className = 'logo none';
 }
 function logoHTML(t, lg) {
-  var look = teamLook(t, lg);
-  if (!look || !look.logo) return '<span class="logo none"></span>';
-  return '<span class="logo"><img src="' + esc(smallLogo(look.logo)) + '" data-full="' + esc(look.logo) +
+  var look = teamLook(t, lg), feed = look && look.logo, pat = patternLogo(t, lg), urls = [];
+  if (feed) { urls.push(smallLogo(feed)); urls.push(feed); }
+  if (pat && pat !== feed) { urls.push(smallLogo(pat)); urls.push(pat); }
+  if (!urls.length) return '<span class="logo none"></span>';
+  return '<span class="logo"><img src="' + esc(urls[0]) + '" data-next="' + esc(urls.slice(1).join('|')) +
          '" onerror="logoErr(this)" alt=""></span>';
 }
 function lum(hex) {
