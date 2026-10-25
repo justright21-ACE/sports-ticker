@@ -56,71 +56,76 @@
   #clock small { font-size: 2.6vh; color: #8892aa; margin-right: 1vw; font-weight: 500; }
 
   /* ---------- main board ---------- */
-  #board { position: absolute; top: 9vh; left: 0; right: 0; bottom: 13vh; padding: 2.4vh 1.6vw 0 1.6vw; }
+  #board { position: absolute; top: 9vh; left: 0; right: 0; bottom: 13vh; padding: 1.6vh 1.6vw 0 1.6vw; }
   #heading { height: 6vh; line-height: 6vh; padding: 0 0.6vw; }
   #heading .lg { font-size: 5vh; font-weight: 700; letter-spacing: 0.2vw; }
   #heading .sub { font-size: 3vh; color: #8892aa; margin-left: 1.2vw; font-weight: 500; }
   #heading .page { float: right; font-size: 2.6vh; color: #6f7a94; }
-  #cards { margin-top: 1.4vh; }
+  #cards { margin-top: 1vh; }
 
   .card {
     display: inline-block; vertical-align: top;
-    width: 22.6vw; margin: 0 0.6vw 2.2vh 0.6vw;
+    width: 30.2vw; margin: 0 0.6vw 1.8vh 0.6vw;
     background: #111829; border-radius: 1vh; overflow: hidden;
     border: 0.3vh solid #1b2338;
   }
   .card.fav { border-color: #f5b800; }
   .card.live { border-color: #e23d3d; }
   .card.live.fav { border-color: #f5b800; }
-  .row { position: relative; height: 8.4vh; line-height: 8.4vh; padding: 0 1.1vw; }
+  .row { position: relative; height: 10vh; line-height: 10vh; padding: 0 1.2vw; }
   .row + .row { border-top: 0.2vh solid #1b2338; }
   .abbr {
     display: inline-block; vertical-align: middle;
-    min-width: 4.8vw; height: 5.4vh; line-height: 5.4vh; text-align: center;
-    background: #1f2a44; border-radius: 0.6vh;
-    font-size: 3.7vh; font-weight: 700; letter-spacing: 0.05vw;
+    min-width: 6vw; height: 6.6vh; line-height: 6.6vh; text-align: center;
+    background: #1f2a44; border-radius: 0.7vh;
+    font-size: 4.6vh; font-weight: 700; letter-spacing: 0.05vw;
   }
   /* team logo on a light disc, so dark logos still show on the dark cards */
   .logo {
     display: inline-block; vertical-align: middle; position: relative;
-    width: 5.6vh; height: 5.6vh; margin-right: 0.6vw;
+    width: 7vh; height: 7vh; margin-right: 0.7vw;
     border-radius: 50%; background: #f2f4f8; overflow: hidden;
   }
-  .logo img { position: absolute; left: 0.6vh; top: 0.6vh; width: 4.4vh; height: 4.4vh; }
+  .logo img { position: absolute; left: 0.75vh; top: 0.75vh; width: 5.5vh; height: 5.5vh; }
   .logo.none { background: transparent; }
   .lose .logo { opacity: 0.55; }
-  .stripe { height: 0.9vh; }              /* home team color across the top of the card */
+  .stripe { height: 0.9vh; }
+  /* squarer screens (4:3, 5:4): drop the small team names so letters + scores have room */
+  .narrow .name { display: none; }
+  .narrow .abbr { min-width: 7vw; }
+  .narrow .lines { font-size: 2.5vh; }
+  .narrow .lines .lbl { font-size: 1.9vh; margin-right: 0.7vw; }              /* home team color across the top of the card */
   .name {
     display: inline-block; vertical-align: middle;
-    max-width: 6.2vw; margin-left: 0.7vw;
-    font-size: 2.5vh; color: #a5aec4; font-weight: 500;
+    max-width: 8.6vw; margin-left: 0.8vw;
+    font-size: 3.1vh; color: #a5aec4; font-weight: 500;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    line-height: 3vh;
+    line-height: 3.8vh;
   }
   .rk { color: #f5b800; font-weight: 700; margin-right: 0.4vw; }
-  .score { position: absolute; right: 1.1vw; top: 0; font-size: 6vh; font-weight: 700; }
+  .score { position: absolute; right: 1.2vw; top: 0; font-size: 7.6vh; font-weight: 700; }
   .lose .score, .lose .abbr { color: #6f7a94; }
   .status {
-    height: 4.8vh; line-height: 4.8vh; padding: 0 1.1vw;
-    background: #0b1020; font-size: 2.8vh; font-weight: 600; letter-spacing: 0.1vw;
+    height: 5.6vh; line-height: 5.6vh; padding: 0 1.2vw;
+    background: #0b1020; font-size: 3.5vh; font-weight: 600; letter-spacing: 0.1vw;
     color: #a5aec4; text-transform: uppercase;
   }
   .live .status { background: #3a0f14; color: #ffd5d5; }
   .lines {
-    height: 4vh; line-height: 4vh; padding: 0 1.1vw;
+    height: 4.6vh; line-height: 4.6vh; padding: 0 1.2vw;
     border-top: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden;
-    font-size: 2.5vh; font-weight: 600; color: #c9d0e0;
+    font-size: 3.1vh; font-weight: 600; color: #c9d0e0;
   }
-  .lines .lbl { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; margin-right: 0.8vw; }
+  .lines .lbl { color: #f5b800; font-size: 2.5vh; letter-spacing: 0.15vw; margin-right: 0.9vw; }
   .lines .ou { float: right; }
-  .fight .abbr { font-size: 2.7vh; max-width: 14.6vw; padding: 0 0.6vw; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
+  .fight .abbr { font-size: 3.4vh; max-width: 20vw; padding: 0 0.6vw; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
   .fight .name { display: none; }
-  .fight .abbr { max-width: 17vw; }
+  .fight .abbr { max-width: 24vw; }
   .fight .score { color: #f5b800; }
   .t-bears .fight .score { color: #E65C1E; }
   .t-usc .fight .score { color: #FFC72C; }
   .dot {
-    display: inline-block; width: 1.4vh; height: 1.4vh; border-radius: 50%;
+    display: inline-block; width: 1.7vh; height: 1.7vh; border-radius: 50%;
     background: #ff4545; margin-right: 0.7vw; vertical-align: middle; position: relative; top: -0.2vh;
     -webkit-animation: pulse 1.6s infinite; animation: pulse 1.6s infinite;
   }
@@ -288,7 +293,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   windowHours: 24,       // screens show live games and games starting within this many hours...
   resultsHours: 12,      // ...plus results of games that ended within this many hours
-  cardsPerPage: 8,       // 2 rows of 4
+  cardsPerPage: 6,       // 2 rows of 3 (bigger cards, easier to read from across the room)
   lookbackDays: 7,       // if a league has no games today, show its most recent results
   crawlSpeed: 90,        // bottom ticker speed (pixels per second)
   crawlPerSegment: 5,    // games per bottom-bar segment
@@ -1233,6 +1238,8 @@ function applyTheme(d) {
   var t = CONFIG.theme;
   if (t === 'auto') t = d.getDay() === 6 ? 'usc' : 'bears';
   var cls = t === 'classic' ? '' : 't-' + t;
+  var vw = window.innerWidth || document.documentElement.clientWidth, vh = window.innerHeight || document.documentElement.clientHeight;
+  if (vh && vw / vh < 1.6) cls += (cls ? ' ' : '') + 'narrow';
   if (document.body.className !== cls) document.body.className = cls;
 }
 
