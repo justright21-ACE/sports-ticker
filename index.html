@@ -281,9 +281,11 @@ var CONFIG = {
   // file is large for MLB, so it's off for MLB by default to go easy on old TVs.
   upcoming: ['nfl', 'nba', 'wnba'],
 
-  refreshLiveSec: 60,    // how often to refresh while any game is live
-  refreshIdleSec: 300,   // how often to refresh when nothing is live
-  rotateSec: 8,          // seconds each screen of cards stays up
+  refreshLiveSec: 30,    // how often to refresh scores while any game is live
+  refreshIdleSec: 30,    // how often to refresh scores when nothing is live
+  newsEveryMin: 10,      // how often to refresh headlines
+  linesEveryMin: 15,     // how often to check for opening lines not captured yet
+  rotateSec: 12,         // seconds each screen of cards stays up
   windowHours: 24,       // screens show live games and games starting within this many hours...
   resultsHours: 12,      // ...plus results of games that ended within this many hours
   cardsPerPage: 8,       // 2 rows of 4
@@ -539,7 +541,7 @@ function fetchLines(lg, games, cb) {
   function step() {
     if (n >= list.length) return cb();
     var d = list[n++], ck = lg + d;
-    var ttl = (d === today && liveToday) ? 45000 : 30 * 60000;
+    var ttl = (d === today && liveToday) ? 25000 : CONFIG.linesEveryMin * 60000;
     if (cache.linesAt[ck] && now - cache.linesAt[ck] < ttl) return step();
     getJSON(ESPN_API + path + '/scoreboard?dates=' + d.replace(/-/g, ''), function (err, data) {
       cache.linesAt[ck] = now;
@@ -555,13 +557,13 @@ function fetchLines(lg, games, cb) {
   step();
 }
 
-/* ---- Headlines (ESPN news), refreshed every 15 minutes ---- */
+/* ---- Headlines (ESPN news), refreshed every CONFIG.newsEveryMin minutes ---- */
 var news = { at: 0, items: [] };
 function loadNews(cb) {
   if (!CONFIG.crawlNews) { news.items = []; return cb(); }
   if (DEMO) { news.items = demoNews(); return cb(); }
   var now = new Date().getTime();
-  if (news.at && now - news.at < 15 * 60000) return cb();
+  if (news.at && now - news.at < CONFIG.newsEveryMin * 60000) return cb();
   var items = [], i = 0, ok = 0;
   function step() {
     if (i >= CONFIG.leagues.length) {
