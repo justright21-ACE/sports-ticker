@@ -76,13 +76,23 @@
   .row + .row { border-top: 0.2vh solid #1b2338; }
   .abbr {
     display: inline-block; vertical-align: middle;
-    min-width: 5.6vw; height: 5.4vh; line-height: 5.4vh; text-align: center;
+    min-width: 4.8vw; height: 5.4vh; line-height: 5.4vh; text-align: center;
     background: #1f2a44; border-radius: 0.6vh;
-    font-size: 3.9vh; font-weight: 700; letter-spacing: 0.1vw;
+    font-size: 3.7vh; font-weight: 700; letter-spacing: 0.05vw;
   }
+  /* team logo on a light disc, so dark logos still show on the dark cards */
+  .logo {
+    display: inline-block; vertical-align: middle; position: relative;
+    width: 5.6vh; height: 5.6vh; margin-right: 0.6vw;
+    border-radius: 50%; background: #f2f4f8; overflow: hidden;
+  }
+  .logo img { position: absolute; left: 0.6vh; top: 0.6vh; width: 4.4vh; height: 4.4vh; }
+  .logo.none { background: transparent; }
+  .lose .logo { opacity: 0.55; }
+  .stripe { height: 0.9vh; }              /* home team color across the top of the card */
   .name {
     display: inline-block; vertical-align: middle;
-    max-width: 7.8vw; margin-left: 0.9vw;
+    max-width: 6.2vw; margin-left: 0.7vw;
     font-size: 2.5vh; color: #a5aec4; font-weight: 500;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     line-height: 3vh;
@@ -400,7 +410,8 @@ function fromEspn(ev) {
     var cp = comps[i], t = cp.team || {}, side = cp.homeAway === 'home' ? 'home' : 'away';
     var rk = cp.curatedRank && cp.curatedRank.current;
     teams[side] = { abbreviation: t.abbreviation || '', name: t.displayName || '',
-                    short: t.shortDisplayName || t.location || '', rank: rk && rk <= 25 ? rk : 0 };
+                    short: t.shortDisplayName || t.location || '', rank: rk && rk <= 25 ? rk : 0,
+                    logo: t.logo || '', color: t.color || '', alt: t.alternateColor || '' };
     total[side] = cp.score != null ? cp.score : '';
   }
   if (!teams.away || !teams.home) return null;
@@ -900,17 +911,108 @@ function lineHTML(e) {
     '<span class="lbl">OPEN</span>' + (sp ? esc(sp) : '') + '</div>';
 }
 
+/* ---- Team logos + colors ----
+   ESPN-fed games include them. For SportsBlaze games, each pro league's team list
+   (logo + colors) is read from ESPN once a week and kept in the browser. */
+var TEAMS_KEY = 'tickerTeams_v1';
+var teamInfo = (function () {
+  try { return JSON.parse(window.localStorage.getItem(TEAMS_KEY)) || {}; } catch (e) { return {}; }
+})();
+var TEAM_LIST_PATHS = { nfl: 'football/nfl', nba: 'basketball/nba', mlb: 'baseball/mlb', wnba: 'basketball/wnba', nhl: 'hockey/nhl' };
+function loadTeams(cb) {
+  if (DEMO) return cb();
+  var now = new Date().getTime(), todo = [], i;
+  for (i = 0; i < CONFIG.leagues.length; i++) {
+    var lg = CONFIG.leagues[i], t = teamInfo[lg];
+    if (TEAM_LIST_PATHS[lg] && !(t && now - t.at < 7 * 86400000)) todo.push(lg);
+  }
+  if (!todo.length) return cb();
+  var n = 0, changed = false;
+  function step() {
+    if (n >= todo.length) {
+      if (changed) { try { window.localStorage.setItem(TEAMS_KEY, JSON.stringify(teamInfo)); } catch (e) {} }
+      return cb();
+    }
+    var lg = todo[n++];
+    getJSON(ESPN_API + TEAM_LIST_PATHS[lg] + '/teams', function (err, data) {
+      var list = (!err && data && data.sports && data.sports[0] && data.sports[0].leagues &&
+                  data.sports[0].leagues[0] && data.sports[0].leagues[0].teams) || [];
+      if (list.length) {
+        var info = { at: now, byNick: {}, byAbbr: {} };
+        for (var j = 0; j < list.length; j++) {
+          var tm = list[j].team || {}, logo = '', logos = tm.logos || [];
+          for (var k = 0; k < logos.length; k++) {
+            var rel = (logos[k].rel || []).join(' ');
+            if (!logo || (/default/.test(rel) && !/dark/.test(rel))) logo = logos[k].href;
+          }
+          var rec = { logo: logo, color: tm.color || '', alt: tm.alternateColor || '' };
+          if (tm.displayName) info.byNick[nickname(tm.displayName).toLowerCase()] = rec;
+          if (tm.abbreviation) info.byAbbr[String(tm.abbreviation).toUpperCase()] = rec;
+        }
+        teamInfo[lg] = info; changed = true;
+      }
+      step();
+    });
+  }
+  step();
+}
+function teamLook(t, lg) {
+  if (t.logo || t.color) return t;
+  var info = teamInfo[lg];
+  if (!info) return null;
+  return info.byNick[nickname(t.name).toLowerCase()] || info.byAbbr[String(t.abbreviation || '').toUpperCase()] || null;
+}
+function smallLogo(href) {                          // ask ESPN's image server for a small copy
+  var m = String(href || '').match(/^https?:\/\/a\.espncdn\.com(\/i\/.*)$/);
+  return m ? 'https://a.espncdn.com/combiner/i?img=' + m[1] + '&w=80&h=80' : href;
+}
+function logoErr(img) {                             // small copy failed: try the full one, else hide
+  var full = img.getAttribute('data-full');
+  if (full && img.src !== full) { img.src = full; return; }
+  img.style.display = 'none';
+  img.parentNode.className = 'logo none';
+}
+function logoHTML(t, lg) {
+  var look = teamLook(t, lg);
+  if (!look || !look.logo) return '<span class="logo none"></span>';
+  return '<span class="logo"><img src="' + esc(smallLogo(look.logo)) + '" data-full="' + esc(look.logo) +
+         '" onerror="logoErr(this)" alt=""></span>';
+}
+function lum(hex) {
+  var m = String(hex || '').replace('#', '').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (!m) return -1;
+  return (0.2126 * parseInt(m[1], 16) + 0.7152 * parseInt(m[2], 16) + 0.0722 * parseInt(m[3], 16)) / 255;
+}
+/* The home team's color, swapped for its second color when the main one is too dark to see */
+function homeColor(t, lg) {
+  var look = teamLook(t, lg);
+  if (!look) return '';
+  var c = look.color, a = look.alt;
+  if (lum(c) < 0.18 && lum(a) > lum(c)) c = a;
+  if (lum(c) < 0) return '';
+  if (lum(c) < 0.18) c = '8a94a8';
+  return String(c).replace('#', '');
+}
+function rgba(hex, alpha) {
+  return 'rgba(' + parseInt(hex.substr(0, 2), 16) + ',' + parseInt(hex.substr(2, 2), 16) + ',' +
+         parseInt(hex.substr(4, 2), 16) + ',' + alpha + ')';
+}
+
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
   if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
   var cls = 'card' + (e.live ? ' live' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '');
-  function row(t, s, lose) {
-    return '<div class="row' + (lose ? ' lose' : '') + '"><span class="abbr">' + esc(t.abbreviation) +
+  var hc = e.ufc ? '' : homeColor(h, lg);
+  function row(t, s, lose, tint) {
+    return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
+      (e.ufc ? '' : logoHTML(t, lg)) + '<span class="abbr">' + esc(t.abbreviation) +
       '</span><span class="name">' + (t.rank ? '<b class="rk">' + t.rank + '</b>' : '') +
       esc(t.short || nickname(t.name)) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
-  return '<div class="' + cls + '">' + row(a, sa, loseA) + row(h, sh, loseH) +
+  return '<div class="' + cls + '">' +
+    (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
+    row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '') +
     lineHTML(e) +
     '<div class="status">' + (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
 }
@@ -1162,10 +1264,10 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadNews(function () {
+    loadTeams(function () { loadNews(function () {
       buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
-    });
+    }); });
   }
   next();
 }
