@@ -91,7 +91,11 @@
   .lose .logo { opacity: 0.55; }
   .stripe { height: 0.9vh; }
   /* squarer screens (4:3, 5:4): drop the small team names so letters + scores have room */
-  .narrow .name { display: none; }
+  .narrow .name .nn { display: none; }
+  .narrow .name { max-width: 7vw; }
+  .narrow .name .rec i { display: none; }
+  .narrow .status .tag { font-size: 1.9vh; max-width: 45%; letter-spacing: 0.05vw; }
+  .narrow .status .tag .tl { display: none; } .narrow .status .tag .ts { display: inline; }
   .narrow .abbr { min-width: 7vw; }
   .narrow .lines { font-size: 2.5vh; }
   .narrow .lines .lbl { font-size: 1.9vh; margin-right: 0.7vw; }              /* home team color across the top of the card */
@@ -103,6 +107,17 @@
     line-height: 3.8vh;
   }
   .rk { color: #f5b800; font-weight: 700; margin-right: 0.4vw; }
+  .name .nn { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .name .rec { display: block; font-size: 2.3vh; line-height: 2.8vh; color: #7d8aa6; font-weight: 600; letter-spacing: 0.05vw; }
+  .name .rec.ser { color: #f5b800; }
+  .name .rec i { font-style: normal; }
+  .status { white-space: nowrap; overflow: hidden; }
+  .t-bears .name .rec.ser { color: #E65C1E; } .t-usc .name .rec.ser { color: #FFC72C; }
+  .t-usc .name .rec { color: #b8958f; }
+  .status .tag { float: right; max-width: 60%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+                 font-size: 2.2vh; letter-spacing: 0.12vw; color: #f5b800; font-weight: 700; }
+  .status .tag b { font-weight: 700; } .status .tag .ts { display: none; }
+  .t-bears .status .tag { color: #E65C1E; } .t-usc .status .tag { color: #FFC72C; }
   .score { position: absolute; right: 1.2vw; top: 0; font-size: 7.6vh; font-weight: 700; }
   .lose .score, .lose .abbr { color: #6f7a94; }
   .status {
@@ -538,6 +553,31 @@ function espnDay(lg, dateStr, cb) {
     cb(null, out);
   });
 }
+/* "American League Championship Series - Game 7" -> "ALCS · GM 7" */
+function roundLabel(t) {
+  var s = String(t || '');
+  var R = [[/American League Championship Series/i, 'ALCS'], [/National League Championship Series/i, 'NLCS'],
+           [/American League Division Series/i, 'ALDS'], [/National League Division Series/i, 'NLDS'],
+           [/American League Wild Card( Series)?/i, 'AL WILD CARD'], [/National League Wild Card( Series)?/i, 'NL WILD CARD'],
+           [/Eastern Conference Finals?/i, 'EAST FINALS'], [/Western Conference Finals?/i, 'WEST FINALS'],
+           [/Eastern Conference Semifinals?/i, 'EAST SEMIS'], [/Western Conference Semifinals?/i, 'WEST SEMIS'],
+           [/Eastern Conference First Round/i, 'EAST RD 1'], [/Western Conference First Round/i, 'WEST RD 1'],
+           [/Eastern Conference/i, 'EAST'], [/Western Conference/i, 'WEST'],
+           [/College Football Playoff/i, 'CFP'], [/National Championship/i, 'NATL CHAMPIONSHIP'],
+           [/\s*-\s*/g, ' · '], [/\bGame\s+(\d+)/i, 'GM $1'], [/\bPresented by.*$/i, '']];
+  for (var i = 0; i < R.length; i++) s = s.replace(R[i][0], R[i][1]);
+  return s.replace(/^\s+|\s+$/g, '').toUpperCase();
+}
+/* short form for tight spaces: "WORLD SERIES · GM 4" -> "WS · GM 4" */
+function shortRound(t) {
+  var S = [[/WORLD SERIES/, 'WS'], [/STANLEY CUP FINALS?/, 'CUP FINAL'], [/NBA FINALS/, 'FINALS'], [/WNBA FINALS/, 'FINALS'],
+           [/(AFC|NFC) WILD CARD( PLAYOFFS| ROUND| GAME)?/, '$1 WC'], [/(AFC|NFC) DIVISIONAL( PLAYOFFS| ROUND| GAME)?/, '$1 DIV'],
+           [/(AFC|NFC) CHAMPIONSHIP( GAME)?/, '$1 CHAMP'], [/SUPER BOWL\s+[LXVI]+/, 'SUPER BOWL'], [/ PLAYOFFS?/, ''],
+           [/NATL CHAMPIONSHIP/, 'NATL CHAMP'], [/QUARTERFINAL/, 'QTR'], [/SEMIFINAL/, 'SEMI']];
+  var s = String(t || '');
+  for (var i = 0; i < S.length; i++) s = s.replace(S[i][0], S[i][1]);
+  return s;
+}
 function fromEspn(ev, lg) {
   var c = (ev.competitions && ev.competitions[0]) || {}, st = ev.status || c.status || {}, ty = st.type || {};
   var teams = {}, total = { away: '', home: '' }, comps = c.competitors || [];
@@ -552,6 +592,22 @@ function fromEspn(ev, lg) {
   if (!teams.away || !teams.home) return null;
   recordLine(ev, c);
   readExtras(ev, c);
+  // records: season record, or the playoff-series record when the game is part of a series
+  var ser = c.series, sw = {}, tag = '';
+  if (ser && ser.competitors && ser.competitors.length === 2) {
+    for (var si = 0; si < 2; si++) sw[ser.competitors[si].id] = +ser.competitors[si].wins || 0;
+  }
+  for (var k = 0; k < comps.length; k++) {
+    var sd = comps[k].homeAway === 'home' ? 'home' : 'away', tid = (comps[k].team || {}).id;
+    teams[sd].rec = recOf(comps[k], 'total');
+    if (ser && sw[tid] !== undefined) {
+      var oid = comps[1 - k] && (comps[1 - k].team || {}).id;
+      teams[sd].srec = sw[tid] + '-' + (sw[oid] || 0);
+    }
+  }
+  var note = c.notes && c.notes[0] && c.notes[0].headline;
+  var post = (ev.season && +ev.season.type === 3) || !!ser;
+  if (post || note) tag = roundLabel(note || (ser && ser.title) || '');
   var desc = ty.description || '', state = ty.state;
   var live = state === 'in';
   var fin = state === 'post' && !/postpon|cancel|suspend|delay/i.test(desc);
@@ -559,6 +615,7 @@ function fromEspn(ev, lg) {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
     detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: lg === 'nfl' ? ev : null,
+    tag: tag, series: ser ? (ser.summary || '') : '',
     scores: (live || fin) ? { total: total } : null
   };
 }
@@ -1160,6 +1217,11 @@ function rgba(hex, alpha) {
          parseInt(hex.substr(4, 2), 16) + ',' + alpha + ')';
 }
 
+/* season record, or "SERIES 2-1" when the game is part of a playoff series */
+function recHTML(t) {
+  if (t.srec) return '<span class="rec ser"><i>SERIES </i>' + esc(t.srec) + '</span>';
+  return t.rec ? '<span class="rec">' + esc(t.rec) + '</span>' : '';
+}
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
@@ -1169,14 +1231,16 @@ function cardHTML(e, lg) {
   function row(t, s, lose, tint) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
       (e.ufc ? '' : logoHTML(t, lg)) + '<span class="abbr">' + esc(t.abbreviation) +
-      '</span><span class="name">' + (t.rank ? '<b class="rk">' + t.rank + '</b>' : '') +
-      esc(t.short || nickname(t.name)) + '</span><span class="score">' + esc(s) + '</span></div>';
+      '</span><span class="name"><span class="nn">' + (t.rank ? '<b class="rk">' + t.rank + '</b>' : '') +
+      esc(t.short || nickname(t.name)) + '</span>' + recHTML(t) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
   return '<div class="' + cls + '">' +
     (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
     row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '') +
     lineHTML(e) +
-    '<div class="status">' + (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
+    '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
+      '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
+    (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
 }
 
 /* The main screens only show what's happening now or soon: live games, games starting
@@ -1489,7 +1553,7 @@ function ptHTML(g, kind) {
 
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
   var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
-             '<b>' + esc(kind[1]) + '</b>' + esc((ln ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
+             '<b>' + esc(kind[1] + (g.tag ? ' · ' + shortRound(g.tag) : '')) + '</b>' + esc((ln ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   return '<div class="ptv' + (g.live ? ' is-live' : '') + '">' + head + band +
     '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
 }
