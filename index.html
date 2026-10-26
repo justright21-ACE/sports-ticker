@@ -401,6 +401,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
+  primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
   windowHours: 24,       // screens show live games and games starting within this many hours...
   resultsHours: 12,      // ...plus results of games that ended within this many hours
   cardsPerPage: 6,       // 2 rows of 3 (bigger cards, easier to read from across the room)
@@ -472,6 +473,7 @@ function readParams() {
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'stats') CONFIG.crawlStats = v !== '0';
+    if (k === 'detail') CONFIG.primetimeDetail = v !== '0';
     if (k === 'news') CONFIG.crawlNews = v !== '0';
     if (k === 'demo' && v !== '0') DEMO = true;
   }
@@ -1279,7 +1281,7 @@ function loadPtDetails(cb) {
     if (i >= games.length) return cb();
     var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
     var ttl = g.live ? 25000 : 10 * 60000;
-    if (!g.eid || DEMO || (c && now - c.at < ttl)) return step();
+    if (!CONFIG.primetimeDetail || !g.eid || DEMO || (c && now - c.at < ttl)) return step();
     getJSON(ESPN_API + 'football/nfl/summary?event=' + g.eid, function (err, data) {
       if (!err && data) {
         var det = { at: now, stats: {}, drive: '', series: '' }, bt = (data.boxscore && data.boxscore.teams) || [];
