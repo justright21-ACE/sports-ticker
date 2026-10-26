@@ -207,7 +207,16 @@
   .ptv .cols { margin-top: 1.4vh; height: 46vh; }
   .ptv .panel { float: left; height: 46vh; background: #111829; border: 0.3vh solid #1b2338; border-radius: 1.2vh;
                 padding: 1.4vh 1.2vw; -webkit-box-sizing: border-box; box-sizing: border-box; overflow: hidden; }
-  .ptv .p1 { width: 31%; } .ptv .p2 { width: 36%; margin: 0 1%; } .ptv .p3 { width: 31%; }
+  .ptv .p1 { width: 30%; } .ptv .p2 { width: 38%; margin: 0 1%; } .ptv .p3 { width: 30%; }
+  .ptv .p3 { text-align: right; }
+  .ptv .tst { margin-top: 0.8vh; padding-top: 0.8vh; border-top: 0.2vh solid #1b2338; }
+  .ptv .tst span { display: inline-block; width: 49%; font-size: 2.3vh; line-height: 3.2vh; color: #a5aec4; }
+  .ptv .tst b { color: #f2f4f8; font-weight: 700; margin-left: 0.4vw; }
+  .ptv .p2 table.q { margin: 0.4vh 0 0 0; font-size: 2.5vh; }
+  .ptv .p2 .field { margin: 0.9vh 0 0.8vh 0; }
+  .ptv .p2 .count { line-height: 7vh; }
+  .ptv .p2 .note { margin-top: 0.6vh; }
+  .narrow .ptv .tst span { font-size: 1.8vh; line-height: 2.6vh; }
   .ptv .ph { font-size: 2.2vh; color: #f5b800; font-weight: 700; letter-spacing: 0.2vw; margin-bottom: 1vh; }
   .ptv .dd { font-size: 4.4vh; font-weight: 700; line-height: 5.2vh; }
   .ptv .dd small { display: block; font-size: 2.5vh; color: #a5aec4; font-weight: 500; line-height: 3.4vh; }
@@ -243,7 +252,10 @@
   .ptv .count small { display: block; font-size: 2.4vh; color: #a5aec4; font-weight: 500; letter-spacing: 0.15vw; line-height: 3vh; }
   .ptv .pthead { height: 4.6vh; line-height: 4.6vh; font-size: 2.8vh; color: #8892aa; letter-spacing: 0.15vw; text-transform: uppercase; margin-bottom: 1vh; }
   .ptv .pthead b { color: #f5b800; font-weight: 700; margin-right: 1vw; letter-spacing: 0.2vw; }
+  .ptv .pthead { overflow: hidden; white-space: nowrap; }
   .ptv .pthead .r { float: right; }
+  .ptv .pthead .hl { text-transform: none; color: #c9d0e0; letter-spacing: 0.05vw; }
+  .ptv .pthead .hl b { margin-right: 0.6vw; }
   /* squarer screens (4:3, 5:4): same layout, smaller type so it fits the narrower width */
   .narrow .ptv .pthead { font-size: 2.2vh; }
   .narrow .ptv .ptlogo .logo { width: 10vh; height: 10vh; }
@@ -1291,6 +1303,9 @@ function loadPtDetails(cb) {
           if (tid) det.stats[tid] = st;
         }
         if (data.drives && data.drives.current) det.drive = data.drives.current.description || '';
+        det.leaders = {};
+        var tl = data.leaders || [];
+        for (var u = 0; u < tl.length; u++) if (tl[u].team && tl[u].team.id) det.leaders[tl[u].team.id] = tl[u].leaders || [];
         var ss = data.seasonseries && data.seasonseries[0];
         if (ss) det.series = ss.summary || ss.description || '';
         ptDetail[g.eid] = det;
@@ -1366,11 +1381,88 @@ function ptHTML(g, kind) {
   var band = '<div class="band">' + (hc ? '<div class="bstripe" style="background:#' + hc + '"></div>' : '') +
     side(a, ca, 'away') + '<div class="center">' + center + '</div>' + side(h, ch, 'home') + '</div>';
 
-  // ---- left panel
-  var p1;
+  // ---- side panels: each team's own leaders (+ its key stats once the game starts)
+  var L = c.leaders || [];
+  var CATS = { passingYards: 'PASSING', rushingYards: 'RUSHING', receivingYards: 'RECEIVING' };
+  function teamLeaders(cp) {
+    var tid = (cp.team || {}).id, list = (det.leaders && det.leaders[tid]) || cp.leaders || [], out = [], i, seen = {};
+    for (i = 0; i < list.length && out.length < 3; i++) {             // per-team leaders (ESPN game feed or scoreboard)
+      var e1 = list[i].leaders && list[i].leaders[0];
+      if (e1 && CATS[list[i].name] && !seen[list[i].name]) { seen[list[i].name] = 1; out.push({ cat: CATS[list[i].name], en: e1 }); }
+    }
+    if (!out.length) {                                                  // else: game leaders who play for this team
+      for (i = 0; i < L.length; i++) {
+        var e2 = L[i].leaders && L[i].leaders[0];
+        if (e2 && CATS[L[i].name] && e2.team && String(e2.team.id) === String(tid)) out.push({ cat: CATS[L[i].name], en: e2 });
+      }
+    }
+    return out;
+  }
+  function teamPanel(t, cp) {
+    var tl = teamLeaders(cp), html = '<div class="ph">' + esc(t.abbreviation) + (pre ? ' SEASON LEADERS' : ' LEADERS') + '</div>';
+    for (var i = 0; i < tl.length; i++) {
+      html += '<div class="ld"><div class="c">' + esc(tl[i].cat) + '</div><div class="p">' + esc(athleteName(tl[i].en)) +
+              '</div><div class="v">' + esc(String(tl[i].en.displayValue || '').replace(/,\s+/g, ' · ')) + '</div></div>';
+    }
+    if (!tl.length) html += '<div class="v" style="color:#7d8aa6">No leaders yet</div>';
+    var st = det.stats[(cp.team || {}).id];
+    if (!pre && st) {
+      var cells = [['YARDS', st.totalYards], ['PASS', st.netPassingYards], ['RUSH', st.rushingYards], ['TURNOVERS', st.turnovers]], c2 = '';
+      for (var k = 0; k < cells.length; k++) if (cells[k][1] !== undefined) c2 += '<span>' + cells[k][0] + '<b>' + esc(cells[k][1]) + '</b></span>';
+      if (c2) html += '<div class="tst">' + c2 + '</div>';
+    }
+    return html;
+  }
+  var p1 = teamPanel(a, ca), p3 = teamPanel(h, ch);
+
+  // ---- middle panel: the game itself
+  var p2, o = (c.odds && c.odds[0]) || {}, open = g.open;
+  var lsA = ca.linescores || [], lsH = ch.linescores || [], nq = Math.max(4, lsA.length, lsH.length), th = '<th></th>', ra = '', rh = '';
+  for (var q = 0; q < nq; q++) {
+    th += '<th>' + (q < 4 ? q + 1 : 'OT') + '</th>';
+    var va = lsA[q] ? (lsA[q].displayValue || lsA[q].value) : null, vh = lsH[q] ? (lsH[q].displayValue || lsH[q].value) : null;
+    ra += va !== null && va !== undefined ? '<td>' + esc(va) + '</td>' : '<td class="na">–</td>';
+    rh += vh !== null && vh !== undefined ? '<td>' + esc(vh) + '</td>' : '<td class="na">–</td>';
+  }
+  var qtable = '<table class="q"><tr>' + th + '<th>T</th></tr>' +
+       '<tr><td class="t">' + esc(a.abbreviation) + '</td>' + ra + '<td class="tot">' + esc(scoreOf(g, 'away')) + '</td></tr>' +
+       '<tr><td class="t">' + esc(h.abbreviation) + '</td>' + rh + '<td class="tot">' + esc(scoreOf(g, 'home')) + '</td></tr></table>';
+  var ln = '';
+  if (!pre && open && (spreadText(g) || open.total)) {
+    var sAway = num(scoreOf(g, 'away')), sHome = num(scoreOf(g, 'home')), cov = '';
+    if (open.line && open.line !== 'PK') {
+      var favHome = open.side === 'home', margin = (favHome ? sHome - sAway : sAway - sHome) + num(open.line);
+      var favAb = favHome ? h.abbreviation : a.abbreviation, dogAb = favHome ? a.abbreviation : h.abbreviation;
+      cov = margin > 0 ? favAb + ' covering' : (margin < 0 ? dogAb + ' covering' : 'Push');
+      if (fin) cov = margin > 0 ? favAb + ' covered' : (margin < 0 ? dogAb + ' covered' : 'Push');
+    }
+    var pace = '', tot = sAway + sHome;
+    var per = (g.raw && g.raw.status && g.raw.status.period) || 0, clk = String((g.raw && g.raw.status && g.raw.status.displayClock) || '15:00').split(':');
+    var elapsed = (Math.min(per, 4) - 1) * 15 + (15 - (num(clk[0]) + num(clk[1]) / 60));
+    if (open.total) {
+      if (fin) pace = 'total ' + tot + (tot > num(open.total) ? ' · over' : (tot < num(open.total) ? ' · under' : ' · push'));
+      else if (g.live && per <= 4 && elapsed >= 5) pace = 'on pace for ' + Math.round(tot * 60 / elapsed);
+    }
+    ln = '<b>OPEN</b>' + esc([spreadText(g), open.total ? 'O/U ' + open.total : ''].join(' · ').replace(/^ · | · $/g, '')) +
+         (cov || pace ? ' &nbsp;' + (cov ? '<span class="ok">' + esc(cov) + '</span>' : '') + (cov && pace ? ' · ' : '') + esc(pace) : '');
+  }
   if (pre) {
-    p1 = '<div class="ph">KICKOFF IN</div><div class="count" id="ptCount" data-t="' + parseDate(g.date).getTime() + '">' + countdown(parseDate(g.date).getTime()) +
-         '<small>HOURS · MIN · SEC</small></div>' + (det.series ? '<div class="note" style="margin-top:2vh"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '');
+    var cur = o.details || '', ou = o.overUnder, ml = '';
+    if (o.moneyline && o.moneyline.home) {
+      var mh = (o.moneyline.home.close || o.moneyline.home.open || {}).odds, ma = o.moneyline.away && (o.moneyline.away.close || o.moneyline.away.open || {}).odds;
+      if (mh && ma) ml = a.abbreviation + ' ' + ma + ' · ' + h.abbreviation + ' ' + mh;
+    } else if (o.homeTeamOdds && o.awayTeamOdds && o.homeTeamOdds.moneyLine) {
+      var f = function (v) { return v > 0 ? '+' + v : '' + v; };
+      ml = a.abbreviation + ' ' + f(o.awayTeamOdds.moneyLine) + ' · ' + h.abbreviation + ' ' + f(o.homeTeamOdds.moneyLine);
+    }
+    var spr = open && spreadText(g) ? spreadText(g) : cur, tot2 = (open && open.total) || ou;
+    p2 = '<div class="ph">KICKOFF IN</div><div class="count" id="ptCount" data-t="' + parseDate(g.date).getTime() + '">' + countdown(parseDate(g.date).getTime()) +
+         '<small>HOURS · MIN · SEC</small></div>' +
+         '<div class="ph" style="margin-top:1vh">' + (open ? 'OPENING LINE' : 'LINE') + '</div>' +
+         (spr || tot2 ? '<div class="dd">' + esc([spr, tot2 ? 'O/U ' + tot2 : ''].join(' · ').replace(/^ · | · $/g, '')) +
+           '<small>' + esc([cur && open && cur !== spr ? 'Now ' + cur : '', ou && open && open.total && +ou !== +open.total ? 'O/U now ' + ou : ''].join(' · ').replace(/^ · | · $/g, '')) + '</small></div>' : '') +
+         (ml ? '<div class="note"><b>MONEYLINE</b>' + esc(ml) + '</div>' : '') +
+         (det.series ? '<div class="note"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '');
   } else if (g.live && (s.downDistanceText || s.shortDownDistanceText)) {
     var pt = String(s.possessionText || '').match(/^([A-Z]+)\s+(\d+)$/), field = '';
     var offAway = String(s.possession) === String((ca.team || {}).id);
@@ -1387,84 +1479,17 @@ function ptHTML(g, kind) {
               '</div><div class="lab" style="right:9%">' + esc(h.abbreviation) + '</div></div>';
     }
     var who = abbrById[s.possession] || '';
-    p1 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
+    p2 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
          '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
-         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
+         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '') + qtable;
   } else {
-    p1 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g)) + '</div>' +
-         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '') +
-         (det.series ? '<div class="note"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '');
+    p2 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g)) + '</div>' +
+         qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
   }
 
-  // ---- middle panel
-  var p2, o = (c.odds && c.odds[0]) || {}, open = g.open;
-  if (pre) {
-    var cur = o.details || '', ou = o.overUnder;
-    var ml = '';
-    if (o.moneyline && o.moneyline.home) {
-      var mh = (o.moneyline.home.close || o.moneyline.home.open || {}).odds, ma = o.moneyline.away && (o.moneyline.away.close || o.moneyline.away.open || {}).odds;
-      if (mh && ma) ml = a.abbreviation + ' ' + ma + ' · ' + h.abbreviation + ' ' + mh;
-    } else if (o.homeTeamOdds && o.awayTeamOdds && o.homeTeamOdds.moneyLine) {
-      var f = function (v) { return v > 0 ? '+' + v : '' + v; };
-      ml = a.abbreviation + ' ' + f(o.awayTeamOdds.moneyLine) + ' · ' + h.abbreviation + ' ' + f(o.homeTeamOdds.moneyLine);
-    }
-    p2 = '<div class="ph">OPENING LINE</div>' +
-         (open && spreadText(g) ? '<div class="dd">' + esc(spreadText(g)) + '<small>' + esc(cur && cur !== spreadText(g) ? 'Now ' + cur : 'DraftKings') + '</small></div>' :
-          (cur ? '<div class="dd">' + esc(cur) + '<small>Current line</small></div>' : '')) +
-         ((open && open.total) || ou ? '<div class="dd" style="margin-top:1.4vh">O/U ' + esc((open && open.total) || ou) +
-           '<small>' + esc(ou && open && open.total && +ou !== +open.total ? 'Now ' + ou : '') + '</small></div>' : '') +
-         (ml ? '<div class="note" style="margin-top:1.4vh"><b>MONEYLINE</b>' + esc(ml) + '</div>' : '');
-  } else {
-    var lsA = ca.linescores || [], lsH = ch.linescores || [], nq = Math.max(4, lsA.length, lsH.length), th = '<th></th>', ra = '', rh = '';
-    for (var q = 0; q < nq; q++) {
-      th += '<th>' + (q < 4 ? q + 1 : 'OT') + '</th>';
-      var va = lsA[q] ? (lsA[q].displayValue || lsA[q].value) : null, vh = lsH[q] ? (lsH[q].displayValue || lsH[q].value) : null;
-      ra += va !== null && va !== undefined ? '<td>' + esc(va) + '</td>' : '<td class="na">–</td>';
-      rh += vh !== null && vh !== undefined ? '<td>' + esc(vh) + '</td>' : '<td class="na">–</td>';
-    }
-    var sa = det.stats[(ca.team || {}).id] || {}, sh = det.stats[(ch.team || {}).id] || {};
-    var stats = ptStatRow('TOTAL YARDS', sa.totalYards, sh.totalYards) + ptStatRow('PASSING', sa.netPassingYards, sh.netPassingYards) +
-                ptStatRow('RUSHING', sa.rushingYards, sh.rushingYards) + ptStatRow('3RD DOWN', sa.thirdDownEff, sh.thirdDownEff, true) +
-                ptStatRow('TURNOVERS', sa.turnovers, sh.turnovers);
-    p2 = '<div class="ph">SCORE BY QUARTER</div><table class="q"><tr>' + th + '<th>T</th></tr>' +
-         '<tr><td class="t">' + esc(a.abbreviation) + '</td>' + ra + '<td class="tot">' + esc(scoreOf(g, 'away')) + '</td></tr>' +
-         '<tr><td class="t">' + esc(h.abbreviation) + '</td>' + rh + '<td class="tot">' + esc(scoreOf(g, 'home')) + '</td></tr></table>' +
-         (stats ? '<div class="ph">TEAM STATS</div>' + stats : '');
-  }
-
-  // ---- right panel: leaders (+ lines during/after the game)
-  var L = c.leaders || [], lead = '';
-  for (var li = 0; li < L.length && li < 3; li++) {
-    var en = L[li].leaders && L[li].leaders[0];
-    if (!en) continue;
-    var cat = { passingYards: 'PASSING', rushingYards: 'RUSHING', receivingYards: 'RECEIVING' }[L[li].name] || String(L[li].displayName || L[li].name || '').toUpperCase();
-    var tm = en.team && abbrById[en.team.id] ? abbrById[en.team.id] : '';
-    lead += '<div class="ld"><div class="c">' + esc(cat) + '</div><div class="p">' + esc(athleteName(en)) + (tm ? '<span>' + esc(tm) + '</span>' : '') +
-            '</div><div class="v">' + esc(String(en.displayValue || '').replace(/,\s+/g, ' · ')) + '</div></div>';
-  }
-  var ln = '';
-  if (!pre && open && (spreadText(g) || open.total)) {
-    var sAway = num(scoreOf(g, 'away')), sHome = num(scoreOf(g, 'home')), cov = '';
-    if (open.line && open.line !== 'PK') {
-      var favHome = open.side === 'home', margin = (favHome ? sHome - sAway : sAway - sHome) + num(open.line);
-      var favAb = favHome ? h.abbreviation : a.abbreviation, dogAb = favHome ? a.abbreviation : h.abbreviation;
-      cov = margin > 0 ? favAb + ' covering' : (margin < 0 ? dogAb + ' covering' : 'Push');
-      if (fin) cov = margin > 0 ? favAb + ' covered' : (margin < 0 ? dogAb + ' covered' : 'Push');
-    }
-    var pace = '', tot = sAway + sHome;
-    var per = (g.raw && g.raw.status && g.raw.status.period) || 0, clk = String((g.raw && g.raw.status && g.raw.status.displayClock) || '15:00').split(':');
-    var elapsed = (Math.min(per, 4) - 1) * 15 + (15 - (num(clk[0]) + num(clk[1]) / 60));
-    if (open.total) {
-      if (fin) pace = 'total ' + tot + (tot > num(open.total) ? ' · over' : (tot < num(open.total) ? ' · under' : ' · push'));
-      else if (g.live && per <= 4 && elapsed >= 5) pace = 'total on pace for ' + Math.round(tot * 60 / elapsed);
-    }
-    ln = '<div class="ln"><b>OPEN</b>' + esc([spreadText(g), open.total ? 'O/U ' + open.total : ''].join(' · ').replace(/^ · | · $/g, '')) +
-         (cov || pace ? '<br>' + (cov ? '<span class="ok">' + esc(cov) + '</span>' : '') + (cov && pace ? ' · ' : '') + esc(pace) : '') + '</div>';
-  }
-  var p3 = '<div class="ph">' + (pre ? 'SEASON LEADERS' : 'GAME LEADERS') + '</div>' + lead + ln;
-
-  var head = '<div class="pthead"><b>' + esc(kind[1]) + '</b>' + esc([bc, ven].join(' · ').replace(/^ · | · $/g, '')) +
-             (wk ? '<span class="r">' + esc(wk) + '</span>' : '') + '</div>';
+  // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
+  var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
+             '<b>' + esc(kind[1]) + '</b>' + esc((ln ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   return '<div class="ptv' + (g.live ? ' is-live' : '') + '">' + head + band +
     '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
 }
