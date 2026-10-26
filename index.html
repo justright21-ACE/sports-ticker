@@ -92,7 +92,10 @@
   .stripe { height: 0.9vh; }
   /* squarer screens (4:3, 5:4): drop the small team names so letters + scores have room */
   .narrow .name .nn { display: none; }
-  .narrow .name { max-width: 7vw; }
+  .narrow .name { max-width: 9vw; }
+  .narrow .name .rec { font-size: 2vh; }
+  .narrow .score { font-size: 6vh; }
+  .narrow .row .abbr { min-width: 6vw; font-size: 3.8vh; }
   .narrow .name .rec i { display: none; }
   .narrow .status .tag { font-size: 1.9vh; max-width: 45%; letter-spacing: 0.05vw; }
   .narrow .status .tag .tl { display: none; } .narrow .status .tag .ts { display: inline; }
@@ -111,6 +114,8 @@
   .name .rec { display: block; font-size: 2.3vh; line-height: 2.8vh; color: #7d8aa6; font-weight: 600; letter-spacing: 0.05vw; }
   .name .rec.ser { color: #f5b800; }
   .name .rec i { font-style: normal; }
+  .name .rec .rkn { display: none; }
+  .narrow .name .rec .rkn { display: inline; margin-right: 0.5vw; }
   .status { white-space: nowrap; overflow: hidden; }
   .t-bears .name .rec.ser { color: #E65C1E; } .t-usc .name .rec.ser { color: #FFC72C; }
   .t-usc .name .rec { color: #b8958f; }
@@ -1149,6 +1154,10 @@ function sortGames(list, lg) {
   return list.sort(function (a, b) {
     var fa = isFav(a, lg) ? 0 : 1, fb = isFav(b, lg) ? 0 : 1;
     if (fa !== fb) return fa - fb;
+    if (RANK_PATHS[lg]) {                              // college: ranked games first, best-ranked team first
+      var ra = bestRank(a, lg), rb = bestRank(b, lg);
+      if (ra !== rb) return ra - rb;
+    }
     if (rank(a) !== rank(b)) return rank(a) - rank(b);
     var ta = parseDate(a.date).getTime(), tb = parseDate(b.date).getTime();
     return rank(a) === 2 ? tb - ta : ta - tb;      // newest finals first, soonest upcoming first
@@ -1334,9 +1343,10 @@ function rgba(hex, alpha) {
 }
 
 /* season record, or "SERIES 2-1" when the game is part of a playoff series */
-function recHTML(t) {
-  if (t.srec) return '<span class="rec ser"><i>SERIES </i>' + esc(t.srec) + '</span>';
-  return t.rec ? '<span class="rec">' + esc(t.rec) + '</span>' : '';
+function recHTML(t, rk) {
+  var r = rk ? '<b class="rk rkn">#' + rk + '</b>' : '';            // rank here only shows on squarer screens
+  if (t.srec) return '<span class="rec ser">' + r + '<i>SERIES </i>' + esc(t.srec) + '</span>';
+  return t.rec || r ? '<span class="rec">' + r + esc(t.rec || '') + '</span>' : '';
 }
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
@@ -1347,8 +1357,8 @@ function cardHTML(e, lg) {
   function row(t, s, lose, tint) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
       (e.ufc ? '' : logoHTML(t, lg)) + '<span class="abbr">' + esc(t.abbreviation) +
-      '</span><span class="name"><span class="nn">' + (t.rank ? '<b class="rk">' + t.rank + '</b>' : '') +
-      esc(t.short || nickname(t.name)) + '</span>' + recHTML(t) + '</span><span class="score">' + esc(s) + '</span></div>';
+      '</span><span class="name"><span class="nn">' + (apRank(t, lg) ? '<b class="rk">' + apRank(t, lg) + '</b>' : '') +
+      esc(t.short || nickname(t.name)) + '</span>' + recHTML(t, apRank(t, lg)) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
   return '<div class="' + cls + '">' +
     (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
@@ -1690,6 +1700,18 @@ setInterval(function () {                               // tick the kickoff coun
 /* =================== COLLEGE TOP 25 (AP poll + Coaches poll, ESPN) =================== */
 var RANK_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-college-basketball' };
 var rankCache = {};
+/* AP rank for a team (0 = unranked). Uses the AP poll itself once loaded, so it stays the AP
+   rank even when ESPN's own ranking switches to the playoff committee's. */
+function apRank(t, lg) {
+  if (!RANK_PATHS[lg] || !t) return 0;
+  var rk = rankingsFor(lg);
+  if (rk && t.tid) return rk.byId[t.tid] || 0;
+  return t.rank || 0;
+}
+function bestRank(e, lg) {
+  var a = apRank(e.teams.away, lg) || 99, h = apRank(e.teams.home, lg) || 99;
+  return Math.min(a, h);
+}
 function rankingsFor(lg) {
   var r = rankCache[lg];
   return r && r.ap && r.ap.length ? r : null;
@@ -1727,7 +1749,9 @@ function loadRankings(cb) {
           var ot = oth[v].team || {};
           if (ot.location || ot.name) votes.push({ name: ot.location || ot.name, pts: oth[v].points });
         }
-        rankCache[lg] = { at: now, ap: list, hasCoaches: !!cr.length, votes: votes,
+        var byId = {};
+        for (var b2 = 0; b2 < list.length; b2++) if (list[b2].team.tid) byId[list[b2].team.tid] = list[b2].rank;
+        rankCache[lg] = { at: now, ap: list, byId: byId, hasCoaches: !!cr.length, votes: votes,
                           title: (ap.shortName || ap.name || 'AP Top 25').replace(/^AP Poll$/i, 'AP Top 25'),
                           week: (ap.occurrence && ap.occurrence.displayValue) || '' };
       } else if (rankCache[lg]) rankCache[lg].at = now;      // keep last week's poll if the feed fails
@@ -1819,8 +1843,10 @@ function crawlGameHTML(e, lg, sx) {
     return '<span class="g">' + txt + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(statusText(e, lg)) + '</span></span>';
   }
   var st = statusText(e, lg);
-  var body = sa !== '' ? esc(a.abbreviation) + ' ' + esc(sa) + '  ' + esc(h.abbreviation) + ' ' + esc(sh)
-                       : esc(a.abbreviation) + ' @ ' + esc(h.abbreviation);
+  var ra = apRank(a, lg), rh = apRank(h, lg);
+  var an = (ra ? '#' + ra + ' ' : '') + a.abbreviation, hn = (rh ? '#' + rh + ' ' : '') + h.abbreviation;
+  var body = sa !== '' ? esc(an) + ' ' + esc(sa) + '  ' + esc(hn) + ' ' + esc(sh)
+                       : esc(an) + ' @ ' + esc(hn);
   var ln = '';
   if (e.open && !e.live && !isFinal(e)) {
     var bb = bet(e, lg);
