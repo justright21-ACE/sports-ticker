@@ -133,6 +133,11 @@
   }
   .lines .lbl { color: #f5b800; font-size: 2.5vh; letter-spacing: 0.15vw; margin-right: 0.9vw; }
   .lines .ou { float: right; }
+  .lines .lf { display: none; }
+  .lines .lf.on { display: inline; }
+  .lines .mv { color: #7d8aa6; font-size: 2.2vh; font-weight: 500; margin-left: 0.5vw; }
+  .lines .okc { color: #7bd88f; }
+  .narrow .lines .mv { font-size: 1.8vh; }
   .fight .abbr { font-size: 3.4vh; max-width: 20vw; padding: 0 0.6vw; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
   .fight .name { display: none; }
   .fight .abbr { max-width: 24vw; }
@@ -578,6 +583,14 @@ function shortRound(t) {
   for (var i = 0; i < S.length; i++) s = s.replace(S[i][0], S[i][1]);
   return s;
 }
+/* ESPN's live win probability, when the feed includes it */
+function winProb(c) {
+  var p = c && c.situation && c.situation.lastPlay && c.situation.lastPlay.probability;
+  if (!p || p.homeWinPercentage === undefined) return null;
+  var h = +p.homeWinPercentage, a = p.awayWinPercentage !== undefined ? +p.awayWinPercentage : 1 - h;
+  if (h > 1 || a > 1) { h = h / 100; a = a / 100; }
+  return isNaN(h) ? null : { home: h, away: a };
+}
 function fromEspn(ev, lg) {
   var c = (ev.competitions && ev.competitions[0]) || {}, st = ev.status || c.status || {}, ty = st.type || {};
   var teams = {}, total = { away: '', home: '' }, comps = c.competitors || [];
@@ -616,6 +629,7 @@ function fromEspn(ev, lg) {
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
     detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: lg === 'nfl' ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '',
+    per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
   };
 }
@@ -648,19 +662,41 @@ function recordLine(ev, c) {
     names[comps[i].homeAway === 'home' ? 'home' : 'away'] = (comps[i].team || {}).displayName;
   }
   if (!names.away || !names.home) return;
-  var key = gameKey(ev.date, names.away, names.home);
-  if (lines[key]) return;                          // opening line never changes: keep the first one
-  var ps = o.pointSpread || {};
-  var hl = ps.home && ps.home.open && ps.home.open.line, al = ps.away && ps.away.open && ps.away.open.line;
-  var tl = o.total && o.total.over && o.total.over.open && o.total.over.open.line;
-  var rec = {};
-  if (hl || al) {
-    if (/^-/.test(hl)) { rec.side = 'home'; rec.line = hl; }
-    else if (/^-/.test(al)) { rec.side = 'away'; rec.line = al; }
-    else rec.line = 'PK';
+  var key = gameKey(ev.date, names.away, names.home), rec = lines[key] || {};
+  var ps = o.pointSpread || {}, abbr = {};
+  for (var j = 0; j < comps.length; j++) abbr[(comps[j].team || {}).abbreviation] = comps[j].homeAway === 'home' ? 'home' : 'away';
+  // opening line: recorded once, never changes
+  if (!rec.line && !rec.total) {
+    var os = lineSide(ps.home && ps.home.open && ps.home.open.line, ps.away && ps.away.open && ps.away.open.line);
+    if (os) { rec.side = os.side; rec.line = os.line; }
+    var tl = o.total && o.total.over && o.total.over.open && o.total.over.open.line;
+    if (tl) rec.total = String(tl).replace(/^[ou]\s*/i, '');
   }
-  if (tl) rec.total = String(tl).replace(/^[ou]\s*/i, '');
-  if (rec.line || rec.total) lines[key] = rec;
+  // current line: refreshed whenever ESPN has odds (it drops them at kickoff, so this ends as the closing line)
+  var cur = {}, cs = lineSide(ps.home && ps.home.close && ps.home.close.line, ps.away && ps.away.close && ps.away.close.line);
+  if (!cs) {
+    var m = String(o.details || '').match(/^([A-Z]+)\s+(-[\d.]+)$/);
+    if (m && abbr[m[1]]) cs = { side: abbr[m[1]], line: m[2] };
+    else if (/^(even|pk)/i.test(o.details || '')) cs = { line: 'PK' };
+  }
+  if (cs) { cur.side = cs.side; cur.line = cs.line; }
+  var tc = o.total && o.total.over && o.total.over.close && o.total.over.close.line;
+  cur.total = tc ? String(tc).replace(/^[ou]\s*/i, '') : (o.overUnder != null ? String(o.overUnder) : '');
+  var sg = function (v) { return v === undefined || v === null || v === '' ? '' : (+v > 0 && String(v).charAt(0) !== '+' ? '+' + v : String(v)); };
+  if (o.moneyline && o.moneyline.home) {
+    cur.mlH = sg((o.moneyline.home.close || o.moneyline.home.open || {}).odds);
+    cur.mlA = sg(o.moneyline.away && (o.moneyline.away.close || o.moneyline.away.open || {}).odds);
+  } else if (o.homeTeamOdds && o.awayTeamOdds) {
+    cur.mlH = sg(o.homeTeamOdds.moneyLine); cur.mlA = sg(o.awayTeamOdds.moneyLine);
+  }
+  if (cur.line || cur.total || cur.mlH) rec.cur = cur;
+  if (rec.line || rec.total || rec.cur) lines[key] = rec;
+}
+function lineSide(hl, al) {
+  if (/^-/.test(hl || '')) return { side: 'home', line: String(hl) };
+  if (/^-/.test(al || '')) return { side: 'away', line: String(al) };
+  if (hl || al) return { line: 'PK' };
+  return null;
 }
 /* ---- Key game stats for the bottom bar (ESPN): who has the ball + top performers ---- */
 var extras = {};
@@ -1103,15 +1139,64 @@ function spreadText(e) {
   var t = e.teams[o.side];
   return (t ? t.abbreviation + ' ' : '') + o.line;
 }
-function lineHTML(e) {
+/* Everything the line row and primetime header need: line now vs open, ATS, O/U, moneyline, win % */
+function bet(e, lg) {
+  var o = e.open || {}, cur = o.cur || {}, a = e.teams.away, h = e.teams.home;
+  function sp(r) { if (!r || !r.line) return ''; if (r.line === 'PK') return 'PK'; var t = e.teams[r.side]; return (t ? t.abbreviation + ' ' : '') + r.line; }
+  var b = { openSp: sp(o.line ? o : null), curSp: sp(cur.line ? cur : null), openTot: o.total || '', curTot: cur.total || '',
+            mlA: cur.mlA || '', mlH: cur.mlH || '' };
+  b.sp = b.curSp || b.openSp; b.tot = b.curTot || b.openTot;
+  b.spFrom = '';
+  if (b.openSp && b.curSp && b.openSp !== b.curSp) b.spFrom = (o.side && o.side === cur.side) ? o.line : b.openSp;
+  b.totFrom = b.openTot && b.curTot && +b.openTot !== +b.curTot ? b.openTot : '';
+  var fin = isFinal(e), A = num(scoreOf(e, 'away')), H = num(scoreOf(e, 'home'));
+  var ref = cur.line ? cur : (o.line ? o : null);            // closing line settles bets
+  if ((e.live || fin) && ref) {
+    var favHome = ref.line === 'PK' ? true : ref.side === 'home';
+    var margin = (favHome ? H - A : A - H) + (ref.line === 'PK' ? 0 : num(ref.line));
+    var fav = favHome ? h.abbreviation : a.abbreviation, dog = favHome ? a.abbreviation : h.abbreviation;
+    b.cov = margin === 0 ? 'Push' : (margin > 0 ? fav : dog) + (fin ? ' covered' : ' covering');
+  }
+  if ((e.live || fin) && b.tot) {
+    var T = A + H, line = num(b.tot);
+    if (fin) b.ou = (T > line ? 'OVER' : (T < line ? 'UNDER' : 'PUSH')) + ' · ' + T;
+    else b.ou = 'now ' + T;                          // live: just the current combined score
+  }
+  if (e.live && e.wp) {
+    var hw = e.wp.home >= e.wp.away;
+    b.wp = (hw ? h.abbreviation : a.abbreviation) + ' ' + Math.round(100 * (hw ? e.wp.home : e.wp.away)) + '%';
+  }
+  return b;
+}
+function lineFaces(e, lg) {
+  var b = bet(e, lg), f = [], fin = isFinal(e);
+  var mv = function (v) { return v ? '<span class="mv">from ' + esc(v) + '</span>' : ''; };
+  if (!e.live && !fin) {
+    if (b.spFrom || b.totFrom) {                       // the line moved: spread and total get their own views
+      if (b.sp) f.push({ lbl: 'LINE', left: esc(b.sp), right: b.spFrom ? '<span class="mv">opened ' + esc(b.spFrom) + '</span>' : '' });
+      if (b.tot) f.push({ lbl: 'O/U', left: esc(b.tot), right: b.totFrom ? '<span class="mv">opened ' + esc(b.totFrom) + '</span>' : '' });
+    } else if (b.sp || b.tot) f.push({ lbl: 'LINE', left: esc(b.sp), right: b.tot ? 'O/U ' + esc(b.tot) : '' });
+    if (b.mlA && b.mlH) f.push({ lbl: 'ML', left: esc(e.teams.away.abbreviation + ' ' + b.mlA), right: esc(e.teams.home.abbreviation + ' ' + b.mlH) });
+  } else {
+    if (b.sp) f.push({ lbl: 'ATS', left: esc(b.sp), right: b.cov ? '<span class="okc">' + esc(b.cov) + '</span>' : '' });
+    if (b.tot) f.push({ lbl: 'O/U', left: esc(b.tot), right: b.ou ? esc(b.ou) : '' });
+    if (b.wp) f.push({ lbl: 'WIN', left: esc(b.wp), right: '' });
+  }
+  return f;
+}
+function lineHTML(e, lg) {
   if (e.ufc) {
     return '<div class="lines">' + (e.mainEvent ? '<span class="ou">MAIN EVENT</span>' : '') +
       '<span class="lbl">' + esc(String(e.wclass || 'BOUT').toUpperCase()) + '</span></div>';
   }
-  var o = e.open, sp = spreadText(e);
-  if (!o) return '<div class="lines">&nbsp;</div>';
-  return '<div class="lines">' + (o.total ? '<span class="ou">O/U ' + esc(o.total) + '</span>' : '') +
-    '<span class="lbl">OPEN</span>' + (sp ? esc(sp) : '') + '</div>';
+  var faces = lineFaces(e, lg), html = '';
+  if (!faces.length) return '<div class="lines">&nbsp;</div>';
+  var k = (state.lineFace || 0) % faces.length;
+  for (var i = 0; i < faces.length; i++) {
+    html += '<span class="lf' + (i === k ? ' on' : '') + '">' + (faces[i].right ? '<span class="ou">' + faces[i].right + '</span>' : '') +
+            '<span class="lbl">' + faces[i].lbl + '</span>' + faces[i].left + '</span>';
+  }
+  return '<div class="lines" data-n="' + faces.length + '">' + html + '</div>';
 }
 
 /* ---- Team logos + colors ----
@@ -1237,7 +1322,7 @@ function cardHTML(e, lg) {
   return '<div class="' + cls + '">' +
     (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
     row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '') +
-    lineHTML(e) +
+    lineHTML(e, lg) +
     '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
       '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
     (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
@@ -1492,23 +1577,12 @@ function ptHTML(g, kind) {
        '<tr><td class="t">' + esc(a.abbreviation) + '</td>' + ra + '<td class="tot">' + esc(scoreOf(g, 'away')) + '</td></tr>' +
        '<tr><td class="t">' + esc(h.abbreviation) + '</td>' + rh + '<td class="tot">' + esc(scoreOf(g, 'home')) + '</td></tr></table>';
   var ln = '';
-  if (!pre && open && (spreadText(g) || open.total)) {
-    var sAway = num(scoreOf(g, 'away')), sHome = num(scoreOf(g, 'home')), cov = '';
-    if (open.line && open.line !== 'PK') {
-      var favHome = open.side === 'home', margin = (favHome ? sHome - sAway : sAway - sHome) + num(open.line);
-      var favAb = favHome ? h.abbreviation : a.abbreviation, dogAb = favHome ? a.abbreviation : h.abbreviation;
-      cov = margin > 0 ? favAb + ' covering' : (margin < 0 ? dogAb + ' covering' : 'Push');
-      if (fin) cov = margin > 0 ? favAb + ' covered' : (margin < 0 ? dogAb + ' covered' : 'Push');
-    }
-    var pace = '', tot = sAway + sHome;
-    var per = (g.raw && g.raw.status && g.raw.status.period) || 0, clk = String((g.raw && g.raw.status && g.raw.status.displayClock) || '15:00').split(':');
-    var elapsed = (Math.min(per, 4) - 1) * 15 + (15 - (num(clk[0]) + num(clk[1]) / 60));
-    if (open.total) {
-      if (fin) pace = 'total ' + tot + (tot > num(open.total) ? ' · over' : (tot < num(open.total) ? ' · under' : ' · push'));
-      else if (g.live && per <= 4 && elapsed >= 5) pace = 'on pace for ' + Math.round(tot * 60 / elapsed);
-    }
-    ln = '<b>OPEN</b>' + esc([spreadText(g), open.total ? 'O/U ' + open.total : ''].join(' · ').replace(/^ · | · $/g, '')) +
-         (cov || pace ? ' &nbsp;' + (cov ? '<span class="ok">' + esc(cov) + '</span>' : '') + (cov && pace ? ' · ' : '') + esc(pace) : '');
+  if (!pre) {
+    var bt = bet(g, 'nfl');
+    if (bt.sp || bt.tot) {
+      ln = '<b>LINE</b>' + esc([bt.sp, bt.tot ? 'O/U ' + bt.tot : ''].join(' · ').replace(/^ · | · $/g, '')) +
+           (bt.cov ? ' &nbsp;<span class="ok">' + esc(bt.cov) + '</span>' : '') + (bt.ou && isFinal(g) ? ' · ' + esc(bt.ou) : '') + (bt.wp ? ' · ' + esc(bt.wp) + ' win' : '');
+    } else if (bt.wp) ln = '<b>WIN</b>' + esc(bt.wp);
   }
   if (pre) {
     var cur = o.details || '', ou = o.overUnder, ml = '';
@@ -1557,6 +1631,16 @@ function ptHTML(g, kind) {
   return '<div class="ptv' + (g.live ? ' is-live' : '') + '">' + head + band +
     '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
 }
+setInterval(function () {
+  state.lineFace = (state.lineFace || 0) + 1;
+  var rows = document.querySelectorAll ? document.querySelectorAll('#cards .lines') : [];
+  for (var i = 0; i < rows.length; i++) {
+    var n = +rows[i].getAttribute('data-n');
+    if (!(n > 1)) continue;
+    var spans = rows[i].childNodes, k = state.lineFace % n;
+    for (var j = 0; j < spans.length; j++) spans[j].className = 'lf' + (j === k ? ' on' : '');
+  }
+}, 4000);
 function countdown(t) {
   var s = Math.max(0, Math.floor((t - new Date().getTime()) / 1000));
   return Math.floor(s / 3600) + ':' + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
@@ -1622,7 +1706,8 @@ function crawlGameHTML(e, lg, sx) {
                        : esc(a.abbreviation) + ' @ ' + esc(h.abbreviation);
   var ln = '';
   if (e.open && !e.live && !isFinal(e)) {
-    ln = spreadText(e) + (e.open.total ? (spreadText(e) ? '  ' : '') + 'O/U ' + e.open.total : '');
+    var bb = bet(e, lg);
+    ln = bb.sp + (bb.tot ? (bb.sp ? '  ' : '') + 'O/U ' + bb.tot : '');
   }
   return '<span class="g">' + body + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(st) + '</span>' +
          (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') +
