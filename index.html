@@ -192,6 +192,36 @@
   }
   #foot .r { float: right; }
 
+  /* =========== COLLEGE TOP 25 SCREEN =========== */
+  .rank { padding: 0 0.6vw; }
+  .rkcol { float: left; width: 48.6%; }
+  .rkcol + .rkcol { margin-left: 2.8%; }
+  .rkrow { position: relative; height: 4.3vh; line-height: 4.3vh; padding: 0 0.8vw; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; }
+  .rkrow.rkh { height: 3.2vh; line-height: 3.2vh; font-size: 1.9vh; color: #7d8aa6; font-weight: 600; letter-spacing: 0.12vw; border-bottom-width: 0.3vh; }
+  .rkrow.fav { background: rgba(245,184,0,0.14); }
+  .rkrow .rn { display: inline-block; width: 3vw; margin-right: 0.8vw; text-align: right; font-size: 3.1vh; font-weight: 700; vertical-align: middle; }
+  .rkh .rn { font-size: 1.9vh; }
+  .rkrow .logo { width: 3.8vh; height: 3.8vh; margin-right: 0.7vw; }
+  .rkrow .logo img { left: 0.4vh; top: 0.4vh; width: 3vh; height: 3vh; }
+  .rkrow .rt { display: inline-block; vertical-align: middle; max-width: 17vw; overflow: hidden; text-overflow: ellipsis; font-size: 2.8vh; font-weight: 600; }
+  .rkvotes { clear: both; padding: 1vh 0.8vw 0 0.8vw; font-size: 2.3vh; line-height: 3vh; color: #c9d0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rkvotes b { color: #f5b800; font-size: 1.9vh; letter-spacing: 0.15vw; margin-right: 0.8vw; }
+  .rkvotes i { font-style: normal; color: #7d8aa6; }
+  .t-bears .rkvotes b { color: #E65C1E; } .t-usc .rkvotes b { color: #FFC72C; }
+  .narrow .rkvotes { font-size: 1.9vh; }
+  .rkh .rt { font-size: 1.9vh; }
+  .rkrow .rkr { position: absolute; right: 0.8vw; top: 0; }
+  .rkrow .rr { display: inline-block; width: 4.6vw; text-align: right; font-size: 2.5vh; color: #a5aec4; }
+  .rkrow .mvt { display: inline-block; width: 4vw; text-align: right; font-size: 2.3vh; font-weight: 700; }
+  .rkrow .mvt.up { color: #7bd88f; } .rkrow .mvt.dn { color: #ff6b6b; } .rkrow .mvt.eq { color: #4c5872; } .rkrow .mvt.nw { color: #f5b800; font-size: 1.9vh; }
+  .rkrow .cp { display: inline-block; width: 6.4vw; text-align: right; font-size: 2.6vh; font-weight: 600; color: #c9d0e0; }
+  .rkh .rr, .rkh .mvt, .rkh .cp { font-size: 1.9vh; color: #7d8aa6; }
+  .t-bears .rkrow { border-color: #1b2c4c; } .t-bears .rkrow.fav { background: rgba(200,56,3,0.22); }
+  .t-usc .rkrow { border-color: #451519; } .t-usc .rkrow.fav { background: rgba(255,199,44,0.16); }
+  .narrow .rkrow .rt { max-width: 14vw; font-size: 2.5vh; } .narrow .rkrow .rn { font-size: 2.6vh; }
+  .narrow .rkrow .rr { font-size: 2vh; width: 5.4vw; } .narrow .rkrow .cp { font-size: 2.1vh; width: 7.4vw; } .narrow .rkrow .mvt { font-size: 1.9vh; width: 4.6vw; }
+  .narrow .rkh .cp, .narrow .rkh .rr, .narrow .rkh .mvt, .narrow .rkh .rt, .narrow .rkh .rn { font-size: 1.5vh; }
+
   /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
   .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
   .tab.pt.on { background: #f5b800; color: #05070d; }
@@ -431,6 +461,7 @@ var CONFIG = {
   newsEveryMin: 10,      // how often to refresh headlines
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
+  rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
@@ -1358,7 +1389,10 @@ function buildPages() {
   var pages = [];
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], wg = windowGames(lg);
-    if (!wg.length) continue;
+    if (!wg.length) {
+      if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
+      continue;
+    }
     var label = windowLabel(lg, wg);
     var games = sortGames(wg, lg), per = CONFIG.cardsPerPage;
     // Favorite teams' games are pinned: they appear on every screen of their league,
@@ -1373,6 +1407,7 @@ function buildPages() {
       pages.push({ lg: lg, label: label, games: pinned.concat(others.slice(p * slots, (p + 1) * slots)),
                    num: p + 1, of: total });
     }
+    if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
   }
   for (var q = 0; q < pages.length; q++) pages[q].key = pages[q].lg + ':' + pages[q].num;
   // NFL primetime: during the game it comes back after every other screen; otherwise once per loop
@@ -1404,7 +1439,7 @@ function renderTabs(activeLg) {
   }
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i];
-    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length ? ' empty' : '');
+    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) ? ' empty' : '');
     html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
   }
   $('tabs').innerHTML = html;
@@ -1652,6 +1687,80 @@ setInterval(function () {                               // tick the kickoff coun
   if (el.firstChild && el.firstChild.nodeType === 3) el.firstChild.nodeValue = countdown(t);
 }, 1000);
 
+/* =================== COLLEGE TOP 25 (AP poll + Coaches poll, ESPN) =================== */
+var RANK_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-college-basketball' };
+var rankCache = {};
+function rankingsFor(lg) {
+  var r = rankCache[lg];
+  return r && r.ap && r.ap.length ? r : null;
+}
+function loadRankings(cb) {
+  var todo = [], now = new Date().getTime(), i = 0;
+  for (var k = 0; k < CONFIG.leagues.length; k++) {
+    var lg = CONFIG.leagues[k], c = rankCache[lg];
+    if (RANK_PATHS[lg] && !DEMO && !(c && now - c.at < 3 * 3600000)) todo.push(lg);
+  }
+  function step() {
+    if (i >= todo.length) return cb();
+    var lg = todo[i++];
+    getJSON(ESPN_API + RANK_PATHS[lg] + '/rankings', function (err, data) {
+      var R = (!err && data && data.rankings) || [], ap = null, co = null;
+      for (var j = 0; j < R.length; j++) {
+        var nm = (R[j].name || '') + ' ' + (R[j].shortName || '') + ' ' + (R[j].type || '');
+        if (!ap && /\bAP\b/i.test(nm)) ap = R[j];
+        else if (!co && /coach|usa today|afca/i.test(nm)) co = R[j];
+      }
+      if (!ap && R.length) ap = R[0];
+      if (ap) {
+        var list = [], cp = {}, ranks = ap.ranks || [], cr = (co && co.ranks) || [];
+        for (var m = 0; m < cr.length; m++) if (cr[m].team && cr[m].team.id) cp[cr[m].team.id] = cr[m].current;
+        for (var n = 0; n < ranks.length; n++) {
+          var x = ranks[n], t = x.team || {};
+          list.push({ rank: x.current, prev: x.previous, trend: x.trend, rec: x.recordSummary || '',
+                      team: { abbreviation: t.abbreviation || '', name: t.location || t.name || '', tid: t.id || '',
+                              logo: t.logo || (t.logos && t.logos[0] && t.logos[0].href) || '' },
+                      cp: t.id ? cp[t.id] : undefined });
+        }
+        var oth = (ap.others || []).slice(0), votes = [];
+        oth.sort(function (p, q) { return (+q.points || 0) - (+p.points || 0); });
+        for (var v = 0; v < oth.length && votes.length < 5; v++) {
+          var ot = oth[v].team || {};
+          if (ot.location || ot.name) votes.push({ name: ot.location || ot.name, pts: oth[v].points });
+        }
+        rankCache[lg] = { at: now, ap: list, hasCoaches: !!cr.length, votes: votes,
+                          title: (ap.shortName || ap.name || 'AP Top 25').replace(/^AP Poll$/i, 'AP Top 25'),
+                          week: (ap.occurrence && ap.occurrence.displayValue) || '' };
+      } else if (rankCache[lg]) rankCache[lg].at = now;      // keep last week's poll if the feed fails
+      step();
+    });
+  }
+  step();
+}
+function moveHTML(r) {
+  var prev = +r.prev || 0, cur = +r.rank || 0, d = prev ? prev - cur : 0;
+  if (!prev) return '<span class="mvt nw">NEW</span>';
+  if (d > 0) return '<span class="mvt up">&#9650;' + d + '</span>';
+  if (d < 0) return '<span class="mvt dn">&#9660;' + (-d) + '</span>';
+  return '<span class="mvt eq">&ndash;</span>';
+}
+function rankHTML(lg, rk) {
+  var cols = ['', ''], half = Math.ceil(rk.ap.length / 2), favs = favList(lg);
+  var head = '<div class="rkrow rkh"><span class="rn">AP</span><span class="rt">TEAM</span><span class="rkr"><span class="rr">REC</span>' +
+             '<span class="mvt">+/-</span>' + (rk.hasCoaches ? '<span class="cp">COACHES</span>' : '') + '</span></div>';
+  for (var i = 0; i < rk.ap.length; i++) {
+    var r = rk.ap[i], fav = inList(favs, String(r.team.abbreviation).toUpperCase());
+    cols[i < half ? 0 : 1] += '<div class="rkrow' + (fav ? ' fav' : '') + '"><span class="rn">' + esc(r.rank) + '</span>' +
+      logoHTML(r.team, lg) + '<span class="rt">' + esc(r.team.name) + '</span><span class="rkr"><span class="rr">' + esc(r.rec) + '</span>' +
+      moveHTML(r) + (rk.hasCoaches ? '<span class="cp">' + (r.cp ? esc(r.cp) : 'NR') + '</span>' : '') + '</span></div>';
+  }
+  var vt = '';
+  for (var j = 0; j < (rk.votes || []).length; j++) {
+    vt += (j ? ' &middot; ' : '') + esc(rk.votes[j].name) + (rk.votes[j].pts !== undefined ? ' <i>' + esc(rk.votes[j].pts) + '</i>' : '');
+  }
+  return '<div class="rank"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div>' +
+    (vt ? '<div class="rkvotes"><b>ALSO RECEIVING VOTES</b>' + vt + '</div>' : '') + '</div>';
+}
+
 function renderPage() {
   var pg = state.pages[state.pageIndex];
   if (!pg) {
@@ -1663,6 +1772,14 @@ function renderPage() {
   }
   $('msg').style.display = 'none';
   $('heading').style.display = pg.pt ? 'none' : '';
+  if (pg.rank) {
+    var rk = rankingsFor(pg.lg);
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">' +
+      esc(rk.title + (rk.week ? ' · ' + rk.week : '')) + '</span>';
+    $('cards').innerHTML = rankHTML(pg.lg, rk);
+    return;
+  }
   if (pg.pt) {
     renderTabs('pt');
     $('heading').innerHTML = '';
@@ -1854,10 +1971,10 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () {
       buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
-    }); }); });
+    }); }); }); });
   }
   next();
 }
