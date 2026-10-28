@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scoreboard</title>
+<title>The FanCave Wire</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Barlow+Condensed:500,600,700&display=swap">
 <!--
   SPORTS TICKER  -  powered by SportsBlaze (free, no API key)
@@ -39,6 +39,15 @@
     text-transform: uppercase;
   }
   #brand span { color: #f5b800; }
+  #brand small { font-size: 2.2vh; letter-spacing: 0.2vw; margin-right: 0.5vw; color: #a5aec4; vertical-align: 0.3vh; }
+  .t-usc #brand small { color: #ffd9a0; }
+  /* squarer screens: tighter header so name, tabs and clock never collide */
+  .narrow #brand { font-size: 3vh; letter-spacing: 0.05vw; left: 2vw; }
+  .narrow #brand small { font-size: 1.7vh; letter-spacing: 0.1vw; }
+  .narrow #tabs { left: 27vw; right: 15vw; }
+  .narrow .tab { font-size: 2.4vh; padding: 0 0.6vw; margin: 0 0.15vw; letter-spacing: 0.05vw; }
+  .narrow #clock small { display: none; }
+  .narrow #clock { font-size: 3.8vh; right: 2vw; }
   #tabs { position: absolute; left: 0; right: 0; top: 0; text-align: center; line-height: 9vh; }
   .tab {
     display: inline-block; vertical-align: middle;
@@ -406,7 +415,7 @@
 <div id="shift">
   <div id="top">
     <div id="tabs"></div>
-    <div id="brand">Score<span>board</span></div>
+    <div id="brand"><small>The</small>FanCave <span>Wire</span></div>
     <div id="clock"></div>
   </div>
 

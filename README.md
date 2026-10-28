@@ -1,4 +1,4 @@
-# Sports Ticker
+# The FanCave Wire
 
 Full-screen live sports scoreboard for an old Samsung web-enabled monitor.
 
