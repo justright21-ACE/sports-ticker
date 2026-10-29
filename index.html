@@ -140,6 +140,15 @@
     color: #a5aec4; text-transform: uppercase;
   }
   .live .status { background: #3a0f14; color: #ffd5d5; }
+  /* live vs final at a glance: live gets a red LIVE badge + glow; finished games are dimmed */
+  .status .lvb { display: inline-block; background: #e23d3d; color: #ffffff; font-size: 2.4vh; font-weight: 700; letter-spacing: 0.15vw;
+                 line-height: 3.4vh; padding: 0 0.6vw; border-radius: 0.5vh; margin-right: 0.8vw; vertical-align: 0.2vh; }
+  .card.live { box-shadow: 0 0 0 0.3vh #e23d3d, 0 0 2.4vh rgba(226,61,61,0.45); }
+  .card.done { opacity: 0.62; }
+  .card.done .status { color: #8892aa; }
+  .t-usc .status .lvb { background: #ffffff; color: #990000; }
+  .t-usc .card.live { box-shadow: 0 0 0 0.3vh #ffffff, 0 0 2.4vh rgba(255,255,255,0.35); }
+  .narrow .status .lvb { font-size: 1.9vh; line-height: 2.8vh; }
   .lines {
     height: 4.6vh; line-height: 4.6vh; padding: 0 1.2vw;
     border-top: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden;
@@ -1133,6 +1142,12 @@ function periodCount(e) {
   if (p) for (var k in p) if (p.hasOwnProperty(k)) n++;
   return n;
 }
+/* "" for today, " · YESTERDAY", or " · TUE" for older finals */
+function finalDay(d) {
+  var today = ymd(new Date());
+  if (ymd(d) === today) return '';
+  return ymd(d) === ymd(addDays(new Date(), -1)) ? ' · YESTERDAY' : ' · ' + DAYS[d.getDay()];
+}
 function statusText(e, lg) {
   var st = e.status || '', d = parseDate(e.date), today = ymd(new Date());
   var dayTag = ymd(d) === today ? '' : DAYS[d.getDay()] + ' ';
@@ -1144,7 +1159,7 @@ function statusText(e, lg) {
   }
   if (e.espn) {                                   // ESPN already writes a good status line
     if (e.live) return (e.detail || 'LIVE').toUpperCase();
-    if (isFinal(e)) return (e.detail || 'FINAL').toUpperCase() + (dayTag ? ' · ' + DAYS[d.getDay()] : '');
+    if (isFinal(e)) return (e.detail || 'FINAL').toUpperCase() + finalDay(d);
     if (/postpon|cancel|delay|suspend/i.test(st)) return st.toUpperCase();
     if (/TBD/i.test(e.detail)) {                  // kickoff time not set yet
       var p2 = String(e.date).match(/(\d+)-(\d+)-(\d+)/), dd = p2 ? new Date(+p2[1], +p2[2] - 1, +p2[3]) : d;
@@ -1168,7 +1183,7 @@ function statusText(e, lg) {
     var n = periodCount(e), tag = 'FINAL';
     if (lg === 'mlb' && n > 9) tag = 'FINAL/' + n;
     else if (lg !== 'mlb' && n > 4) tag = n === 5 ? 'FINAL/OT' : 'FINAL/' + (n - 4) + 'OT';
-    return tag + (dayTag ? ' · ' + DAYS[d.getDay()] : '');
+    return tag + finalDay(d);
   }
   if (/postpon|cancel|delay|suspend/i.test(st)) return st.toUpperCase();
   return dayTag + timeStr(d);
@@ -1390,7 +1405,7 @@ function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
   if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
-  var cls = 'card' + (e.live ? ' live' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '');
+  var cls = 'card' + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '');
   var hc = e.ufc ? '' : homeColor(h, lg);
   function row(t, s, lose, tint) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
@@ -1404,7 +1419,7 @@ function cardHTML(e, lg) {
     lineHTML(e, lg) +
     '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
       '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
-    (e.live ? '<span class="dot"></span>' : '') + esc(statusText(e, lg)) + '</div></div>';
+    (e.live ? '<span class="lvb">LIVE</span>' : '') + esc(statusText(e, lg)) + '</div></div>';
 }
 
 /* The main screens only show what's happening now or soon: live games, games starting
@@ -1518,7 +1533,7 @@ function wsGames() {
     if (!/WORLD SERIES/.test(g.tag || '')) continue;
     if (isFinal(g)) {
       if (!finalSeen[g.id]) finalSeen[g.id] = now;
-      if (now - finalSeen[g.id] > 60 * 60000) continue;
+      if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
     out.push(g);
   }
@@ -1538,7 +1553,8 @@ function primetimeGames() {
     if (!ptKind(g)) continue;
     if (isFinal(g)) {
       if (!finalSeen[g.id]) finalSeen[g.id] = now;
-      if (now - finalSeen[g.id] > 60 * 60000) continue;      // gone an hour after the final
+      // gone an hour after the final; never revive an old final after a reload
+      if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;   // game day only
     out.push(g);
   }
