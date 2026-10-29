@@ -356,6 +356,35 @@
   .t-usc .ptv .bar i { background: #FFC72C; }
   .t-usc .ptv .sub, .t-usc .ptv .ts .k, .t-usc .ptv .dd small { color: #e2c7c0; }
 
+  /* =========== WORLD SERIES SCREEN =========== */
+  .ptv .bat { display: inline-block; width: 1.8vh; height: 1.8vh; border-radius: 50%; background: #f2f4f8; border: 0.25vh solid #e23d3d;
+              vertical-align: middle; margin: 0 0.6vw; position: relative; top: -0.3vh; }
+  .ws .plate { height: 15vh; position: relative; }
+  .ws .diamond { position: absolute; left: 0.4vw; top: 0.6vh; width: 13vh; height: 13vh; }
+  .ws .diamond .b2 { position: absolute; left: 4.4vh; top: 0.4vh; }
+  .ws .diamond .b3 { position: absolute; left: 0.2vh; top: 4.6vh; }
+  .ws .diamond .b1 { position: absolute; left: 8.6vh; top: 4.6vh; }
+  .ws .base { width: 3.6vh; height: 3.6vh; border: 0.35vh solid #7d8aa6; background: transparent;
+              -webkit-transform: rotate(45deg); transform: rotate(45deg); }
+  .ws .base.on { background: #f5b800; border-color: #f5b800; }
+  .t-bears .ws .base.on { background: #E65C1E; border-color: #E65C1E; } .t-usc .ws .base.on { background: #FFC72C; border-color: #FFC72C; }
+  .ws .cnt { position: absolute; left: 15vh; top: 0.6vh; }
+  .ws .bs { font-size: 4.6vh; font-weight: 700; line-height: 5vh; }
+  .ws .bs small, .ws .outs small { display: block; font-size: 1.6vh; color: #7d8aa6; letter-spacing: 0.15vw; line-height: 2vh; font-weight: 600; }
+  .ws .outs { margin-top: 0.8vh; }
+  .ws .od { display: inline-block; width: 2vh; height: 2vh; border-radius: 50%; border: 0.3vh solid #7d8aa6; margin-right: 0.5vw; }
+  .ws .od.on { background: #ff4545; border-color: #ff4545; }
+  .ws .duels { position: absolute; right: 0; top: 0.6vh; text-align: right; }
+  .ws .duel { font-size: 2.8vh; font-weight: 700; line-height: 4.6vh; }
+  .ws .duel b { font-size: 1.8vh; color: #7d8aa6; margin-right: 0.6vw; letter-spacing: 0.1vw; }
+  .ws table.q.ls { font-size: 2.2vh; margin-top: 0.6vh; }
+  .ws table.q.ls th { font-size: 1.6vh; }
+  .ws table.q.ls td.tot { font-size: 2.6vh; }
+  .ws table.q.ls td.he { color: #a5aec4; }
+  .narrow .ws .duel { font-size: 2.2vh; line-height: 3.8vh; }
+  .narrow .ws .bs { font-size: 3.6vh; }
+  .narrow .ws table.q.ls { font-size: 1.8vh; }
+
   /* =========== THEMES (picked automatically by day, see CONFIG.theme) =========== */
 
   /* Chicago Bears: navy + orange (Sunday - Friday) */
@@ -672,7 +701,7 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: lg === 'nfl' ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
@@ -1429,14 +1458,15 @@ function buildPages() {
     if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
   }
   for (var q = 0; q < pages.length; q++) pages[q].key = pages[q].lg + ':' + pages[q].num;
-  // NFL primetime: during the game it comes back after every other screen; otherwise once per loop
-  var ptg = primetimeGames();
-  if (ptg.length) {
+  // featured games (NFL primetime, World Series): during the game they come back after every other
+  // screen; otherwise once per loop
+  var ftg = featuredGames();
+  if (ftg.length) {
     var ptPages = [], live = false;
-    for (var r = 0; r < ptg.length; r++) {
-      if (ptg[r].live) live = true;
-      ptPages.push({ pt: true, lg: 'nfl', game: ptg[r], kind: ptKind(ptg[r]),
-                     hold: ptg[r].live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre });
+    for (var r = 0; r < ftg.length; r++) {
+      if (ftg[r].g.live) live = true;
+      ptPages.push({ pt: true, lg: ftg[r].lg, game: ftg[r].g, kind: ftg[r].kind,
+                     hold: ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre });
     }
     var mixed = [], n = 0;
     var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c); } };
@@ -1451,10 +1481,14 @@ function buildPages() {
 }
 
 function renderTabs(activeLg) {
-  var html = '', ptg = primetimeGames();
-  if (ptg.length) {
-    var anyLive = false; for (var p = 0; p < ptg.length; p++) if (ptg[p].live) anyLive = true;
-    html += '<span class="tab pt' + (activeLg === 'pt' ? ' on' : '') + '">' + (anyLive ? '<i></i>' : '') + ptKind(ptg[0])[0] + '</span>';
+  var html = '', ftg = featuredGames(), codes = [], liveBy = {};
+  for (var p = 0; p < ftg.length; p++) {                // one tab per kind: SNF / MNF / TNF / WS
+    var code = ftg[p].kind[0];
+    if (!inList(codes, code)) codes.push(code);
+    if (ftg[p].g.live) liveBy[code] = true;
+  }
+  for (var c2 = 0; c2 < codes.length; c2++) {
+    html += '<span class="tab pt' + (activeLg === 'pt:' + codes[c2] ? ' on' : '') + '">' + (liveBy[codes[c2]] ? '<i></i>' : '') + codes[c2] + '</span>';
   }
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i];
@@ -1474,6 +1508,27 @@ var ptDetail = {}, finalSeen = {};
 function ptKind(g) {
   var d = parseDate(g.date), k = PT_NAMES[d.getDay()];
   return (k && d.getHours() >= 18) ? k : null;
+}
+/* Featured games with their own tab + detailed screen: NFL primetime and World Series games */
+function wsGames() {
+  var d = state.data.mlb, out = [], now = new Date().getTime(), today = ymd(new Date());
+  if (!d) return out;
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (!/WORLD SERIES/.test(g.tag || '')) continue;
+    if (isFinal(g)) {
+      if (!finalSeen[g.id]) finalSeen[g.id] = now;
+      if (now - finalSeen[g.id] > 60 * 60000) continue;
+    } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+    out.push(g);
+  }
+  return out;
+}
+function featuredGames() {
+  var out = [], i, nfl = primetimeGames(), ws = wsGames();
+  for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
+  for (i = 0; i < ws.length; i++) out.push({ g: ws[i], lg: 'mlb', kind: ['WS', 'World Series'] });
+  return out;
 }
 function primetimeGames() {
   var d = state.data.nfl, out = [], now = new Date().getTime(), today = ymd(new Date());
@@ -1695,6 +1750,132 @@ setInterval(function () {
     for (var j = 0; j < spans.length; j++) spans[j].className = 'lf' + (j === k ? ' on' : '');
   }
 }, 4000);
+/* =================== WORLD SERIES SCREEN =================== */
+function athName(x) { var a = x && x.athlete; return a ? (a.shortName || a.displayName || a.fullName || '') : ''; }
+function statOf(list, re) {
+  for (var i = 0; i < (list || []).length; i++) {
+    var st = list[i];
+    if (re.test(st.abbreviation || '') || re.test(st.name || '')) return st.displayValue;
+  }
+  return '';
+}
+function wsHTML(g, kind) {
+  var c = compOf(g) || {}, s = c.situation || {}, a = g.teams.away, h = g.teams.home, lg = 'mlb';
+  var ca = sideComp(c, 'away') || {}, ch = sideComp(c, 'home') || {}, ex = g.raw || {};
+  var fin = isFinal(g), pre = !g.live && !fin, hc = homeColor(h, lg), bt = bet(g, lg);
+  var bc = (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || c.broadcast || '';
+  var ven = c.venue ? (c.venue.fullName || '') : '';
+  var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
+  var top = /^(top|mid)/i.test(g.detail || ''), batting = g.live ? (top ? 'away' : 'home') : '';
+  var serNow = (c.series && c.series.summary) || g.series || '';
+  var title = String(g.tag || 'WORLD SERIES').replace(/\bGM\b/, 'GAME');
+  var lsA = ca.linescores || [], lsH = ch.linescores || [];
+  var innings = Math.max(9, lsA.length, lsH.length);
+
+  function side(t, cp, which) {
+    var sub = esc(t.short || nickname(t.name)) + (t.srec ? ' · SERIES ' + esc(t.srec) : (t.rec ? ' · ' + esc(t.rec) : ''));
+    var tint = which === 'home' && hc ? ' style="background:' + rgba(hc, 0.2) + '"' : '';
+    var bat = batting === which ? '<span class="bat"></span>' : '';
+    return '<div class="side ' + which + '"' + tint + '><div class="ptlogo">' + logoHTML(t, lg) + '</div><div class="txt">' +
+      '<div class="nm">' + (which === 'home' ? bat : '') + esc(t.abbreviation) + (which === 'away' ? bat : '') + '</div>' +
+      '<div class="sub">' + sub + '</div></div></div>';
+  }
+  var center;
+  if (pre) center = '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">FIRST PITCH</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
+                    '</div><div class="clk">' + esc([bc, wx].join(' · ').replace(/^ · | · $/g, '')) + '</div>';
+  else {
+    var inn = String(g.detail || '').toUpperCase(), outs = s.outs !== undefined && g.live && !/^(MID|END)/i.test(g.detail || '') ? ' · ' + s.outs + ' OUT' : '';
+    center = '<div class="bigsc">' + esc(scoreOf(g, 'away')) + '<span>–</span>' + esc(scoreOf(g, 'home')) + '</div><div class="clk">' +
+      (g.live ? '<span class="dot"></span>' + esc(inn + outs) : 'FINAL' + (innings > 9 ? '/' + innings : '')) + '</div>';
+  }
+  var band = '<div class="band">' + (hc ? '<div class="bstripe" style="background:#' + hc + '"></div>' : '') +
+    side(a, ca, 'away') + '<div class="center">' + center + '</div>' + side(h, ch, 'home') + '</div>';
+
+  // line score: innings + R H E
+  var th = '<th></th>', ra = '', rh = '';
+  for (var i = 0; i < innings; i++) {
+    th += '<th>' + (i + 1) + '</th>';
+    var va = lsA[i] ? (lsA[i].displayValue || lsA[i].value) : null, vh = lsH[i] ? (lsH[i].displayValue || lsH[i].value) : null;
+    ra += va !== null && va !== undefined ? '<td>' + esc(va) + '</td>' : '<td class="na">–</td>';
+    rh += vh !== null && vh !== undefined ? '<td>' + esc(vh) + '</td>' : '<td class="na">–</td>';
+  }
+  var rhe = function (cp, t) { return '<td class="tot">' + esc(scoreOf(g, t)) + '</td><td class="he">' + esc(cp.hits != null ? cp.hits : '–') + '</td><td class="he">' + esc(cp.errors != null ? cp.errors : '–') + '</td>'; };
+  var lineScore = '<table class="q ls"><tr>' + th + '<th>R</th><th>H</th><th>E</th></tr>' +
+    '<tr><td class="t">' + esc(a.abbreviation) + '</td>' + ra + rhe(ca, 'away') + '</tr>' +
+    '<tr><td class="t">' + esc(h.abbreviation) + '</td>' + rh + rhe(ch, 'home') + '</tr></table>';
+
+  // ---- middle: the game
+  var p2;
+  if (pre) {
+    p2 = '<div class="ph">FIRST PITCH IN</div><div class="count" id="ptCount" data-t="' + parseDate(g.date).getTime() + '">' + countdown(parseDate(g.date).getTime()) +
+         '<small>HOURS · MIN · SEC</small></div>' +
+         (serNow ? '<div class="ph" style="margin-top:1.2vh">SERIES</div><div class="dd">' + esc(serNow) + '</div>' : '') +
+         (bt.sp || bt.tot ? '<div class="note"><b>LINE</b>' + esc([bt.sp, bt.tot ? 'O/U ' + bt.tot : ''].join(' · ').replace(/^ · | · $/g, '')) +
+           (bt.mlA && bt.mlH ? ' · ML ' + esc(a.abbreviation + ' ' + bt.mlA + ' / ' + h.abbreviation + ' ' + bt.mlH) : '') + '</div>' : '');
+  } else if (g.live) {
+    var b = function (on) { return '<div class="base' + (on ? ' on' : '') + '"></div>'; };
+    var dia = '<div class="diamond"><div class="b2">' + b(s.onSecond) + '</div><div class="b3">' + b(s.onThird) + '</div><div class="b1">' + b(s.onFirst) + '</div></div>';
+    var od = ''; for (var o = 0; o < 3; o++) od += '<span class="od' + (o < (+s.outs || 0) ? ' on' : '') + '"></span>';
+    var duel = (athName(s.pitcher) ? '<div class="duel"><b>P</b>' + esc(athName(s.pitcher)) + '</div>' : '') +
+               (athName(s.batter) ? '<div class="duel"><b>AB</b>' + esc(athName(s.batter)) + '</div>' : '');
+    p2 = '<div class="ph">AT THE PLATE</div><div class="plate">' + dia + '<div class="cnt">' +
+         (s.balls !== undefined ? '<div class="bs">' + esc(s.balls) + '-' + esc(s.strikes) + '<small>COUNT</small></div>' : '') +
+         '<div class="outs">' + od + '<small>OUTS</small></div></div><div class="duels">' + duel + '</div></div>' +
+         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '') + lineScore;
+  } else {
+    var aw = num(scoreOf(g, 'away')), hw = num(scoreOf(g, 'home'));
+    p2 = '<div class="ph">FINAL</div><div class="dd">' + esc((hw > aw ? h.abbreviation : a.abbreviation) + ' wins') +
+         (serNow ? '<small>' + esc(serNow) + '</small>' : '') + '</div>' + lineScore +
+         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
+  }
+
+  // ---- sides: each team's pitcher / batter / decisions
+  var feat = (ex.status && ex.status.featuredAthletes) || (c.status && c.status.featuredAthletes) || [];
+  function teamPanel(t, cp, which) {
+    var html, tid = String((cp.team || {}).id || ''), won = num(scoreOf(g, which)) > num(scoreOf(g, which === 'home' ? 'away' : 'home'));
+    if (pre) {
+      var pr = (cp.probables || [])[0];
+      html = '<div class="ph">' + esc(t.abbreviation) + ' PROBABLE STARTER</div>';
+      if (pr && athName(pr)) {
+        var era = statOf(pr.statistics, /^ERA$/i), rec = pr.record || statOf(pr.statistics, /^(W-L|record)$/i);
+        html += '<div class="ld"><div class="p">' + esc(athName(pr)) + '</div><div class="v">' + esc([rec, era ? era + ' ERA' : ''].join(' · ').replace(/^ · | · $/g, '')) + '</div></div>';
+      } else html += '<div class="v" style="color:#7d8aa6">To be announced</div>';
+    } else if (g.live) {
+      var who = batting === which ? s.batter : s.pitcher, role = batting === which ? 'AT BAT' : 'PITCHING';
+      html = '<div class="ph">' + esc(t.abbreviation) + ' ' + role + '</div>';
+      html += athName(who) ? '<div class="ld"><div class="p">' + esc(athName(who)) + '</div><div class="v">' + esc(who.summary || '') + '</div></div>' : '';
+    } else {
+      html = '<div class="ph">' + esc(t.abbreviation) + ' DECISION</div>';
+      var lines = '';
+      for (var f = 0; f < feat.length; f++) {
+        var fa = feat[f], ftid = String((fa.athlete && fa.athlete.team && fa.athlete.team.id) || (fa.team && fa.team.id) || '');
+        var lab = /winning/i.test(fa.name || '') ? 'WIN' : (/losing/i.test(fa.name || '') ? 'LOSS' : (/save/i.test(fa.name || '') ? 'SAVE' : ''));
+        if (!lab) continue;
+        var mine = ftid ? ftid === tid : (lab === 'LOSS' ? !won : won);
+        if (mine) lines += '<div class="ld"><div class="c">' + lab + '</div><div class="p">' + esc(athName(fa)) + '</div></div>';
+      }
+      html += lines || '<div class="v" style="color:#7d8aa6">—</div>';
+    }
+    html += '<div class="tst"><span>RUNS<b>' + esc(scoreOf(g, which) || '0') + '</b></span><span>HITS<b>' + esc(cp.hits != null ? cp.hits : '–') +
+            '</b></span><span>ERRORS<b>' + esc(cp.errors != null ? cp.errors : '–') + '</b></span>' + (t.srec ? '<span>SERIES<b>' + esc(t.srec) + '</b></span>' : '') + '</div>';
+    return html;
+  }
+  if (pre) {   // no runs/hits yet before first pitch: drop the stat grid
+    var p1 = teamPanel(a, ca, 'away').replace(/<div class="tst">[\s\S]*$/, ''), p3 = teamPanel(h, ch, 'home').replace(/<div class="tst">[\s\S]*$/, '');
+  } else { p1 = teamPanel(a, ca, 'away'); p3 = teamPanel(h, ch, 'home'); }
+
+  var ln = '';
+  if (pre) ln = serNow ? esc(serNow) : '';
+  else if (bt.sp || bt.tot) {
+    ln = '<b>LINE</b>' + esc([bt.sp, bt.tot ? 'O/U ' + bt.tot : ''].join(' · ').replace(/^ · | · $/g, '')) +
+         (bt.cov ? ' &nbsp;<span class="ok">' + esc(bt.cov) + '</span>' : '') + (bt.ou && fin ? ' · ' + esc(bt.ou) : '') + (bt.wp ? ' · ' + esc(bt.wp) + ' win' : '');
+  } else if (bt.wp) ln = '<b>WIN</b>' + esc(bt.wp);
+  var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : '') +
+             '<b>' + esc(title) + '</b>' + esc((ln && !pre ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
+  return '<div class="ptv ws' + (g.live ? ' is-live' : '') + '">' + head + band +
+    '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
+}
+
 function countdown(t) {
   var s = Math.max(0, Math.floor((t - new Date().getTime()) / 1000));
   return Math.floor(s / 3600) + ':' + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60);
@@ -1814,13 +1995,13 @@ function renderPage() {
     return;
   }
   if (pg.pt) {
-    renderTabs('pt');
+    renderTabs('pt:' + pg.kind[0]);
     $('heading').innerHTML = '';
     try {
-      $('cards').innerHTML = ptHTML(pg.game, pg.kind);
+      $('cards').innerHTML = pg.lg === 'mlb' ? wsHTML(pg.game, pg.kind) : ptHTML(pg.game, pg.kind);
     } catch (err) {                                      // never let this screen stop the ticker
       $('heading').style.display = '';
-      $('cards').innerHTML = cardHTML(pg.game, 'nfl');
+      $('cards').innerHTML = cardHTML(pg.game, pg.lg);
     }
     return;
   }
