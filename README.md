@@ -14,6 +14,7 @@ Each card also shows the opening spread and over/under (DraftKings, via ESPN) wh
 
 Options go on the end of the address:
 - Favorites are set per league in the CONFIG block (Bears, Eagles, USC, Wisconsin, Spurs, Bulls, White Sox)
+- Every USC or Wisconsin football game gets the primetime-style game-day screen and its own tab (`?gameday=0` turns it off)
 - `?fav=DAL,TEX` override favorites for every league
 - `?leagues=nfl,ncaaf,nba` choose leagues (nfl, ncaaf, nba, mlb, wnba, ncaab, nhl)
 - `?cfb=fbs` every FBS college football game instead of just ranked-team games

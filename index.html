@@ -269,6 +269,7 @@
   .ptv .away .txt { margin-left: 18.5vh; }
   .ptv .home .txt { margin-right: 18.5vh; }
   .ptv .nm { font-size: 6vh; font-weight: 700; letter-spacing: 0.1vw; line-height: 7vh; }
+  .ptv .nm .prk { font-size: 3.4vh; opacity: 0.75; margin: 0 0.5vw; vertical-align: 0.5vh; }
   .ptv .sub { font-size: 2.6vh; color: #a5aec4; line-height: 3.6vh; }
   .ptv .to { display: inline-block; width: 2.2vw; height: 0.8vh; background: #f2f4f8; margin: 0 0.15vw; border-radius: 0.4vh; vertical-align: middle; }
   .ptv .to.used { background: #33405c; }
@@ -589,6 +590,7 @@ function readParams() {
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
+    if (k === 'gameday') CONFIG.favPrimetime = v !== '0';   // ?gameday=0 turns off the USC/Wisconsin game-day screen
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'stats') CONFIG.crawlStats = v !== '0';
     if (k === 'detail') CONFIG.primetimeDetail = v !== '0';
@@ -713,7 +715,7 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag))) ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && favEv(ev))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
@@ -1284,6 +1286,12 @@ function favList(lg) {
   if (f && f.length !== undefined) return f;      // ?fav=... in the address applies to every league
   return (f && f[lg]) || [];
 }
+/* raw ESPN event involves a favorite college team (keeps its full data for the game-day screen) */
+function favEv(ev) {
+  var cs = (ev.competitions && ev.competitions[0] && ev.competitions[0].competitors) || [], f = favList('ncaaf');
+  for (var i = 0; i < cs.length; i++) if (cs[i].team && inList(f, cs[i].team.abbreviation)) return true;
+  return false;
+}
 function isFav(e, lg) {
   var a = e.teams && e.teams.away, h = e.teams && e.teams.home, list = favList(lg);
   return (a && inList(list, a.abbreviation)) || (h && inList(list, h.abbreviation));
@@ -1643,9 +1651,33 @@ function wsGames() {
   }
   return out;
 }
+/* Favorite college football teams (USC, Wisconsin) get the primetime treatment every game */
+var CFB_NAMES = { USC: 'USC Game Day', WIS: 'Wisconsin Game Day' };
+function cfbKind(g) {
+  var fav = favList('ncaaf'), a = g.teams.away.abbreviation, h = g.teams.home.abbreviation, mine = [];
+  for (var i = 0; i < fav.length; i++) if ((fav[i] === a || fav[i] === h) && !inList(mine, fav[i])) mine.push(fav[i]);
+  if (!mine.length) return null;
+  if (mine.length > 1) return [mine[0], mine.join(' vs ') + ' Game Day'];
+  return [mine[0], CFB_NAMES[mine[0]] || mine[0] + ' Game Day'];
+}
+function cfbGames() {
+  var d = state.data.ncaaf, out = [], now = new Date().getTime(), today = ymd(new Date());
+  if (!d || CONFIG.favPrimetime === false) return out;
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (!cfbKind(g)) continue;
+    if (isFinal(g)) {
+      if (!finalSeen[g.id]) finalSeen[g.id] = now;
+      if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
+    } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+    out.push(g);
+  }
+  return out;
+}
 function featuredGames() {
-  var out = [], i, nfl = primetimeGames(), ws = wsGames();
+  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames();
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
+  for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i], lg: 'mlb', kind: ['WS', 'World Series'] });
   return out;
 }
@@ -1666,13 +1698,14 @@ function primetimeGames() {
 }
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
-  var games = primetimeGames(), i = 0;
+  var games = primetimeGames(), cfb = cfbGames(), i = 0, path = {};
+  for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   function step() {
     if (i >= games.length) return cb();
     var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
     var ttl = g.live ? 25000 : 10 * 60000;
     if (!CONFIG.primetimeDetail || !g.eid || DEMO || (c && now - c.at < ttl)) return step();
-    getJSON(ESPN_API + 'football/nfl/summary?event=' + g.eid, function (err, data) {
+    getJSON(ESPN_API + (path[g.id] || 'football/nfl') + '/summary?event=' + g.eid, function (err, data) {
       if (!err && data) {
         var det = { at: now, stats: {}, drive: '', series: '' }, bt = (data.boxscore && data.boxscore.teams) || [];
         for (var k = 0; k < bt.length; k++) {
@@ -1724,10 +1757,11 @@ function ptStatRow(label, a, h, isPct) {
   return '<div class="ts"><span class="a">' + esc(a) + '</span><span class="k">' + label + '</span><span class="h">' + esc(h) +
          '</span></div><div class="bar"><i style="width:' + w + '%"></i></div>';
 }
-function ptHTML(g, kind) {
+function ptHTML(g, kind, lg) {
+  lg = lg || 'nfl';
   var c = compOf(g) || {}, a = g.teams.away, h = g.teams.home, s = c.situation || {};
   var ca = sideComp(c, 'away') || {}, ch = sideComp(c, 'home') || {};
-  var fin = isFinal(g), pre = !g.live && !fin, lg = 'nfl';
+  var fin = isFinal(g), pre = !g.live && !fin;
   var hc = homeColor(h, lg), det = ptDetail[g.eid] || {}, ex = g.raw || {};
   if (!det.stats) det = { stats: {}, drive: det.drive || '', series: det.series || '' };
   var abbrById = {}; abbrById[(ca.team || {}).id] = a.abbreviation; abbrById[(ch.team || {}).id] = h.abbreviation;
@@ -1746,8 +1780,9 @@ function ptHTML(g, kind) {
     var subTxt = esc(t.short || nickname(t.name)) + (rec ? ' · ' + esc(rec) : '') + (split ? ' · ' + esc(split) + (which === 'home' ? ' home' : ' away') : '');
     var tos = timeouts(which === 'home' ? s.homeTimeouts : s.awayTimeouts);
     var tint = which === 'home' && hc ? ' style="background:' + rgba(hc, 0.2) + '"' : '';
+    var rk = apRank(t, lg), rkh = rk ? '<span class="prk">#' + rk + '</span>' : '';
     return '<div class="side ' + which + '"' + tint + '><div class="ptlogo">' + logoHTML(t, lg) + '</div><div class="txt">' +
-      '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"></span>' : '') + esc(t.abbreviation) +
+      '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"></span>' : '') + (which === 'away' ? rkh : '') + esc(t.abbreviation) + (which === 'home' ? rkh : '') +
       (which === 'away' && poss ? '<span class="ball"></span>' : '') + '</div>' +
       '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div></div></div>';
   }
@@ -1807,7 +1842,7 @@ function ptHTML(g, kind) {
        '<tr><td class="t">' + esc(h.abbreviation) + '</td>' + rh + '<td class="tot">' + esc(scoreOf(g, 'home')) + '</td></tr></table>';
   var ln = '';
   if (!pre) {
-    var bt = bet(g, 'nfl');
+    var bt = bet(g, lg);
     if (bt.sp || bt.tot) {
       ln = '<b>LINE</b>' + esc([bt.sp, bt.tot ? 'O/U ' + bt.tot : ''].join(' · ').replace(/^ · | · $/g, '')) +
            (bt.cov ? ' &nbsp;<span class="ok">' + esc(bt.cov) + '</span>' : '') + (bt.ou && isFinal(g) ? ' · ' + esc(bt.ou) : '') + (bt.wp ? ' · ' + esc(bt.wp) + ' win' : '');
@@ -2118,7 +2153,7 @@ function renderPage() {
     renderTabs('pt:' + pg.kind[0]);
     $('heading').innerHTML = '';
     try {
-      $('cards').innerHTML = pg.lg === 'mlb' ? wsHTML(pg.game, pg.kind) : ptHTML(pg.game, pg.kind);
+      $('cards').innerHTML = pg.lg === 'mlb' ? wsHTML(pg.game, pg.kind) : ptHTML(pg.game, pg.kind, pg.lg);
     } catch (err) {                                      // never let this screen stop the ticker
       $('heading').style.display = '';
       $('cards').innerHTML = cardHTML(pg.game, pg.lg);
