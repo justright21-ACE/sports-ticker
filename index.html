@@ -521,6 +521,7 @@ var CONFIG = {
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
+  hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
   closeGames: true,      // college: a Top 25 team within one score (8 pts) in the 4th quarter / OT gets its own screen
   closeHoldSec: 30,      // ...seconds that screen stays up (returns after every other screen while it's close)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
@@ -594,7 +595,8 @@ function readParams() {
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
-    if (k === 'close') CONFIG.closeGames = v !== '0';   // ?close=0 turns off the one-score 4th-quarter screen
+    if (k === 'close') CONFIG.closeGames = v !== '0';
+    if (k === 'ended') CONFIG.hideEnded = v !== '1';   // ?close=0 turns off the one-score 4th-quarter screen
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;   // ?gameday=0 turns off the USC/Wisconsin game-day screen
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'stats') CONFIG.crawlStats = v !== '0';
@@ -628,6 +630,52 @@ function getJSON(url, cb) {
   } catch (e) { finish('network'); }
 }
 
+/* =================== SEASON OVER ===================
+   A league drops off the top bar once its season is over: ESPN says it's the off-season, or
+   its championship has been decided. The title game's result stays up for the usual 12 hours
+   first. It comes back by itself when games show up again next season. */
+var seasonPhase = {}, CHAMP_KEY = 'fcw_champ', champAt = (function () {
+  try { return JSON.parse(window.localStorage.getItem(CHAMP_KEY)) || {}; } catch (e) { return {}; }
+})();
+function noteSeason(lg, data, dateStr) {
+  if (dateStr !== ymd(new Date())) return;                 // today's feed says what phase we're in
+  var ls = data && data.leagues && data.leagues[0] && data.leagues[0].season, top = data && data.season;
+  var t = ls && ls.type, n = +((t && t.type) || (t && t.id) || t || (top && top.type) || 0);
+  if (n) seasonPhase[lg] = n;                              // 1 pre, 2 regular, 3 post, 4 off-season
+}
+var TITLE_RE = /WORLD SERIES|NBA FINALS|WNBA FINALS|^FINALS|STANLEY CUP FINAL|SUPER BOWL|NATL CHAMPIONSHIP/;
+/* the season's title is decided: a title game is final, and for a series one side has 4 wins */
+function checkChampion(lg) {
+  var d = state.data[lg];
+  if (!d || lg === 'ufc') return;
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (!isFinal(g) || !TITLE_RE.test(g.tag || '')) continue;
+    var a = String(g.teams.away.srec || '').split('-'), h = String(g.teams.home.srec || '').split('-');
+    var series = g.teams.away.srec || g.teams.home.srec;
+    if (series && Math.max(+a[0] || 0, +h[0] || 0) < 4) continue;
+    var at = parseDate(g.date).getTime();
+    if (!champAt[lg] || champAt[lg] < at) {
+      champAt[lg] = at;
+      try { window.localStorage.setItem(CHAMP_KEY, JSON.stringify(champAt)); } catch (e) {}
+    }
+  }
+}
+function seasonOver(lg) {
+  if (!CONFIG.hideEnded || lg === 'ufc') return false;
+  var now = new Date().getTime(), c = champAt[lg], wg = windowGames(lg);
+  if (c && now - c > 150 * 86400000) c = 0;               // a title from a past year doesn't count
+  for (var i = 0; i < wg.length; i++) {
+    var t = parseDate(wg[i].date).getTime();
+    if (c && t > c + 3 * 86400000) {                       // games again: new season, forget the title
+      delete champAt[lg]; try { window.localStorage.setItem(CHAMP_KEY, JSON.stringify(champAt)); } catch (e) {}
+      return false;
+    }
+  }
+  if (wg.length) return false;                             // the title game's result is still up
+  return seasonPhase[lg] === 4 || !!c;
+}
+
 /* One day of games for any league, whichever feed it comes from. */
 /* Pro leagues switch to ESPN for the rest of the session if SportsBlaze comes up empty. */
 var viaEspn = {};
@@ -646,6 +694,7 @@ function espnDay(lg, dateStr, cb) {
   if (lg === 'ncaab' && CONFIG.cbb === 'all') url += '&groups=50&limit=400';
   getJSON(url, function (err, data) {
     if (err) return cb(err);
+    noteSeason(lg, data, dateStr);
     var evs = (data && data.events) || [], out = [];
     for (var i = 0; i < evs.length; i++) { var g = fromEspn(evs[i], lg); if (g) out.push(g); }
     cb(null, out);
@@ -1554,7 +1603,7 @@ function buildPages() {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], wg = windowGames(lg);
     if (!wg.length) {
-      if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
+      if (rankingsFor(lg) && !seasonOver(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
       continue;
     }
     if (lg === 'ufc') {                               // COMBAT: a screen (or more) per event
@@ -1624,6 +1673,7 @@ function renderTabs(activeLg) {
   }
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i];
+    if (seasonOver(lg)) continue;
     var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) ? ' empty' : '');
     html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
   }
@@ -2242,7 +2292,7 @@ function renderCrawl() {
   var groups = [], today = ymd(new Date());
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], d = state.data[lg];
-    if (!d || !d.games.length) continue;
+    if (!d || !d.games.length || seasonOver(lg)) continue;
     var all = sortGames(d.games.slice(0), lg), games = [], segs = [];
     for (var j = 0; j < all.length; j++) if (crawlRelevant(all[j], lg, today)) games.push(all[j]);
     games = games.slice(0, CONFIG.crawlMaxPerLeague);
@@ -2365,6 +2415,7 @@ function refreshAll() {
           if (res.games[k].live) anyLive = true;
         }
         state.data[lg] = res;
+        checkChampion(lg);
         next();
       });
     });
