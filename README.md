@@ -7,7 +7,8 @@ Live page: https://justright21-ace.github.io/sports-ticker/
 Data (both free, no API key):
 - ESPN scoreboard feed (main source for every league)
 - SportsBlaze: backup for NFL, NBA, MLB, WNBA if ESPN can't be reached
-- ESPN scoreboard feed: NCAA football, UFC main card fights (also NCAA men's basketball and NHL)
+- ESPN scoreboard feed: NCAA football, UFC + PFL main card fights for the COMBAT tab (also NCAA men's basketball and NHL)
+- TheSportsDB (free key): major boxing cards on the COMBAT tab (scheduled time and result; no live round-by-round)
 
 Each card also shows the opening spread and over/under (DraftKings, via ESPN) when available.
 
