@@ -58,6 +58,12 @@
   }
   .tab.on { background: #f5b800; color: #05070d; }
   .tab.empty { color: #2e3548; }
+  /* lots of tabs: step the size down until they fit between the name and the clock */
+  #tabs.s1 .tab { font-size: 2.7vh; padding: 0 0.6vw; margin: 0 0.12vw; letter-spacing: 0.04vw; }
+  #tabs.s2 .tab { font-size: 2.4vh; padding: 0 0.5vw; margin: 0 0.1vw; letter-spacing: 0; }
+  #tabs.s3 .tab { font-size: 2.1vh; padding: 0 0.4vw; margin: 0 0.08vw; letter-spacing: 0; }
+  #tabs.s4 .tab { font-size: 1.8vh; padding: 0 0.3vw; margin: 0 0.05vw; letter-spacing: 0; height: 4vh; line-height: 4vh; }
+  #tabs.s5 .tab { font-size: 1.5vh; padding: 0 0.25vw; margin: 0 0.04vw; letter-spacing: 0; height: 3.6vh; line-height: 3.6vh; }
   #clock {
     position: absolute; right: 2.5vw; top: 0; line-height: 9vh; text-align: right;
     font-size: 4.6vh; font-weight: 600;
@@ -482,7 +488,7 @@ var CONFIG = {
   //   From SportsBlaze: nfl, nba, mlb, wnba
   //   From ESPN:        ncaaf (college football), ncaab (men's college basketball), nhl,
   //                     ufc = COMBAT tab: UFC + PFL main cards, plus major boxing (TheSportsDB)
-  leagues: ['nfl', 'ncaaf', 'nba', 'mlb', 'wnba', 'ufc'],
+  leagues: ['nfl', 'ncaaf', 'nba', 'nhl', 'mlb', 'wnba', 'ufc'],
 
   // Season change: starting on this date, WNBA comes off and men's college basketball
   // goes on (right after the NBA). Happens by itself; no update needed that day.
@@ -505,7 +511,8 @@ var CONFIG = {
     nfl:   ['CHI', 'PHI'],   // Bears, Eagles
     ncaaf: ['USC', 'WIS'],   // USC Trojans, Wisconsin Badgers
     nba:   ['SA', 'CHI'],    // Spurs, Bulls
-    mlb:   ['CHW', 'CWS']    // White Sox (both common abbreviations)
+    mlb:   ['CHW', 'CWS'],   // White Sox (both common abbreviations)
+    nhl:   ['CHI']           // Blackhawks
   },
 
   // Leagues that also show games that haven't started yet. The season schedule
@@ -1678,6 +1685,28 @@ function renderTabs(activeLg) {
     html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
   }
   $('tabs').innerHTML = html;
+  fitTabs();
+}
+/* keep the tabs between the name and the clock; shrink them if there are too many */
+function fitTabs() {
+  var el = $('tabs'), b = $('brand'), c = $('clock');
+  if (!el || !b || !c || !b.getBoundingClientRect) return;
+  var W = window.innerWidth || document.documentElement.clientWidth, gap = Math.round(W * 0.01);
+  var L = b.getBoundingClientRect().right + gap, R = c.getBoundingClientRect().left - gap;
+  if (!(R > L)) return;
+  var room = R - L, ctr = W / 2, half = Math.min(ctr - L, R - ctr);
+  // centered on the screen when that fits, otherwise centered in the space that's free
+  if (half * 2 >= room * 0.8) { el.style.left = (ctr - half) + 'px'; el.style.right = (W - ctr - half) + 'px'; }
+  else { el.style.left = L + 'px'; el.style.right = (W - R) + 'px'; }
+  var tabs = el.getElementsByTagName('span'), list = [];
+  for (var i = 0; i < tabs.length; i++) if (/\btab\b/.test(tabs[i].className)) list.push(tabs[i]);
+  if (!list.length) return;
+  for (var s = 0; s <= 5; s++) {
+    el.className = s ? 's' + s : '';
+    var first = list[0].offsetTop, wrapped = false, w = 0;
+    for (var j = 0; j < list.length; j++) { if (Math.abs(list[j].offsetTop - first) > list[0].offsetHeight / 2) wrapped = true; w += list[j].offsetWidth; }
+    if (!wrapped && w <= el.clientWidth) return;
+  }
 }
 
 /* =================== NFL PRIMETIME (SNF / MNF / TNF) ===================
