@@ -24,7 +24,7 @@ Options go on the end of the address:
 - Standings screens after each league, every day but only before that league's first game starts or after its last game is final (never mid-games): NFL, NBA and NHL by division (a screen per conference); college football for the SEC, Big Ten, Big 12, ACC, Pac-12, Mountain West and American (college basketball keeps just its Top 25 screen). `?standings=0` turns them off
 - `?cfb=fbs` every FBS college football game instead of just ranked-team games
 - `?rotate=20` seconds per screen
-- `?theme=bears`, `?theme=usc` or `?theme=classic` force a color scheme (default `auto`: Bears Sunday-Friday, USC on Saturday)
+- `?theme=bears`, `usc`, `sox`, `bulls` or `classic` force a color scheme. Default `auto`: USC colors on Saturdays when USC plays; Bears every other day during the NFL season; after the Super Bowl, White Sox or Bulls colors, whichever team plays next (Bears again once the NFL is back)
 - `?stats=0` / `?news=0` turn off key stats or headlines in the bottom bar
 - Fits any screen: sideways screens from 5:4 to 21:9 fill the screen; anything else (phone or tablet held upright, super-wide monitors) runs in a correctly shaped frame centered on the screen. Phones with rounded corners or a notch keep clear of them automatically. `?inset=3` adds a 3% safety margin on every side for TVs that crop their edges
 - `?demo=1` fake games to test the layout
