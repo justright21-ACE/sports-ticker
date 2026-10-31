@@ -2310,6 +2310,15 @@ function loadStandings(cb) {
     getJSON(url, function (err, data) {
       var screens = null;
       try { if (!err && data) screens = parseStandings(lg, data); } catch (e) { screens = null; }
+      if ((!screens || !screens.length) && /level=3/.test(url)) {     // division view unavailable: try the plain one
+        url = url.replace(/\?level=3$/, '');
+        return getJSON(url, function (e2, d2) {
+          try { if (!e2 && d2) screens = parseStandings(lg, d2); } catch (e) { screens = null; }
+          if (screens && screens.length) standCache[lg] = { at: now, screens: screens };
+          else if (standCache[lg]) standCache[lg].at = now;
+          step();
+        });
+      }
       if (screens && screens.length) standCache[lg] = { at: now, screens: screens };
       else if (standCache[lg]) standCache[lg].at = now;          // keep the last good copy
       step();
@@ -2321,8 +2330,10 @@ function loadStandings(cb) {
 function standLeaves(node, up, out) {
   if (!node) return out;
   var nm = node.name || node.abbreviation || '';
-  if (node.standings && node.standings.entries && node.standings.entries.length) out.push({ name: nm, abbr: node.abbreviation || '', up: up, entries: node.standings.entries });
-  var ch = node.children || [];
+  var ch = node.children || [], kidsHaveTables = false;
+  for (var k = 0; k < ch.length; k++) if (ch[k].standings && ch[k].standings.entries && ch[k].standings.entries.length) kidsHaveTables = true;
+  // a conference that comes with its own table AND its divisions' tables: the divisions are what we show
+  if (!kidsHaveTables && node.standings && node.standings.entries && node.standings.entries.length) out.push({ name: nm, abbr: node.abbreviation || '', up: up, entries: node.standings.entries });
   for (var i = 0; i < ch.length; i++) standLeaves(ch[i], up.concat([nm]), out);
   return out;
 }
