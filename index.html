@@ -512,6 +512,7 @@ var CONFIG = {
   // file is large for MLB, so it's off for MLB by default to go easy on old TVs.
   upcoming: ['nfl', 'nba', 'wnba'],
 
+  gamedayAfterMin: 30,  // USC / Wisconsin game-day screen stays this many minutes after the final
   refreshLiveSec: 30,    // how often to refresh scores while any game is live
   refreshIdleSec: 30,    // how often to refresh scores when nothing is live
   newsEveryMin: 10,      // how often to refresh headlines
@@ -590,7 +591,8 @@ function readParams() {
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
-    if (k === 'gameday') CONFIG.favPrimetime = v !== '0';   // ?gameday=0 turns off the USC/Wisconsin game-day screen
+    if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
+    if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;   // ?gameday=0 turns off the USC/Wisconsin game-day screen
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'stats') CONFIG.crawlStats = v !== '0';
     if (k === 'detail') CONFIG.primetimeDetail = v !== '0';
@@ -1631,7 +1633,18 @@ function renderTabs(activeLg) {
    after every other screen; before kickoff / after the final it holds for
    CONFIG.primetimeHoldPre seconds once per loop. The tab is gone an hour after the final. */
 var PT_NAMES = { 0: ['SNF', 'Sunday Night Football'], 1: ['MNF', 'Monday Night Football'], 4: ['TNF', 'Thursday Night Football'] };
-var ptDetail = {}, finalSeen = {};
+var ptDetail = {}, FINAL_KEY = 'fcw_finalSeen', finalSeen = (function () {
+  try { return JSON.parse(window.localStorage.getItem(FINAL_KEY)) || {}; } catch (e) { return {}; }
+})();
+/* first time this game was seen final (kept across page reloads, so the clock doesn't restart) */
+function seenFinal(id, now) {
+  if (!finalSeen[id]) {
+    finalSeen[id] = now;
+    for (var k in finalSeen) if (now - finalSeen[k] > 2 * 86400000) delete finalSeen[k];
+    try { window.localStorage.setItem(FINAL_KEY, JSON.stringify(finalSeen)); } catch (e) {}
+  }
+  return finalSeen[id];
+}
 function ptKind(g) {
   var d = parseDate(g.date), k = PT_NAMES[d.getDay()];
   return (k && d.getHours() >= 18) ? k : null;
@@ -1644,7 +1657,7 @@ function wsGames() {
     var g = d.games[i];
     if (!/WORLD SERIES/.test(g.tag || '')) continue;
     if (isFinal(g)) {
-      if (!finalSeen[g.id]) finalSeen[g.id] = now;
+      seenFinal(g.id, now);
       if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
     out.push(g);
@@ -1667,8 +1680,7 @@ function cfbGames() {
     var g = d.games[i];
     if (!cfbKind(g)) continue;
     if (isFinal(g)) {
-      if (!finalSeen[g.id]) finalSeen[g.id] = now;
-      if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
+      if (now - seenFinal(g.id, now) > CONFIG.gamedayAfterMin * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
     out.push(g);
   }
@@ -1688,7 +1700,7 @@ function primetimeGames() {
     var g = d.games[i];
     if (!ptKind(g)) continue;
     if (isFinal(g)) {
-      if (!finalSeen[g.id]) finalSeen[g.id] = now;
+      seenFinal(g.id, now);
       // gone an hour after the final; never revive an old final after a reload
       if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;   // game day only
