@@ -521,6 +521,8 @@ var CONFIG = {
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
+  closeGames: true,      // college: a Top 25 team within one score (8 pts) in the 4th quarter / OT gets its own screen
+  closeHoldSec: 30,      // ...seconds that screen stays up (returns after every other screen while it's close)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
   windowHours: 24,       // screens show live games and games starting within this many hours...
   resultsHours: 12,      // ...plus results of games that ended within this many hours
@@ -592,6 +594,7 @@ function readParams() {
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
+    if (k === 'close') CONFIG.closeGames = v !== '0';   // ?close=0 turns off the one-score 4th-quarter screen
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;   // ?gameday=0 turns off the USC/Wisconsin game-day screen
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'stats') CONFIG.crawlStats = v !== '0';
@@ -717,7 +720,7 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && favEv(ev))) ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in'))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
@@ -1595,7 +1598,7 @@ function buildPages() {
     for (var r = 0; r < ftg.length; r++) {
       if (ftg[r].g.live) live = true;
       ptPages.push({ pt: true, lg: ftg[r].lg, game: ftg[r].g, kind: ftg[r].kind,
-                     hold: ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre });
+                     hold: ftg[r].hold || (ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre) });
     }
     var mixed = [], n = 0;
     var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c); } };
@@ -1686,10 +1689,32 @@ function cfbGames() {
   }
   return out;
 }
+/* College "crunch time": a Top 25 team within one score in the 4th quarter or overtime */
+function quarterOf(g) {
+  var p = g.raw && g.raw.status && +g.raw.status.period;
+  if (p) return p;
+  var m = String(g.detail || '').match(/(\d)(st|nd|rd|th)\b/i);
+  return m ? +m[1] : (/OT/i.test(g.detail || '') ? 5 : 0);
+}
+function closeGames() {
+  var d = state.data.ncaaf, out = [], fav = cfbGames(), favIds = {};
+  if (!d || !CONFIG.closeGames) return out;
+  for (var j = 0; j < fav.length; j++) favIds[fav[j].id] = 1;
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (!g.live || favIds[g.id] || quarterOf(g) < 4) continue;
+    var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf');
+    if (!((ra && ra <= 25) || (rh && rh <= 25))) continue;
+    if (Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8) continue;
+    out.push(g);
+  }
+  return out;
+}
 function featuredGames() {
-  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames();
+  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames();
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
+  for (i = 0; i < cl.length; i++) out.push({ g: cl[i], lg: 'ncaaf', kind: ['CLOSE', (quarterOf(cl[i]) > 4 ? 'Overtime' : '4th Quarter') + ' · One-Score Game'], hold: CONFIG.closeHoldSec });
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i], lg: 'mlb', kind: ['WS', 'World Series'] });
   return out;
 }
@@ -1710,7 +1735,7 @@ function primetimeGames() {
 }
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
-  var games = primetimeGames(), cfb = cfbGames(), i = 0, path = {};
+  var games = primetimeGames(), cfb = cfbGames().concat(closeGames()), i = 0, path = {};
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   function step() {
     if (i >= games.length) return cb();
