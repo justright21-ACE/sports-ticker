@@ -547,7 +547,7 @@ var CONFIG = {
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
-  standings: true,       // Monday-Friday: standings screens after each league's games
+  standings: true,       // standings screens, shown before a league's games start or after its last final
   standingsHoldSec: 15,  // ...seconds per standings screen
   // college football standings: these conferences, in this order
   cfbConferences: ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Mountain West', 'American'],
@@ -2257,7 +2257,9 @@ function loadRankings(cb) {
   }
   step();
 }
-/* =================== STANDINGS (Monday-Friday) ===================
+/* =================== STANDINGS (every day, between game windows) ===================
+   A league's standings show only before its first game of the day starts, or after its last
+   game of the day is final, never while its games are on (they'd be out of date).
    Pro leagues by division (each conference on its own screen); college football by
    conference for CONFIG.cfbConferences; college basketball has its Top 25 screen instead. */
 var STAND_PATHS = { nfl: 'football/nfl', nba: 'basketball/nba', nhl: 'hockey/nhl', mlb: 'baseball/mlb',
@@ -2266,16 +2268,40 @@ var CONF_RE = { 'SEC': /southeastern|^sec\b/i, 'Big Ten': /big ten/i, 'Big 12': 
                 'American': /american athletic|^american( conference)?$|^aac\b|^amer\b/i, 'Mountain West': /mountain west/i, 'Pac-12': /pac[- ]?12/i,
                 'Sun Belt': /sun belt/i, 'MAC': /mid-american|^mac\b/i, 'Conference USA': /conference usa|c-usa/i };
 var standCache = {};
-function standingsDay() {
-  var d = new Date().getDay();
-  return CONFIG.standings && (CONFIG.standingsDaily || (d >= 1 && d <= 5));
+function standingsDay() { return !!CONFIG.standings; }
+var standDoneAt = {}, standWasOpen = {};
+/* true before the league's first game today starts, and again once its last game today is final */
+function standingsOpen(lg) {
+  var d = state.data[lg];
+  if (!d) return true;
+  var today = ymd(new Date()), started = false, pending = false;
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (g.live) return false;                          // a game is on (including last night's late game)
+    if (ymd(parseDate(g.date)) !== today || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+    if (isFinal(g)) started = true; else pending = true;
+  }
+  return !(started && pending);
+}
+/* notes the moment a league's day of games wraps up, so its standings get re-read right away */
+function trackStandWindows() {
+  var now = new Date().getTime();
+  for (var k = 0; k < CONFIG.leagues.length; k++) {
+    var lg = CONFIG.leagues[k], open = standingsOpen(lg);
+    if (open && standWasOpen[lg] === false) standDoneAt[lg] = now;
+    standWasOpen[lg] = open;
+  }
 }
 function loadStandings(cb) {
   if (!standingsDay() || DEMO) return cb();
+  trackStandWindows();
   var todo = [], now = new Date().getTime(), i = 0;
   for (var k = 0; k < CONFIG.leagues.length; k++) {
-    var lg = CONFIG.leagues[k], c = standCache[lg];
-    if (STAND_PATHS[lg] && !seasonOver(lg) && !(c && now - c.at < (lg === 'ncaaf' ? 180 : 30) * 60000)) todo.push(lg);   // college feed is big and only changes on game days
+    var lg = CONFIG.leagues[k], c = standCache[lg], done = standDoneAt[lg];
+    // college feed is big and only changes on game days; for 20 minutes after a league's last final,
+    // re-read every 5 minutes so the standings shown include tonight's results
+    var ttl = done && now - done < 20 * 60000 ? 5 : (lg === 'ncaaf' ? 180 : 30);
+    if (STAND_PATHS[lg] && !seasonOver(lg) && standingsOpen(lg) && !(c && now - c.at < ttl * 60000)) todo.push(lg);
   }
   function step() {
     if (i >= todo.length) return cb();
@@ -2386,7 +2412,7 @@ function parseStandings(lg, data) {
 }
 function standingsPages(lg) {
   var c = standCache[lg], out = [];
-  if (!c || !standingsDay() || seasonOver(lg) || lg === 'ncaab' || lg === 'ufc') return out;
+  if (!c || !standingsDay() || !standingsOpen(lg) || seasonOver(lg) || lg === 'ncaab' || lg === 'ufc') return out;
   for (var i = 0; i < c.screens.length; i++)
     out.push({ lg: lg, stand: c.screens[i], hold: CONFIG.standingsHoldSec, num: 'st' + i, of: 1, games: [] });
   return out;
