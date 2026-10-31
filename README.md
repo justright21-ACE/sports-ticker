@@ -26,4 +26,5 @@ Options go on the end of the address:
 - `?rotate=20` seconds per screen
 - `?theme=bears`, `?theme=usc` or `?theme=classic` force a color scheme (default `auto`: Bears Sunday-Friday, USC on Saturday)
 - `?stats=0` / `?news=0` turn off key stats or headlines in the bottom bar
+- Fits any screen: sideways screens from 5:4 to 21:9 fill the screen; anything else (phone or tablet held upright, super-wide monitors) runs in a correctly shaped frame centered on the screen. Phones with rounded corners or a notch keep clear of them automatically. `?inset=3` adds a 3% safety margin on every side for TVs that crop their edges
 - `?demo=1` fake games to test the layout

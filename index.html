@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The FanCave Wire</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Barlow+Condensed:500,600,700&display=swap">
 <!--
@@ -318,7 +318,7 @@
   .ptv .tst b { color: #f2f4f8; font-weight: 700; margin-left: 0.4vw; }
   .ptv .p2 table.q { margin: 0.4vh 0 0 0; font-size: 2.5vh; }
   .ptv .p2 .field { margin: 0.9vh 0 0.8vh 0; }
-  .ptv .p2 .count { line-height: 7vh; }
+  .ptv .p2 .count { line-height: 7.8vh; }
   .ptv .p2 .note { margin-top: 0.6vh; }
   .narrow .ptv .tst span { font-size: 1.8vh; line-height: 2.6vh; }
   .ptv .ph { font-size: 2.2vh; color: #f5b800; font-weight: 700; letter-spacing: 0.2vw; margin-bottom: 1vh; }
@@ -2626,7 +2626,7 @@ function applyTheme(d) {
   if (t === 'auto') t = d.getDay() === 6 ? 'usc' : 'bears';
   var cls = t === 'classic' ? '' : 't-' + t;
   var vw = window.innerWidth || document.documentElement.clientWidth, vh = window.innerHeight || document.documentElement.clientHeight;
-  if (vh && vw / vh < 1.6) cls += (cls ? ' ' : '') + 'narrow';
+  if (vh && vw / vh < 1.7) cls += (cls ? ' ' : '') + 'narrow';     // 16:10 and squarer
   if (document.body.className !== cls) document.body.className = cls;
 }
 
@@ -2808,7 +2808,65 @@ function demoEvents(lg, dateStr) {
   return out;
 }
 
+/* ---------- fit any screen ----------
+   The layout is built for sideways screens from 5:4 up to 21:9. On anything outside that
+   (a phone or tablet held upright, a super-wide monitor), or when the edges need a safety
+   margin (rounded corners, a notch, a TV that crops its edges: ?inset=3 = 3% each side),
+   the ticker runs inside a frame of the right shape, centered with dark bars around it. */
+var FIT = { min: 1.25, max: 2.4 };
+function screenInsets() {
+  var o = { t: 0, r: 0, b: 0, l: 0 }, m = window.location.search.match(/[?&]inset=([\d.]+)/);
+  var W = window.innerWidth || document.documentElement.clientWidth, H = window.innerHeight || document.documentElement.clientHeight;
+  try {                                                  // phones/tablets with rounded corners or a notch report their safe area
+    var d = document.createElement('div');
+    d.style.cssText = 'position:absolute;visibility:hidden;padding-top:env(safe-area-inset-top);padding-right:env(safe-area-inset-right);' +
+                      'padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left)';
+    document.body.appendChild(d);
+    var cs = window.getComputedStyle(d);
+    o = { t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
+    document.body.removeChild(d);
+  } catch (e) {}
+  if (m && +m[1] > 0) {
+    var px = Math.min(+m[1], 15) / 100;
+    o.t = Math.max(o.t, H * px); o.b = Math.max(o.b, H * px); o.l = Math.max(o.l, W * px); o.r = Math.max(o.r, W * px);
+  }
+  return o;
+}
+function needsFrame() {
+  var W = window.innerWidth || document.documentElement.clientWidth, H = window.innerHeight || document.documentElement.clientHeight;
+  if (!W || !H) return false;
+  var ins = screenInsets(), a = W / H;
+  return a < FIT.min - 0.02 || a > FIT.max + 0.02 || ins.t + ins.r + ins.b + ins.l > 0;
+}
+var FRAMED = /[?&]framed=1/.test(window.location.search);
+function buildFrame() {
+  document.body.className = '';
+  document.body.style.background = '#000';
+  document.body.innerHTML = '';
+  var f = document.createElement('iframe'), url = window.location.href.replace(/#.*$/, '');
+  f.src = url + (url.indexOf('?') < 0 ? '?' : '&') + 'framed=1';
+  f.setAttribute('frameborder', '0'); f.setAttribute('scrolling', 'no');
+  f.style.cssText = 'position:absolute;border:0;margin:0;padding:0;background:#05070d;overflow:hidden';
+  document.body.appendChild(f);
+  function place() {
+    var W = window.innerWidth || document.documentElement.clientWidth, H = window.innerHeight || document.documentElement.clientHeight;
+    var ins = screenInsets(), aw = W - ins.l - ins.r, ah = H - ins.t - ins.b, w = aw, h = ah;
+    if (aw / ah < FIT.min) h = Math.floor(aw / FIT.min); else if (aw / ah > FIT.max) w = Math.floor(ah * FIT.max);
+    f.style.width = w + 'px'; f.style.height = h + 'px';
+    f.style.left = Math.round(ins.l + (aw - w) / 2) + 'px'; f.style.top = Math.round(ins.t + (ah - h) / 2) + 'px';
+  }
+  place();
+  window.addEventListener('resize', place);
+  window.addEventListener('orientationchange', function () { setTimeout(place, 300); });
+  setTimeout(function () { window.location.reload(); }, 6 * 3600000);   // same fresh start every 6 hours
+}
+var OUTER = !FRAMED && needsFrame();
+if (!FRAMED) window.addEventListener('resize', function () {   // turned the screen or resized the window
+  if (!OUTER && needsFrame()) window.location.reload();
+});
+
 /* ---------- start ---------- */
+if (OUTER) buildFrame(); else {
 readParams();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
@@ -2816,6 +2874,7 @@ refreshAll();
 scheduleRotate();
 setInterval(antiBurn, 10 * 60000);
 setTimeout(function () { window.location.reload(); }, 6 * 3600000); // fresh start every 6 hours
+}
 </script>
 </body>
 </html>
