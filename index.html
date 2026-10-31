@@ -275,6 +275,32 @@
   .t-bears .strow { border-color: #1b2c4c; } .t-bears .strow.sth { color: #E65C1E; } .t-bears .strow.fav { background: rgba(200,56,3,0.22); }
   .t-usc .strow { border-color: #451519; } .t-usc .strow.sth { color: #FFC72C; } .t-usc .strow.fav { background: rgba(255,199,44,0.16); }
 
+  /* =========== MARCH MADNESS BRACKET =========== */
+  .brk { position: relative; height: 66vh; margin: 0 0.6vw; }
+  .brk .bh { position: absolute; top: 0; height: 3vh; line-height: 3vh; font-size: 1.8vh; font-weight: 700; letter-spacing: 0.12vw; color: #7d8aa6; white-space: nowrap; overflow: hidden; }
+  .brk .bs { position: absolute; background: #111829; border: 0.2vh solid #1b2338; border-radius: 0.5vh; white-space: nowrap; overflow: hidden; box-sizing: border-box; -webkit-box-sizing: border-box; }
+  .brk .bs.tbd { background: transparent; border-style: dashed; }
+  .brk .bs.live { border-color: #e23d3d; }
+  .brk .bs.win .bn { font-weight: 700; color: #ffffff; }
+  .brk .bs.out { opacity: 0.5; }
+  .brk .bs.out .bn { text-decoration: line-through; -webkit-text-decoration: line-through; }
+  .brk .bs.fav { border-color: #f5b800; }
+  .brk .bsd { display: inline-block; width: 1.6em; text-align: right; margin: 0 0.45em 0 0.3em; color: #a5aec4; font-weight: 700; font-size: 0.8em; }
+  .brk .bn { color: #dfe4ee; font-weight: 600; display: inline-block; vertical-align: top; max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
+  .brk .bsc { line-height: inherit; }
+  .brk .brg { color: #7d8aa6; font-size: 0.7em; margin-left: 0.4em; letter-spacing: 0.05em; vertical-align: top; }
+  .brk .bsc { position: absolute; right: 0.4em; top: 0; font-weight: 700; color: #c9d0e0; }
+  .brk .bs.win .bsc { color: #ffffff; }
+  .brk .bs.live .bsc { color: #ff6b6b; }
+  .brk .cv { position: absolute; border: 0.25vh solid #33405c; border-left: 0; }
+  .brk .ch { position: absolute; border-top: 0.25vh solid #33405c; height: 0; }
+  .brk .cvl { position: absolute; border: 0.25vh solid #33405c; border-right: 0; }
+  .brk .champ { position: absolute; text-align: center; font-weight: 700; color: #f5b800; letter-spacing: 0.1vw; }
+  .t-bears .brk .bs { background: #0f1d36; border-color: #1b2c4c; } .t-bears .brk .bs.fav { border-color: #C83803; } .t-bears .brk .champ { color: #E65C1E; }
+  .t-usc .brk .bs { background: #2a0a0c; border-color: #451519; } .t-usc .brk .champ { color: #FFC72C; }
+  .t-bulls .brk .bs { background: #171717; border-color: #2e2e2e; } .t-bulls .brk .champ { color: #F23B5F; }
+  .t-sox .brk .bs { background: #181818; border-color: #2c2c2c; } .t-sox .brk .champ { color: #C4CED4; }
+
   /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
   .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
   .tab.pt.on { background: #f5b800; color: #05070d; }
@@ -621,6 +647,8 @@ var CONFIG = {
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
+  bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
+  bracketHoldSec: 20,    // ...seconds per bracket screen
   standings: true,       // standings screens, shown before a league's games start or after its last final
   standingsHoldSec: 15,  // ...seconds per standings screen
   // college football standings: these conferences, in this order
@@ -703,6 +731,7 @@ function readParams() {
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
     if (k === 'close') CONFIG.closeGames = v !== '0';                  // ?close=0 turns off the one-score 4th-quarter screen
     if (k === 'ended') CONFIG.hideEnded = v !== '1';                   // ?ended=1 keeps tabs for leagues whose season is over
+    if (k === 'bracket') CONFIG.bracket = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -1752,7 +1781,8 @@ function buildPages() {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], wg = windowGames(lg);
     if (!wg.length) {
-      if (rankingsFor(lg) && !seasonOver(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
+      if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
+      else if (rankingsFor(lg) && !seasonOver(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
       pages = pages.concat(standingsPages(lg));
       continue;
     }
@@ -1786,7 +1816,8 @@ function buildPages() {
       pages.push({ lg: lg, label: label, games: pinned.concat(others.slice(p * slots, (p + 1) * slots)),
                    num: p + 1, of: total });
     }
-    if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
+    if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
+    else if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
     pages = pages.concat(standingsPages(lg));
   }
   for (var q = 0; q < pages.length; q++) if (!pages[q].key) pages[q].key = pages[q].lg + ':' + pages[q].num;
@@ -1825,7 +1856,7 @@ function renderTabs(activeLg) {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i];
     if (seasonOver(lg)) continue;
-    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length ? ' empty' : '');
+    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length && !(lg === 'ncaab' && bracketPages().length) ? ' empty' : '');
     html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
   }
   $('tabs').innerHTML = html;
@@ -2599,6 +2630,217 @@ function fitStand() {
     fs = fs * 0.93; st.style.fontSize = fs.toFixed(2) + 'vh';
   }
 }
+/* =================== MARCH MADNESS BRACKET (men's NCAA tournament) ===================
+   Through the Sweet 16: one screen per region, 16 teams down to the region winner, with a line
+   through every team that's been knocked out. Once the Sweet 16 is done: one screen with the
+   Elite Eight, Final Four, championship and champion. Shown in the NCAAB rotation in place of
+   the Top 25 screen while the tournament is on. */
+var BRK_ORDER = [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15];   // seed lines, top to bottom of a region
+var brk = { at: 0, games: [], live: false };
+function brkRound(h) {
+  if (/first four|opening round/i.test(h)) return 0;
+  if (/1st round|first round|round of 64/i.test(h)) return 1;
+  if (/2nd round|second round|round of 32/i.test(h)) return 2;
+  if (/sweet (16|sixteen)|regional semifinal/i.test(h)) return 3;
+  if (/elite (8|eight)|regional final/i.test(h)) return 4;
+  if (/final four|national semifinal/i.test(h)) return 5;
+  if (/national championship|championship game/i.test(h)) return 6;
+  return -1;
+}
+function brkSeed(cp) {
+  var v = cp.seed || cp.tournamentSeed || (cp.curatedRank && cp.curatedRank.current);
+  v = +v; return v >= 1 && v <= 16 ? v : 0;
+}
+function loadBracket(cb) {
+  var now = new Date(), t = now.getTime(), m = now.getMonth(), dd = now.getDate();
+  var season = (m === 2 && dd >= 10) || (m === 3 && dd <= 12);       // Selection Sunday through the title game
+  if (!inList(CONFIG.leagues, 'ncaab') || !CONFIG.bracket || DEMO || !season || seasonOver('ncaab')) return cb();
+  if (t - brk.at < (brk.live ? 60 : 15 * 60) * 1000) return cb();
+  var y = now.getFullYear();
+  getJSON(ESPN_API + 'basketball/mens-college-basketball/scoreboard?groups=100&limit=300&dates=' + y + '0310-' + y + '0412', function (err, data) {
+    if (err || !data) { brk.at = t; return cb(); }
+    var evs = data.events || [], games = [], live = false;
+    for (var i = 0; i < evs.length; i++) {
+      var ev = evs[i], c = ev.competitions && ev.competitions[0];
+      if (!c) continue;
+      var h = (c.notes && c.notes[0] && c.notes[0].headline) || ev.name || '';
+      if (/\bNIT\b|\bCBI\b|\bCIT\b|crown|women/i.test(h)) continue;
+      var rd = brkRound(h);
+      if (rd < 0) continue;
+      var rg = (h.match(/(East|West|South|Midwest|Southeast|Southwest)\s+Region/i) || [])[1] || '';
+      var ty = (c.status && c.status.type) || (ev.status && ev.status.type) || {}, cs = c.competitors || [], comps = [];
+      for (var k = 0; k < cs.length; k++) {
+        var tm = cs[k].team || {};
+        comps.push({ tid: String(tm.id || ''), abbr: tm.abbreviation || '', name: tm.shortDisplayName || tm.location || tm.displayName || tm.abbreviation || 'TBD',
+                     seed: brkSeed(cs[k]), score: cs[k].score, winner: !!cs[k].winner, home: cs[k].homeAway === 'home' });
+      }
+      if (ty.state === 'in') live = true;
+      games.push({ id: ev.id, round: rd, region: rg ? rg.charAt(0).toUpperCase() + rg.substr(1).toLowerCase() : '', date: ev.date,
+                   state: ty.state || 'pre', detail: ty.shortDetail || '', comps: comps });
+    }
+    brk = { at: t, games: games, live: live };
+    cb();
+  });
+}
+/* a region's bracket: for each round 1-5, the slots (team + score + won/lost/live) */
+function brkRegion(rg) {
+  var G = brk.games, pos = {}, cols = [[], [], [], [], [], []], i, j, gone = {};
+  for (i = 0; i < G.length; i++) if (G[i].region === rg && G[i].round === 1)
+    for (j = 0; j < G[i].comps.length; j++) { var c0 = G[i].comps[j], p0 = BRK_ORDER.indexOf(c0.seed); if (c0.tid && p0 >= 0) pos[c0.tid] = p0; }
+  for (i = 0; i < G.length; i++) if (G[i].state === 'post' && G[i].round >= 1)
+    for (j = 0; j < G[i].comps.length; j++) if (!G[i].comps[j].winner && G[i].comps[j].tid) gone[G[i].comps[j].tid] = G[i].round;
+  // rounds 1-4 come straight from the games
+  for (i = 0; i < G.length; i++) {
+    var g = G[i];
+    if (g.region !== rg || g.round < 1 || g.round > 4) continue;
+    var placed = 0;
+    for (j = 0; j < g.comps.length; j++) {
+      var c = g.comps[j], p = pos[c.tid];
+      if (p === undefined) { if (g.round === 1) p = BRK_ORDER.indexOf(c.seed); else continue; }
+      if (p < 0) continue;
+      var slot = Math.floor(p / Math.pow(2, g.round - 1));
+      cols[g.round][slot] = { c: c, g: g };
+      placed++;
+    }
+  }
+  // winners move on even before the next game is posted; the region winner goes in column 5
+  for (var r = 1; r <= 4; r++) {
+    for (var sI = 0; sI < cols[r].length; sI++) {
+      var e = cols[r][sI];
+      if (!e || !e.g || e.g.state !== 'post' || !e.c.winner) continue;
+      var nx = Math.floor(sI / 2);
+      if (!cols[r + 1][nx]) cols[r + 1][nx] = { c: e.c, g: null };
+    }
+  }
+  return { cols: cols, gone: gone };
+}
+function brkRegions() {
+  var seen = {}, out = [];
+  for (var i = 0; i < brk.games.length; i++) { var r = brk.games[i].region; if (r && brk.games[i].round >= 1 && !seen[r]) { seen[r] = 1; out.push(r); } }
+  return out.slice(0, 4);
+}
+/* 'regions' through the Sweet 16, 'final' once it's down to the last 8 */
+function brkStage() {
+  var s16 = 0, s16done = 0, later = false, r64 = 0;
+  for (var i = 0; i < brk.games.length; i++) {
+    var g = brk.games[i];
+    if (g.round === 1) r64++;
+    if (g.round === 3) { s16++; if (g.state === 'post') s16done++; }
+    if (g.round >= 4 && (g.state !== 'pre')) later = true;
+  }
+  if (!r64) return '';
+  return later || (s16 >= 8 && s16done >= 8) ? 'final' : 'regions';
+}
+function bracketPages() {
+  var st = brkStage(), out = [];
+  if (!st || seasonOver('ncaab')) return out;
+  if (st === 'final') return [{ lg: 'ncaab', brk: 'final', hold: CONFIG.bracketHoldSec + 5, num: 'brk', of: 1, games: [] }];
+  var rs = brkRegions();
+  for (var i = 0; i < rs.length; i++) out.push({ lg: 'ncaab', brk: rs[i], hold: CONFIG.bracketHoldSec, num: 'brk' + i, of: 1, games: [] });
+  return out;
+}
+function brkRoundName() {
+  var hi = 0, any = {}, i;
+  for (i = 0; i < brk.games.length; i++) if (brk.games[i].state !== 'pre') any[brk.games[i].round] = 1;
+  for (i = 0; i <= 6; i++) if (any[i]) hi = i;
+  return ['First Four', '1st Round', '2nd Round', 'Sweet 16', 'Elite Eight', 'Final Four', 'Championship'][hi];
+}
+function brkSlotHTML(e, x, y, w, h, gone, opts) {
+  opts = opts || {};
+  if (!e) return '<div class="bs tbd" style="left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%"></div>';
+  opts.big = opts.big || +h > 7;
+  var c = e.c, g = e.g, fin = g && g.state === 'post', lv = g && g.state === 'in';
+  var out = !!gone[c.tid] || (fin && !c.winner), win = fin && c.winner;
+  var cls = 'bs' + (lv ? ' live' : '') + (out ? ' out' : '') + (win ? ' win' : '') + (inList(favList('ncaab'), String(c.abbr).toUpperCase()) ? ' fav' : '');
+  var sc = g && g.state !== 'pre' && c.score !== undefined && c.score !== '' ? String(c.score) : '';
+  var nar = /narrow/.test(document.body.className);
+  var lh = +h * 0.66 - 0.4, fs = Math.min(nar ? 2.2 : (opts.big ? 2.9 : 2.6), lh * 0.6);   // the bracket box is 66vh tall
+  return '<div class="' + cls + '" style="left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + h + '%;line-height:' + lh.toFixed(2) + 'vh;font-size:' + fs.toFixed(2) + 'vh">' +
+    '<span class="bsd">' + (c.seed || '') + '</span><span class="bn">' + esc(c.name) + (opts.rg && !nar ? '<span class="brg">' + esc(opts.rg.toUpperCase()) + '</span>' : '') + '</span>' +
+    (sc ? '<span class="bsc">' + esc(sc) + '</span>' : '') + '</div>';
+}
+/* one region, 16 teams down to the region winner */
+function bracketRegionHTML(rg) {
+  var R = brkRegion(rg), cols = R.cols, html = '', top = 5.5, H = 94.5;   // % of the bracket box
+  var X = [0, 24.5, 46, 64.5, 80.5], W = [21.5, 19, 16, 14, 17], heads = ['1ST ROUND', '2ND ROUND', 'SWEET 16', 'ELITE EIGHT', 'REGION CHAMP'];
+  var rowH = H / 16, sh = Math.min(rowH * 0.82, 6.2);
+  for (var r = 1; r <= 5; r++) {
+    var n = r === 5 ? 1 : 16 / Math.pow(2, r - 1), band = H / n;
+    html += '<div class="bh" style="left:' + X[r - 1] + '%;width:' + W[r - 1] + '%">' + heads[r - 1] + '</div>';
+    for (var s = 0; s < n; s++) {
+      var yc = top + band * (s + 0.5), y = yc - sh / 2;
+      html += brkSlotHTML(cols[r][s], X[r - 1], y.toFixed(2), W[r - 1], sh.toFixed(2), R.gone);
+      if (r <= 4 && s % 2 === 0) {                                   // connector to the next round
+        var y2 = top + band * (s + 1.5), xr = X[r - 1] + W[r - 1], gap = (X[r] - xr) / 2;
+        html += '<div class="cv" style="left:' + xr.toFixed(2) + '%;width:' + gap.toFixed(2) + '%;top:' + yc.toFixed(2) + '%;height:' + (y2 - yc).toFixed(2) + '%"></div>';
+        html += '<div class="ch" style="left:' + (xr + gap).toFixed(2) + '%;width:' + gap.toFixed(2) + '%;top:' + ((yc + y2) / 2).toFixed(2) + '%"></div>';
+      }
+    }
+  }
+  return '<div class="brk">' + html + '</div>';
+}
+/* the last 8: Elite Eight -> Final Four -> championship -> champion, all on one screen */
+function bracketFinalHTML() {
+  var rs = brkRegions(), G = brk.games, i, j, html = '', gone = {};
+  for (i = 0; i < G.length; i++) if (G[i].state === 'post' && G[i].round >= 1)
+    for (j = 0; j < G[i].comps.length; j++) if (!G[i].comps[j].winner && G[i].comps[j].tid) gone[G[i].comps[j].tid] = G[i].round;
+  var ff = [], nc = null, regOf = {};
+  for (i = 0; i < G.length; i++) { if (G[i].round === 5) ff.push(G[i]); if (G[i].round === 6) nc = G[i]; }
+  for (i = 0; i < G.length; i++) if (G[i].round >= 1 && G[i].region) for (j = 0; j < G[i].comps.length; j++) regOf[G[i].comps[j].tid] = G[i].region;
+  // which regions meet in the Final Four (from its games once the teams are in), else the feed's order
+  var order = rs.slice(0);
+  for (i = 0; i < ff.length; i++) {
+    var ra = regOf[(ff[i].comps[0] || {}).tid], rb = regOf[(ff[i].comps[1] || {}).tid];
+    if (ra && rb) { var rest = []; for (j = 0; j < order.length; j++) if (order[j] !== ra && order[j] !== rb) rest.push(order[j]); order = i === 0 ? [ra, rb].concat(rest) : rest.concat([ra, rb]); }
+  }
+  var e8 = {};
+  for (i = 0; i < order.length; i++) e8[order[i]] = brkRegion(order[i]);
+  function teamIn(gm, rg) {                                          // this region's team in a Final Four / title game
+    if (!gm) return null;
+    for (var k = 0; k < gm.comps.length; k++) if (regOf[gm.comps[k].tid] === rg) return { c: gm.comps[k], g: gm };
+    return null;
+  }
+  function ffGame(rg) { for (var k = 0; k < ff.length; k++) if (teamIn(ff[k], rg)) return ff[k]; return null; }
+  var sh = 9, X = { e8L: 0, ffL: 22, ncL: 39.5, ncR: 60.5, ffR: 78, e8R: 81 };
+  var W = 19, Wn = 0;
+  // left side: regions 0, 1; right side: regions 2, 3
+  var sides = [[order[0], order[1], 0], [order[2], order[3], 1]];
+  for (var sd = 0; sd < 2; sd++) {
+    var right = sides[sd][2] === 1, xE = right ? 81 : 0, xF = right ? 60.5 : 20.5, wE = 19, wF = 19;
+    for (var q = 0; q < 2; q++) {
+      var rg = sides[sd][q];
+      if (!rg) continue;
+      var reg = e8[rg], yTop = q === 0 ? 8 : 54, ys = [yTop, yTop + 13];
+      html += '<div class="bh" style="left:' + xE + '%;width:' + wE + '%;top:' + (yTop - 6) + '%;' + (right ? 'text-align:right' : '') + '">' + esc(rg.toUpperCase()) + ' · ELITE 8</div>';
+      for (var t = 0; t < 2; t++) html += brkSlotHTML(reg.cols[4][t], xE, ys[t], wE, sh, gone);
+      // region winner into the Final Four
+      var fg = ffGame(rg), fe = teamIn(fg, rg) || (reg.cols[5][0] ? { c: reg.cols[5][0].c, g: null } : null);
+      var yF = q === 0 ? 27 : 50;
+      html += brkSlotHTML(fe, xF, yF - sh / 2, wF, sh, gone);
+      // connectors: E8 pair -> FF slot
+      var yc1 = ys[0] + sh / 2, yc2 = ys[1] + sh / 2, xr = right ? xE : xE + wE;
+      if (!right) html += '<div class="cv" style="left:' + xr + '%;width:0.8%;top:' + yc1 + '%;height:' + (yc2 - yc1) + '%"></div>' +
+                          '<div class="ch" style="left:' + (xr + 0.8) + '%;width:' + (xF - xr - 0.8) + '%;top:' + yF + '%"></div>';
+      else html += '<div class="cvl" style="left:' + (xr - 0.8) + '%;width:0.8%;top:' + yc1 + '%;height:' + (yc2 - yc1) + '%"></div>' +
+                   '<div class="ch" style="left:' + (xF + wF) + '%;width:' + (xr - 0.8 - xF - wF) + '%;top:' + yF + '%"></div>';
+    }
+    html += '<div class="bh" style="left:' + xF + '%;width:' + wF + '%;top:18%;' + (right ? 'text-align:right' : '') + '">FINAL FOUR</div>';
+    // FF pair -> title game
+    var fx = right ? xF : xF + wF;
+    if (!right) html += '<div class="cv" style="left:' + fx + '%;width:0.8%;top:27%;height:23%"></div><div class="ch" style="left:' + (fx + 0.8) + '%;width:' + (40.5 - fx - 0.8) + '%;top:38.5%"></div>';
+    else html += '<div class="cvl" style="left:' + (fx - 0.8) + '%;width:0.8%;top:27%;height:23%"></div><div class="ch" style="left:59.5%;width:' + (fx - 0.8 - 59.5) + '%;top:38.5%"></div>';
+  }
+  // championship + champion in the middle
+  var a = nc ? { c: nc.comps[0], g: nc } : null, b = nc ? { c: nc.comps[1], g: nc } : null;
+  if (!nc) {                                                         // finalists known before the game is posted
+    for (i = 0; i < ff.length; i++) for (j = 0; j < ff[i].comps.length; j++) if (ff[i].state === 'post' && ff[i].comps[j].winner) { var w2 = { c: ff[i].comps[j], g: null }; if (!a) a = w2; else b = w2; }
+  }
+  html += '<div class="bh" style="left:40.5%;width:19%;top:24%;text-align:center">CHAMPIONSHIP</div>';
+  html += brkSlotHTML(a, 40.5, 29, 19, sh, gone, { rg: a && regOf[a.c.tid] }) + brkSlotHTML(b, 40.5, 39.5, 19, sh, gone, { rg: b && regOf[b.c.tid] });
+  var champ = nc && nc.state === 'post' ? (nc.comps[0].winner ? nc.comps[0] : (nc.comps[1].winner ? nc.comps[1] : null)) : null;
+  html += '<div class="champ" style="left:36%;width:28%;top:58%;font-size:2.4vh">' + (champ ? 'NATIONAL CHAMPION<div style="font-size:4.6vh;color:#ffffff;margin-top:0.6vh">' + esc((champ.seed ? champ.seed + ' ' : '') + champ.name) + '</div>' : 'NATIONAL CHAMPION<div style="font-size:3.4vh;color:#4c5872;margin-top:0.6vh">TBD</div>') + '</div>';
+  return '<div class="brk">' + html + '</div>';
+}
 function moveHTML(r, first) {
   var prev = +r.prev || 0, cur = +r.rank || 0, d = prev ? prev - cur : 0;
   if (first) return '<span class="mvt eq">&ndash;</span>';   // first ranking of the year: nothing to compare
@@ -2642,6 +2884,13 @@ function renderPage() {
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">' +
       esc(rk.title + (rk.week ? ' · ' + rk.week : '')) + '</span>';
     $('cards').innerHTML = rankHTML(pg.lg, rk);
+    return;
+  }
+  if (pg.brk) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">March Madness · ' +
+      esc(pg.brk === 'final' ? 'Elite Eight to the title' : pg.brk + ' Region') + ' · ' + esc(brkRoundName()) + '</span>';
+    try { $('cards').innerHTML = pg.brk === 'final' ? bracketFinalHTML() : bracketRegionHTML(pg.brk); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
   if (pg.stand) {
@@ -2845,10 +3094,10 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () {
       buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); });
+    }); }); }); }); }); }); });
   }
   next();
 }

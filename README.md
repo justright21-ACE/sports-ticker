@@ -22,6 +22,7 @@ Options go on the end of the address:
 - NHL tab with the Blackhawks as the favorite
 - College football Top 25 screen switches to the College Football Playoff rankings once they are released (AP moves to the second column); ranks next to team names follow it
 - Standings screens after each league, every day but only before that league's first game starts or after its last game is final (never mid-games): NFL, NBA and NHL by division (a screen per conference); college football for the SEC, Big Ten, Big 12, ACC, Pac-12, Mountain West and American (college basketball keeps just its Top 25 screen). `?standings=0` turns them off
+- March Madness: the NCAAB tab shows the bracket in place of the Top 25 screen. Through the Sweet 16, one screen per region (16 teams down to the region winner) with a line through every eliminated team; once it is down to the last 8, one screen with the Elite Eight, Final Four, championship and champion. `?bracket=0` turns it off
 - `?cfb=fbs` every FBS college football game instead of just ranked-team games
 - `?rotate=20` seconds per screen
 - `?theme=bears`, `usc`, `sox`, `bulls` or `classic` force a color scheme. Default `auto`: USC colors on Saturdays when USC plays; Bears every other day during the NFL season; after the Super Bowl, White Sox or Bulls colors, whichever team plays next (Bears again once the NFL is back)
