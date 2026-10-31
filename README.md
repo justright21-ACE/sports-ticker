@@ -20,6 +20,7 @@ Options go on the end of the address:
 - `?fav=DAL,TEX` override favorites for every league
 - `?leagues=nfl,ncaaf,nba` choose leagues (nfl, ncaaf, nba, mlb, wnba, ncaab, nhl)
 - NHL tab with the Blackhawks as the favorite
+- College football Top 25 screen switches to the College Football Playoff rankings once they are released (AP moves to the second column); ranks next to team names follow it
 - `?cfb=fbs` every FBS college football game instead of just ranked-team games
 - `?rotate=20` seconds per screen
 - `?theme=bears`, `?theme=usc` or `?theme=classic` force a color scheme (default `auto`: Bears Sunday-Friday, USC on Saturday)
