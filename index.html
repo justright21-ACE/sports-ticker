@@ -254,6 +254,27 @@
   .narrow .rkrow .rr { font-size: 2vh; width: 5.4vw; } .narrow .rkrow .cp { font-size: 2.1vh; width: 7.4vw; } .narrow .rkrow .mvt { font-size: 1.9vh; width: 4.6vw; }
   .narrow .rkh .cp, .narrow .rkh .rr, .narrow .rkh .mvt, .narrow .rkh .rt, .narrow .rkh .rn { font-size: 1.5vh; }
 
+  /* =========== STANDINGS SCREENS (Mon-Fri) =========== */
+  .stand { padding: 0 0.6vw; }
+  .stcol { float: left; }
+  .stbox { margin-bottom: 1.2vh; }
+  .strow { position: relative; padding: 0 0.6vw; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden; }
+  .strow.sth { color: #f5b800; font-weight: 700; letter-spacing: 0.12vw; border-bottom-width: 0.3vh; }
+  .strow.sth .sc { color: #7d8aa6; font-weight: 600; letter-spacing: 0.05vw; }
+  .strow.fav { background: rgba(245,184,0,0.14); }
+  .strow .sn { display: inline-block; width: 1.9em; text-align: right; margin-right: 0.5em; font-weight: 700; color: #a5aec4; }
+  .strow .logo { width: 1.25em; height: 1.25em; margin-right: 0.45em; vertical-align: middle; }
+  .strow .logo img { left: 0.12em; top: 0.12em; width: 1em; height: 1em; }
+  .strow .stt { font-weight: 600; }
+  .strow .srk { font-size: 0.72em; color: #a5aec4; margin-right: 0.3em; }
+  .strow .scs { position: absolute; right: 0.6vw; top: 0; }
+  .strow .sc { display: inline-block; text-align: right; width: 3.6em; color: #c9d0e0; }
+  .strow .sc.w { width: 4.8em; color: #ffffff; font-weight: 600; }
+  .strow .sc.n { width: 2.8em; }
+  .strow .sc.x { width: 6em; }
+  .t-bears .strow { border-color: #1b2c4c; } .t-bears .strow.sth { color: #E65C1E; } .t-bears .strow.fav { background: rgba(200,56,3,0.22); }
+  .t-usc .strow { border-color: #451519; } .t-usc .strow.sth { color: #FFC72C; } .t-usc .strow.fav { background: rgba(255,199,44,0.16); }
+
   /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
   .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
   .tab.pt.on { background: #f5b800; color: #05070d; }
@@ -526,6 +547,10 @@ var CONFIG = {
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
+  standings: true,       // Monday-Friday: standings screens after each league's games
+  standingsHoldSec: 15,  // ...seconds per standings screen
+  // college football standings: these conferences, in this order
+  cfbConferences: ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Mountain West', 'American'],
   primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
@@ -602,9 +627,11 @@ function readParams() {
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
-    if (k === 'close') CONFIG.closeGames = v !== '0';
-    if (k === 'ended') CONFIG.hideEnded = v !== '1';   // ?close=0 turns off the one-score 4th-quarter screen
-    if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;   // ?gameday=0 turns off the USC/Wisconsin game-day screen
+    if (k === 'close') CONFIG.closeGames = v !== '0';                  // ?close=0 turns off the one-score 4th-quarter screen
+    if (k === 'ended') CONFIG.hideEnded = v !== '1';                   // ?ended=1 keeps tabs for leagues whose season is over
+    if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
+    if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
+    if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
     if (k === 'theme' && v) CONFIG.theme = v.toLowerCase();
     if (k === 'stats') CONFIG.crawlStats = v !== '0';
     if (k === 'detail') CONFIG.primetimeDetail = v !== '0';
@@ -1611,6 +1638,7 @@ function buildPages() {
     var lg = CONFIG.leagues[i], wg = windowGames(lg);
     if (!wg.length) {
       if (rankingsFor(lg) && !seasonOver(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
+      pages = pages.concat(standingsPages(lg));
       continue;
     }
     if (lg === 'ufc') {                               // COMBAT: a screen (or more) per event
@@ -1644,6 +1672,7 @@ function buildPages() {
                    num: p + 1, of: total });
     }
     if (rankingsFor(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
+    pages = pages.concat(standingsPages(lg));
   }
   for (var q = 0; q < pages.length; q++) if (!pages[q].key) pages[q].key = pages[q].lg + ':' + pages[q].num;
   // featured games (NFL primetime, World Series): during the game they come back after every other
@@ -1681,7 +1710,7 @@ function renderTabs(activeLg) {
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i];
     if (seasonOver(lg)) continue;
-    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) ? ' empty' : '');
+    var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length ? ' empty' : '');
     html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
   }
   $('tabs').innerHTML = html;
@@ -2228,6 +2257,196 @@ function loadRankings(cb) {
   }
   step();
 }
+/* =================== STANDINGS (Monday-Friday) ===================
+   Pro leagues by division (each conference on its own screen); college football by
+   conference for CONFIG.cfbConferences; college basketball has its Top 25 screen instead. */
+var STAND_PATHS = { nfl: 'football/nfl', nba: 'basketball/nba', nhl: 'hockey/nhl', mlb: 'baseball/mlb',
+                    wnba: 'basketball/wnba', ncaaf: 'football/college-football' };
+var CONF_RE = { 'SEC': /southeastern|^sec\b/i, 'Big Ten': /big ten/i, 'Big 12': /big 12/i, 'ACC': /atlantic coast|^acc\b/i,
+                'American': /american athletic|^american( conference)?$|^aac\b|^amer\b/i, 'Mountain West': /mountain west/i, 'Pac-12': /pac[- ]?12/i,
+                'Sun Belt': /sun belt/i, 'MAC': /mid-american|^mac\b/i, 'Conference USA': /conference usa|c-usa/i };
+var standCache = {};
+function standingsDay() {
+  var d = new Date().getDay();
+  return CONFIG.standings && (CONFIG.standingsDaily || (d >= 1 && d <= 5));
+}
+function loadStandings(cb) {
+  if (!standingsDay() || DEMO) return cb();
+  var todo = [], now = new Date().getTime(), i = 0;
+  for (var k = 0; k < CONFIG.leagues.length; k++) {
+    var lg = CONFIG.leagues[k], c = standCache[lg];
+    if (STAND_PATHS[lg] && !seasonOver(lg) && !(c && now - c.at < (lg === 'ncaaf' ? 180 : 30) * 60000)) todo.push(lg);   // college feed is big and only changes on game days
+  }
+  function step() {
+    if (i >= todo.length) return cb();
+    var lg = todo[i++];
+    var url = 'https://site.api.espn.com/apis/v2/sports/' + STAND_PATHS[lg] + '/standings' + (lg === 'ncaaf' ? '?group=80' : '?level=3');
+    getJSON(url, function (err, data) {
+      var screens = null;
+      try { if (!err && data) screens = parseStandings(lg, data); } catch (e) { screens = null; }
+      if (screens && screens.length) standCache[lg] = { at: now, screens: screens };
+      else if (standCache[lg]) standCache[lg].at = now;          // keep the last good copy
+      step();
+    });
+  }
+  step();
+}
+/* every group in the feed that has a table, with the names of the groups above it */
+function standLeaves(node, up, out) {
+  if (!node) return out;
+  var nm = node.name || node.abbreviation || '';
+  if (node.standings && node.standings.entries && node.standings.entries.length) out.push({ name: nm, abbr: node.abbreviation || '', up: up, entries: node.standings.entries });
+  var ch = node.children || [];
+  for (var i = 0; i < ch.length; i++) standLeaves(ch[i], up.concat([nm]), out);
+  return out;
+}
+function stStats(en) {
+  var m = {}, st = en.stats || [];
+  for (var i = 0; i < st.length; i++) {
+    var x = st[i], v = { v: x.value, d: x.displayValue !== undefined ? x.displayValue : x.summary, s: x.summary };
+    if (x.name) m[x.name] = v;
+    if (x.type && !m['t:' + x.type]) m['t:' + x.type] = v;
+    if (x.abbreviation && !m['a:' + String(x.abbreviation).toUpperCase()]) m['a:' + String(x.abbreviation).toUpperCase()] = v;
+  }
+  return m;
+}
+function sv(m, k) { var x = m[k]; return x ? (x.v !== undefined && x.v !== null ? +x.v : num(x.d)) : 0; }
+function sd(m, k) { var x = m[k]; return x ? String(x.d !== undefined ? x.d : (x.v !== undefined ? x.v : '')) : ''; }
+function wl(rec) { var p = String(rec || '').split('-'); return { w: +p[0] || 0, l: +p[1] || 0, t: +p[2] || 0 }; }
+function pctOf(r) { var g = r.w + r.l + r.t; return g ? (r.w + r.t / 2) / g : 0.5; }
+function stRow(lg, en, idx) {
+  var t = en.team || {}, m = stStats(en);
+  var team = { abbreviation: t.abbreviation || '', name: t.shortDisplayName || t.nickname || t.name || t.displayName || '',
+               tid: t.id || '', logo: (t.logos && t.logos[0] && t.logos[0].href) || t.logo || '' };
+  var w = sv(m, 'wins'), l = sv(m, 'losses'), ti = sv(m, 'ties'), row = { team: team, idx: idx };
+  if (lg === 'ncaaf') {
+    var conf = sd(m, 't:vsconf') || sd(m, 'vsconf') || sd(m, 'a:CONF') || (m.vsconf_wins ? sv(m, 'vsconf_wins') + '-' + sv(m, 'vsconf_losses') : '');
+    var all = sd(m, 't:total') || sd(m, 'overall') || (w + '-' + l);
+    var cr = wl(conf), ar = wl(all);
+    row.cols = [conf || '–', all];
+    row.key = [-(conf ? pctOf(cr) : 0.5), -cr.w, -pctOf(ar), idx];
+  } else if (lg === 'nhl') {
+    var ot = sv(m, 'otLosses') || sv(m, 'overtimeLosses'), pts = sv(m, 'points') || (2 * w + ot), gp = sv(m, 'gamesPlayed') || (w + l + ot);
+    row.cols = [w + '-' + l + '-' + ot, String(pts), String(gp)];
+    row.key = [-pts, gp, -w, idx];
+  } else {
+    var pct = (w + l + ti) ? (w + ti / 2) / (w + l + ti) : 0;
+    var ps = pct.toFixed(3).replace(/^0/, ''), strk = sd(m, 'streak');
+    if (lg === 'nfl') row.cols = [w + '-' + l + (ti ? '-' + ti : ''), ps, strk];
+    else row.cols = [w + '-' + l, ps, sd(m, 'gamesBehind') || '-', strk];
+    row.key = [-pct, -w, idx];
+  }
+  return row;
+}
+function keyCmp(a, b) { for (var i = 0; i < a.key.length; i++) if (a.key[i] !== b.key[i]) return a.key[i] < b.key[i] ? -1 : 1; return 0; }
+var STAND_HEAD = { nfl: ['W-L', 'PCT', 'STRK'], nba: ['W-L', 'PCT', 'GB', 'STRK'], wnba: ['W-L', 'PCT', 'GB', 'STRK'],
+                   mlb: ['W-L', 'PCT', 'GB', 'STRK'], nhl: ['W-L-OT', 'PTS', 'GP'], ncaaf: ['CONF', 'OVERALL'] };
+function shortGroup(n) {
+  return String(n || '').replace(/^National Football Conference$/i, 'NFC').replace(/^American Football Conference$/i, 'AFC')
+    .replace(/ Conference$/i, '').replace(/ Division$/i, '').replace(/^Eastern$/i, 'East').replace(/^Western$/i, 'West').toUpperCase();
+}
+function parseStandings(lg, data) {
+  var leaves = standLeaves(data, [], []), screens = [], i, j;
+  function box(title, entries) {
+    var rows = [];
+    for (var k = 0; k < entries.length; k++) rows.push(stRow(lg, entries[k], k));
+    rows.sort(keyCmp);
+    return { title: title, rows: rows };
+  }
+  if (lg === 'ncaaf') {
+    var byConf = {};
+    for (i = 0; i < leaves.length; i++) {
+      var names = [leaves[i].name, leaves[i].abbr].concat(leaves[i].up);
+      for (var c in CONF_RE) {
+        var hit = false;
+        for (j = 0; j < names.length; j++) if (CONF_RE[c].test(names[j]) && !(c === 'American' && /football conference/i.test(names[j]))) hit = true;
+        if (hit) { byConf[c] = (byConf[c] || []).concat(leaves[i].entries); break; }
+      }
+    }
+    var want = CONFIG.cfbConferences, pend = null;
+    for (i = 0; i < want.length; i++) {
+      if (!byConf[want[i]]) continue;
+      var b = box(want[i].toUpperCase(), byConf[want[i]]);
+      if (b.rows.length > 12) { screens.push({ title: want[i], boxes: [b] }); continue; }
+      if (pend) { pend.boxes.push(b); pend.title += ' · ' + want[i]; pend = null; }   // two small conferences share a screen
+      else { pend = { title: want[i], boxes: [b] }; screens.push(pend); }
+    }
+    return screens;
+  }
+  // pro leagues: one screen per conference/league, a table per division
+  var groups = [], byTop = {};
+  for (i = 0; i < leaves.length; i++) {
+    var top = leaves[i].up.length > 1 ? leaves[i].up[leaves[i].up.length - 1] : leaves[i].name;
+    var isDiv = leaves[i].up.length > 1;
+    if (!byTop[top]) { byTop[top] = []; groups.push(top); }
+    byTop[top].push(box(shortGroup(isDiv ? leaves[i].name : leaves[i].name), leaves[i].entries));
+  }
+  for (i = 0; i < groups.length; i++) screens.push({ title: shortGroup(groups[i]), boxes: byTop[groups[i]] });
+  return screens;
+}
+function standingsPages(lg) {
+  var c = standCache[lg], out = [];
+  if (!c || !standingsDay() || seasonOver(lg) || lg === 'ncaab' || lg === 'ufc') return out;
+  for (var i = 0; i < c.screens.length; i++)
+    out.push({ lg: lg, stand: c.screens[i], hold: CONFIG.standingsHoldSec, num: 'st' + i, of: 1, games: [] });
+  return out;
+}
+function standHTML(lg, scr) {
+  var boxes = scr.boxes, cols = [], i, favs = favList(lg), head = STAND_HEAD[lg] || STAND_HEAD.nba;
+  // lay out the tables: one table splits into two columns; 3 tables side by side; otherwise 2 columns
+  if (boxes.length === 1) {
+    var h = Math.ceil(boxes[0].rows.length / 2);
+    cols = [[{ title: boxes[0].title, rows: boxes[0].rows.slice(0, h), start: 0 }], [{ title: boxes[0].title, rows: boxes[0].rows.slice(h), start: h }]];
+  } else if (boxes.length === 2) {
+    cols = [[boxes[0]], [boxes[1]]];
+  } else {
+    var nc = 2, per = Math.ceil(boxes.length / nc);
+    for (i = 0; i < nc; i++) cols.push(boxes.slice(i * per, (i + 1) * per));
+  }
+  var lines = 0;
+  for (i = 0; i < cols.length; i++) {
+    var n = 0;
+    for (var b = 0; b < cols[i].length; b++) n += cols[i][b].rows.length + 1;
+    lines = Math.max(lines, n);
+  }
+  var gaps = 0; for (i = 0; i < cols.length; i++) gaps = Math.max(gaps, cols[i].length - 1);
+  var lh = Math.min(6.6, (67 - gaps * 1.2) / Math.max(lines, 1)), fs = Math.min(3.5, lh * 0.56), em = (lh / fs).toFixed(3) + 'em';
+  var w = 48.8, html = '<div class="stand" style="font-size:' + fs.toFixed(2) + 'vh">';
+  for (i = 0; i < cols.length; i++) {
+    html += '<div class="stcol" style="width:' + w + '%' + (i ? ';margin-left:2.4%' : '') + '">';
+    for (var b2 = 0; b2 < cols[i].length; b2++) {
+      var bx = cols[i][b2], hc = '';
+      for (var hh = 0; hh < head.length; hh++) hc += '<span class="sc' + (hh === 0 ? ' w' : (head[hh] === 'GP' || head[hh] === 'GB' ? ' n' : (head[hh] === 'OVERALL' ? ' x' : ''))) + '">' + head[hh] + '</span>';
+      html += '<div class="stbox"><div class="strow sth" style="height:' + em + ';line-height:' + em + '">' + esc(bx.title) + '<span class="scs">' + hc + '</span></div>';
+      for (var r = 0; r < bx.rows.length; r++) {
+        var row = bx.rows[r], t = row.team, fav = inList(favs, String(t.abbreviation).toUpperCase()), rk = lg === 'ncaaf' ? apRank(t, lg) : 0, cc = '';
+        for (var k2 = 0; k2 < row.cols.length; k2++) cc += '<span class="sc' + (k2 === 0 ? ' w' : (head[k2] === 'GP' || head[k2] === 'GB' ? ' n' : (head[k2] === 'OVERALL' ? ' x' : ''))) + '">' + esc(row.cols[k2]) + '</span>';
+        html += '<div class="strow' + (fav ? ' fav' : '') + '" style="height:' + em + ';line-height:' + em + '">' +
+          '<span class="sn">' + ((bx.start || 0) + r + 1) + '</span>' + logoHTML(t, lg) + (rk ? '<span class="srk">' + rk + '</span>' : '') +
+          '<span class="stt">' + esc(t.name || t.abbreviation) + '</span><span class="scs">' + cc + '</span></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  return html + '</div>';
+}
+/* shrink the standings text until every name clears its numbers and the tables clear the bottom bar */
+function fitStand() {
+  var st = document.querySelector && document.querySelector('.stand'), bar = $('crawlbar');
+  if (!st || !bar || !st.getBoundingClientRect) return;
+  var H = window.innerHeight || document.documentElement.clientHeight, fs = parseFloat(st.style.fontSize) || 2.6;
+  for (var k = 0; k < 12; k++) {
+    var rows = st.querySelectorAll('.strow'), limit = bar.getBoundingClientRect().top - 2, bad = false;
+    for (var i = 0; i < rows.length && !bad; i++) {
+      var rr = rows[i].getBoundingClientRect(), t = rows[i].querySelector('.stt'), c = rows[i].querySelector('.scs');
+      if (rr.bottom > limit) bad = true;
+      else if (t && c && t.getBoundingClientRect().right > c.getBoundingClientRect().left - H * 0.006) bad = true;
+    }
+    if (!bad || fs < 1.4) return;
+    fs = fs * 0.93; st.style.fontSize = fs.toFixed(2) + 'vh';
+  }
+}
 function moveHTML(r, first) {
   var prev = +r.prev || 0, cur = +r.rank || 0, d = prev ? prev - cur : 0;
   if (first) return '<span class="mvt eq">&ndash;</span>';   // first ranking of the year: nothing to compare
@@ -2271,6 +2490,12 @@ function renderPage() {
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">' +
       esc(rk.title + (rk.week ? ' · ' + rk.week : '')) + '</span>';
     $('cards').innerHTML = rankHTML(pg.lg, rk);
+    return;
+  }
+  if (pg.stand) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Standings · ' + esc(pg.stand.title) + '</span>';
+    try { $('cards').innerHTML = standHTML(pg.lg, pg.stand); fitStand(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
   if (pg.pt) {
@@ -2467,10 +2692,10 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () {
       buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); });
+    }); }); }); }); });
   }
   next();
 }
