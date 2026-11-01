@@ -738,6 +738,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
+  bigPlayJump: true,     // a 20+ yard play in a primetime / game-day / CLOSE game jumps straight to its screen (?jump=0 off)
   bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
   bracketHoldSec: 20,    // ...seconds per bracket screen
   standings: true,       // standings screens, shown before a league's games start or after its last final
@@ -824,6 +825,7 @@ function readParams() {
     if (k === 'ended') CONFIG.hideEnded = v !== '1';                   // ?ended=1 keeps tabs for leagues whose season is over
     if (k === 'bracket') CONFIG.bracket = v !== '0';
     if (k === 'motion') CONFIG.motion = v !== '0';
+    if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -2344,6 +2346,33 @@ function bigPlayHTML(bp, t, lg, rtl) {
   else html += '<div class="hands">' + HANDS(col) + '</div><div class="flyx"><div class="flyy">' + FOOTBALL + '</div></div>';
   return html + '<div class="lbl2" style="background:#' + col + '">BIG PLAY<i>' + esc(who + lab) + '</i></div></div>';
 }
+/* A 20+ yard run or pass in a game that has its own big screen (primetime, game day, CLOSE):
+   jump the rotation straight to that screen so the big-play animation plays right away. */
+var bpTrack = {};
+function bigPlayJump() {
+  var ftg = featuredGames(), hit = null, i;
+  for (i = 0; i < ftg.length; i++) {
+    var g = ftg[i].g, lg = ftg[i].lg;
+    if (lg !== 'nfl' && lg !== 'ncaaf') continue;
+    var bp = bigPlayOf(g), was = bpTrack[g.id];
+    var snap = { play: bp && bp.id, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
+    if (!hit && was && bp && bp.id !== was.play && bp.yd >= 20 && bp.kind && g.live) hit = { g: g, was: was };
+    bpTrack[g.id] = snap;
+  }
+  if (!hit || !CONFIG.bigPlayJump) return false;
+  for (i = 0; i < state.pages.length; i++) {
+    var pg = state.pages[i];
+    if (pg.pt && pg.game && pg.game.id === hit.g.id) {
+      var seen = ptSeen[hit.g.id];
+      // make sure the screen knows what it looked like before the play, so the animation runs
+      if (!seen || seen.play === (bigPlayOf(hit.g) || {}).id) ptSeen[hit.g.id] = { a: hit.was.a, h: hit.was.h, fin: false, play: hit.was.play, fb: seen && seen.fb, los: seen && seen.los, fd: seen && seen.fd };
+      if (state.pages[state.pageIndex] !== pg) ptLastKey = '';                 // arriving fresh: play the entrance too
+      state.pageIndex = i;
+      return true;
+    }
+  }
+  return false;
+}
 /* =================== BIG-SCREEN ANIMATIONS ===================
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
    game looked like the last time its screen was up, so it can play what changed since. */
@@ -2365,6 +2394,9 @@ function ptAnimate(pg) {
   if (!root || !CONFIG.motion) return;
   var g = pg.game, id = g.id, key = pg.key ? String(pg.key).replace(/:\d+$/, '') : id, prev = ptSeen[id];
   var a = num(scoreOf(g, 'away')), h = num(scoreOf(g, 'home')), fin = isFinal(g);
+  var entering = ptLastKey !== key;
+  ptLastKey = key;
+  if (entering) root.className += ' enter';
   var fb = root.querySelector('.field .fb'), los = root.querySelector('.field .los'), fd = root.querySelector('.field .fd');
   var bp = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? bigPlayOf(g) : null;
   var now = { a: a, h: h, fin: fin, fb: fb && fb.style.left, los: los && los.style.left, fd: fd && fd.style.left, play: bp && bp.id };
@@ -2374,12 +2406,11 @@ function ptAnimate(pg) {
     var offSide = String((awayC.team || {}).id) === offId ? 'away' : (String((homeC.team || {}).id) === offId ? 'home' : '');
     if (a > prev.a) offSide = 'away'; else if (h > prev.h) offSide = 'home';     // scoring play: the scorers had the ball
     if (!offSide) offSide = 'away';
-    root.insertAdjacentHTML('beforeend', bigPlayHTML(bp, g.teams[offSide], pg.lg, offSide === 'home'));
-    delay = 2.5;
+    var bpHtml = bigPlayHTML(bp, g.teams[offSide], pg.lg, offSide === 'home'), wait = entering ? 1.0 : 0;   // after the arrival wipe
+    if (wait) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', bpHtml); }, wait * 1000);
+    else root.insertAdjacentHTML('beforeend', bpHtml);
+    delay = 2.5 + wait;
   }
-  var entering = ptLastKey !== key;
-  ptLastKey = key;
-  if (entering) root.className += ' enter';
   // ball, line of scrimmage and first-down marker glide from where they were
   if (prev && fb && prev.fb && prev.fb !== now.fb) {
     var els = [[fb, prev.fb, now.fb], [los, prev.los, now.los], [fd, prev.fd, now.fd]];
@@ -3310,7 +3341,9 @@ function refreshAll() {
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
     loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () {
-      buildPages(); renderPage(); renderCrawl(); renderFoot(errs);
+      buildPages();
+      var jumped = bigPlayJump();                 // a 20+ yard play in a big-screen game: go straight to it
+      renderPage(); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
     }); }); }); }); }); }); });
   }
