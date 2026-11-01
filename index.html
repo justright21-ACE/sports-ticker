@@ -738,6 +738,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
+  bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
   bigPlayJump: true,     // a 20+ yard play in a primetime / game-day / CLOSE game jumps straight to its screen (?jump=0 off)
   bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
   bracketHoldSec: 20,    // ...seconds per bracket screen
@@ -745,7 +746,7 @@ var CONFIG = {
   standingsHoldSec: 15,  // ...seconds per standings screen
   // college football standings: these conferences, in this order
   cfbConferences: ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Mountain West', 'American'],
-  primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
+  primetimeHoldLive: 90, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
   closeGames: true,      // a game within one score (8 pts) in the 4th quarter / OT gets its own screen: any NFL game, college games with a Top 25 team
@@ -2368,6 +2369,7 @@ function bigPlayJump() {
       if (!seen || seen.play === (bigPlayOf(hit.g) || {}).id) ptSeen[hit.g.id] = { a: hit.was.a, h: hit.was.h, fin: false, play: hit.was.play, fb: seen && seen.fb, los: seen && seen.los, fd: seen && seen.fd };
       if (state.pages[state.pageIndex] !== pg) ptLastKey = '';                 // arriving fresh: play the entrance too
       state.pageIndex = i;
+      state.holdOnce = CONFIG.bigPlayHoldSec;
       return true;
     }
   }
@@ -3357,7 +3359,9 @@ function rotate() {
 function scheduleRotate() {                              // each screen can have its own hold time
   if (state.rotTimer) clearTimeout(state.rotTimer);
   var pg = state.pages[state.pageIndex];
-  state.rotTimer = setTimeout(rotate, ((pg && pg.hold) || CONFIG.rotateSec) * 1000);
+  var secs = state.holdOnce || (pg && pg.hold) || CONFIG.rotateSec;
+  state.holdOnce = 0; state.lastHold = secs;
+  state.rotTimer = setTimeout(rotate, secs * 1000);
 }
 
 /* nudge everything a few pixels every 10 min to protect older screens from burn-in */
