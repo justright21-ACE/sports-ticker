@@ -15,7 +15,7 @@ Each card also shows the opening spread and over/under (DraftKings, via ESPN) wh
 Options go on the end of the address:
 - Favorites are set per league in the CONFIG block (Bears, Eagles, USC, Wisconsin, Spurs, Bulls, White Sox, Blackhawks)
 - Every USC or Wisconsin football game gets the primetime-style game-day screen and its own tab, kept 30 minutes after the final (`?gameday=0` turns it off, `?gamedayafter=45` changes the minutes)
-- A Top 25 college game within one score (8 pts) in the 4th quarter or overtime gets its own CLOSE screen, 30 seconds a time (`?close=0` turns it off)
+- Any NFL game, and any college game with a Top 25 team, within one score (8 pts) in the 4th quarter or overtime gets its own CLOSE screen, 30 seconds a time (`?close=0` turns it off)
 - A league drops off the top bar once its season is over (champion decided or ESPN says off-season), after the title game result has been up 12 hours; it comes back on its own next season (`?ended=1` keeps every tab)
 - `?fav=DAL,TEX` override favorites for every league
 - `?leagues=nfl,ncaaf,nba` choose leagues (nfl, ncaaf, nba, mlb, wnba, ncaab, nhl)

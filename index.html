@@ -656,7 +656,7 @@ var CONFIG = {
   primetimeHoldLive: 60, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
-  closeGames: true,      // college: a Top 25 team within one score (8 pts) in the 4th quarter / OT gets its own screen
+  closeGames: true,      // a game within one score (8 pts) in the 4th quarter / OT gets its own screen: any NFL game, college games with a Top 25 team
   closeHoldSec: 30,      // ...seconds that screen stays up (returns after every other screen while it's close)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
   windowHours: 24,       // screens show live games and games starting within this many hours...
@@ -1950,25 +1950,32 @@ function quarterOf(g) {
   var m = String(g.detail || '').match(/(\d)(st|nd|rd|th)\b/i);
   return m ? +m[1] : (/OT/i.test(g.detail || '') ? 5 : 0);
 }
-function closeGames() {
-  var d = state.data.ncaaf, out = [], fav = cfbGames(), favIds = {};
-  if (!d || !CONFIG.closeGames) return out;
-  for (var j = 0; j < fav.length; j++) favIds[fav[j].id] = 1;
+/* lg 'ncaaf': a Top 25 team within one score; lg 'nfl': any game within one score (games that
+   already have their own screen, USC/Wisconsin game day or NFL primetime, stay on theirs) */
+function closeGames(lg) {
+  lg = lg || 'ncaaf';
+  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : cfbGames(), ownIds = {};
+  if (!d || !CONFIG.closeGames || !inList(CONFIG.leagues, lg)) return out;
+  for (var j = 0; j < own.length; j++) ownIds[own[j].id] = 1;
   for (var i = 0; i < d.games.length; i++) {
     var g = d.games[i];
-    if (!g.live || favIds[g.id] || quarterOf(g) < 4) continue;
-    var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf');
-    if (!((ra && ra <= 25) || (rh && rh <= 25))) continue;
+    if (!g.live || ownIds[g.id] || quarterOf(g) < 4) continue;
+    if (lg === 'ncaaf') {
+      var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf');
+      if (!((ra && ra <= 25) || (rh && rh <= 25))) continue;
+    }
     if (Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8) continue;
     out.push(g);
   }
   return out;
 }
+function closeKind(g, lg) { return ['CLOSE', (lg === 'nfl' ? 'NFL · ' : '') + (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter') + ' · One-Score Game']; }
 function featuredGames() {
-  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames();
+  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl');
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
-  for (i = 0; i < cl.length; i++) out.push({ g: cl[i], lg: 'ncaaf', kind: ['CLOSE', (quarterOf(cl[i]) > 4 ? 'Overtime' : '4th Quarter') + ' · One-Score Game'], hold: CONFIG.closeHoldSec });
+  for (i = 0; i < cn.length; i++) out.push({ g: cn[i], lg: 'nfl', kind: closeKind(cn[i], 'nfl'), hold: CONFIG.closeHoldSec });
+  for (i = 0; i < cl.length; i++) out.push({ g: cl[i], lg: 'ncaaf', kind: closeKind(cl[i], 'ncaaf'), hold: CONFIG.closeHoldSec });
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i], lg: 'mlb', kind: ['WS', 'World Series'] });
   return out;
 }
@@ -1989,12 +1996,14 @@ function primetimeGames() {
 }
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
-  var games = primetimeGames(), cfb = cfbGames().concat(closeGames()), i = 0, path = {};
+  var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')), i = 0, path = {};
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
+  var closeIds = {}, cg = closeGames('nfl').concat(closeGames('ncaaf'));
+  for (var cj = 0; cj < cg.length; cj++) closeIds[cg[cj].id] = 1;
   function step() {
     if (i >= games.length) return cb();
     var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
-    var ttl = g.live ? 25000 : 10 * 60000;
+    var ttl = g.live ? (closeIds[g.id] ? 45000 : 25000) : 10 * 60000;   // close-game screens: a bit gentler
     if (!CONFIG.primetimeDetail || !g.eid || DEMO || (c && now - c.at < ttl)) return step();
     getJSON(ESPN_API + (path[g.id] || 'football/nfl') + '/summary?event=' + g.eid, function (err, data) {
       if (!err && data) {
