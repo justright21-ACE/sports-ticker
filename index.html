@@ -739,7 +739,7 @@ var CONFIG = {
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
-  bigPlayJump: true,     // a 20+ yard play in a primetime / game-day / CLOSE game jumps straight to its screen (?jump=0 off)
+  bigPlayJump: true,     // a 20+ yard play in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
   bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
   bracketHoldSec: 20,    // ...seconds per bracket screen
   standings: true,       // standings screens, shown before a league's games start or after its last final
@@ -2054,7 +2054,9 @@ function closeGames(lg) {
   for (var j = 0; j < own.length; j++) ownIds[own[j].id] = 1;
   for (var i = 0; i < d.games.length; i++) {
     var g = d.games[i];
-    if (!g.live || ownIds[g.id] || quarterOf(g) < 4) continue;
+    if (ownIds[g.id]) continue;
+    if (closeGrace[g.id] && closeGrace[g.id] > new Date().getTime()) { out.push(g); continue; }   // just scored: stays a moment
+    if (!g.live || quarterOf(g) < 4) continue;
     if (lg === 'ncaaf') {
       var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf');
       if (!((ra && ra <= 25) || (rh && rh <= 25))) continue;
@@ -2064,7 +2066,10 @@ function closeGames(lg) {
   }
   return out;
 }
-function closeKind(g, lg) { return ['CLOSE', (lg === 'nfl' ? 'NFL · ' : '') + (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter') + ' · One-Score Game']; }
+function closeKind(g, lg) {
+  var open = Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8;      // just broke open (its last few minutes up)
+  return ['CLOSE', (lg === 'nfl' ? 'NFL · ' : '') + (isFinal(g) ? 'Final' : (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter')) + ' · ' + (open ? 'Score Update' : 'One-Score Game')];
+}
 function featuredGames() {
   var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl');
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
@@ -2347,31 +2352,48 @@ function bigPlayHTML(bp, t, lg, rtl) {
   else html += '<div class="hands">' + HANDS(col) + '</div><div class="flyx"><div class="flyy">' + FOOTBALL + '</div></div>';
   return html + '<div class="lbl2" style="background:#' + col + '">BIG PLAY<i>' + esc(who + lab) + '</i></div></div>';
 }
-/* A 20+ yard run or pass in a game that has its own big screen (primetime, game day, CLOSE):
-   jump the rotation straight to that screen so the big-play animation plays right away. */
-var bpTrack = {};
-function bigPlayJump() {
-  var ftg = featuredGames(), hit = null, i;
+/* Jumps the rotation straight to a big screen when something happens there:
+   - a 20+ yard run or pass in a live primetime / game-day / CLOSE game
+   - any score in a CLOSE game (a score that breaks the game open keeps its CLOSE screen
+     for 3 more minutes, so the scoring banner still gets its moment)
+   detectJump() runs before the screens are rebuilt (so a just-scored game can stay), jumpTo() after. */
+var evTrack = {}, closeGrace = {};
+function detectJump() {
+  var ftg = featuredGames(), hit = null, now = new Date().getTime(), i, next = {};
+  // a score in a game that was a CLOSE game at the last check
+  for (var id in evTrack) {
+    var w = evTrack[id];
+    if (!w.close || !state.data[w.lg]) continue;
+    var gl = state.data[w.lg].games;
+    for (i = 0; i < gl.length; i++) if (gl[i].id === id) {
+      var na = num(scoreOf(gl[i], 'away')), nh = num(scoreOf(gl[i], 'home'));
+      if (na > w.a || nh > w.h) { closeGrace[id] = now + 3 * 60000; if (!hit) hit = { id: id, was: w, why: 'score' }; }
+    }
+  }
   for (i = 0; i < ftg.length; i++) {
     var g = ftg[i].g, lg = ftg[i].lg;
     if (lg !== 'nfl' && lg !== 'ncaaf') continue;
-    var bp = bigPlayOf(g), was = bpTrack[g.id];
-    var snap = { play: bp && bp.id, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
-    if (!hit && was && bp && bp.id !== was.play && bp.yd >= 20 && bp.kind && g.live) hit = { g: g, was: was };
-    bpTrack[g.id] = snap;
+    var bp = bigPlayOf(g), was = evTrack[g.id];
+    if (!hit && was && bp && bp.id !== was.play && bp.yd >= 20 && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
+    next[g.id] = { lg: lg, close: ftg[i].kind[0] === 'CLOSE', play: bp && bp.id, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
-  if (!hit || !CONFIG.bigPlayJump) return false;
-  for (i = 0; i < state.pages.length; i++) {
+  for (var k in closeGrace) if (closeGrace[k] < now) delete closeGrace[k];
+  evTrack = next;
+  return CONFIG.bigPlayJump ? hit : null;
+}
+function jumpTo(hit) {
+  if (!hit) return false;
+  for (var i = 0; i < state.pages.length; i++) {
     var pg = state.pages[i];
-    if (pg.pt && pg.game && pg.game.id === hit.g.id) {
-      var seen = ptSeen[hit.g.id];
-      // make sure the screen knows what it looked like before the play, so the animation runs
-      if (!seen || seen.play === (bigPlayOf(hit.g) || {}).id) ptSeen[hit.g.id] = { a: hit.was.a, h: hit.was.h, fin: false, play: hit.was.play, fb: seen && seen.fb, los: seen && seen.los, fd: seen && seen.fd };
-      if (state.pages[state.pageIndex] !== pg) ptLastKey = '';                 // arriving fresh: play the entrance too
-      state.pageIndex = i;
-      state.holdOnce = CONFIG.bigPlayHoldSec;
-      return true;
-    }
+    if (!pg.pt || !pg.game || pg.game.id !== hit.id) continue;
+    var g = pg.game, seen = ptSeen[hit.id], bp = bigPlayOf(g);
+    // the screen must remember what it looked like before, so the big play / banner plays
+    if (!seen || (seen.a === num(scoreOf(g, 'away')) && seen.h === num(scoreOf(g, 'home')) && seen.play === (bp && bp.id)))
+      ptSeen[hit.id] = { a: hit.was.a, h: hit.was.h, fin: false, play: hit.was.play, fb: seen && seen.fb, los: seen && seen.los, fd: seen && seen.fd };
+    if (state.pages[state.pageIndex] !== pg) ptLastKey = '';                   // arriving fresh: play the entrance too
+    state.pageIndex = i;
+    state.holdOnce = CONFIG.bigPlayHoldSec;
+    return true;
   }
   return false;
 }
@@ -3343,8 +3365,9 @@ function refreshAll() {
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
     loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () {
+      var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
-      var jumped = bigPlayJump();                 // a 20+ yard play in a big-screen game: go straight to it
+      var jumped = jumpTo(hit);
       renderPage(); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
     }); }); }); }); }); }); });
