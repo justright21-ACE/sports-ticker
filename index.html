@@ -440,8 +440,26 @@
   @-webkit-keyframes ptShake { 0%, 100% { -webkit-transform: none; } 20% { -webkit-transform: translateX(-1.2vh); } 40% { -webkit-transform: translateX(1.1vh); } 60% { -webkit-transform: translateX(-0.8vh); } 80% { -webkit-transform: translateX(0.5vh); } }
   @keyframes ptShake { 0%, 100% { transform: none; } 20% { transform: translateX(-1.2vh); } 40% { transform: translateX(1.1vh); } 60% { transform: translateX(-0.8vh); } 80% { transform: translateX(0.5vh); } }
   .ptv .band.shake { -webkit-animation: ptShake 0.45s 0.7s ease-in-out 1; animation: ptShake 0.45s 0.7s ease-in-out 1; }
+  /* red zone: cards glow and get a tag; big screens get a badge under the team with the ball and an entry alert */
+  @-webkit-keyframes rzGlow { 0%, 100% { box-shadow: 0 0 0 0.4vh #ff2a2a, 0 0 3.4vh rgba(255,42,42,0.75); } 50% { box-shadow: 0 0 0 0.4vh #ff2a2a, 0 0 1vh rgba(255,42,42,0.25); } }
+  @keyframes rzGlow { 0%, 100% { box-shadow: 0 0 0 0.4vh #ff2a2a, 0 0 3.4vh rgba(255,42,42,0.75); } 50% { box-shadow: 0 0 0 0.4vh #ff2a2a, 0 0 1vh rgba(255,42,42,0.25); } }
+  .card.rz { -webkit-animation: rzGlow 1.3s ease-in-out infinite; animation: rzGlow 1.3s ease-in-out infinite; }
+  .status .rzb { float: right; margin: 0.9vh 0 0 0.6vw; padding: 0 0.7vw; height: 3.4vh; line-height: 3.4vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff;
+    font-size: 2vh; font-weight: 800; letter-spacing: 0.12vw; -webkit-animation: ptPulse 1.3s ease-in-out infinite; animation: ptPulse 1.3s ease-in-out infinite; }
+  .narrow .status .rzb { font-size: 1.6vh; padding: 0 0.5vw; }
+  .ptv .rzp { display: inline-block; margin-top: 0.6vh; padding: 0 0.8vw; line-height: 3.2vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff; font-size: 2vh;
+    font-weight: 800; letter-spacing: 0.15vw; -webkit-animation: ptPulse 1.2s ease-in-out infinite; animation: ptPulse 1.2s ease-in-out infinite; }
+  .ptv .rza { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 7; overflow: hidden; pointer-events: none; }
+  .ptv .rza .rzs { position: absolute; left: 0; right: 0; top: 8vh; height: 13vh; text-align: center; color: #ffffff;
+    background: #d81e1e; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 2vh, rgba(0,0,0,0) 2vh, rgba(0,0,0,0) 4vh);
+    border-top: 0.4vh solid #ffffff; border-bottom: 0.4vh solid #ffffff; -webkit-animation: rzSweep 2.8s ease-in-out 1 both; animation: rzSweep 2.8s ease-in-out 1 both; }
+  .ptv .rza .rzs b { display: block; font-size: 7vh; line-height: 8.4vh; font-weight: 800; letter-spacing: 1vw; }
+  .ptv .rza .rzs i { display: block; font-style: normal; font-size: 2.4vh; line-height: 3vh; font-weight: 700; letter-spacing: 0.25vw; }
+  @-webkit-keyframes rzSweep { 0% { -webkit-transform: translateX(-102%); } 16% { -webkit-transform: translateX(0); } 28% { opacity: 1; } 34% { opacity: 0.55; } 40% { opacity: 1; } 46% { opacity: 0.55; } 52% { opacity: 1; } 84% { -webkit-transform: translateX(0); opacity: 1; } 100% { -webkit-transform: translateX(102%); opacity: 1; } }
+  @keyframes rzSweep { 0% { transform: translateX(-102%); } 16% { transform: translateX(0); } 28% { opacity: 1; } 34% { opacity: 0.55; } 40% { opacity: 1; } 46% { opacity: 0.55; } 52% { opacity: 1; } 84% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(102%); opacity: 1; } }
+  .nomotion .card.rz { -webkit-animation: none; animation: none; box-shadow: 0 0 0 0.4vh #ff2a2a; } .nomotion .status .rzb { -webkit-animation: none; animation: none; }
   .nomotion .ptv * { -webkit-animation: none !important; animation: none !important; -webkit-transition: none !important; transition: none !important; }
-  .nomotion .ptv .pop, .nomotion .ptv .wipe, .nomotion .ptv .bigplay, .nomotion .ptv .tov, .nomotion .ptv .sack { display: none; }
+  .nomotion .ptv .pop, .nomotion .ptv .wipe, .nomotion .ptv .bigplay, .nomotion .ptv .tov, .nomotion .ptv .sack, .nomotion .ptv .rza { display: none; }
   /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
   .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
   .tab.pt.on { background: #f5b800; color: #05070d; }
@@ -798,6 +816,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
+  redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
   injuries: true,        // injury reports on the big screens and for your teams' games in the bottom bar (?injuries=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
@@ -891,6 +910,7 @@ function readParams() {
     if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
     if (k === 'favscreen') CONFIG.favScreens = v !== '0';
     if (k === 'injuries') CONFIG.injuries = v !== '0';
+    if (k === 'redzone') CONFIG.redZone = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -1888,11 +1908,20 @@ function recHTML(t, rk) {
   if (t.srec) return '<span class="rec ser">' + r + '<i>SERIES </i>' + esc(t.srec) + '</span>';
   return t.rec || r ? '<span class="rec">' + r + esc(t.rec || '') + '</span>' : '';
 }
+/* which side has the ball inside the 20 (football, live), or null */
+function redZoneOf(e, lg) {
+  if (!e.live || (lg !== 'nfl' && lg !== 'ncaaf')) return null;
+  var c = compOf(e), s = c && c.situation;
+  if (!s || !s.isRedZone) return null;
+  var aw = sideComp(c, 'away') || {}, side = String((aw.team || {}).id) === String(s.possession) ? 'away' : 'home';
+  return { side: side, team: e.teams[side], spot: s.downDistanceText || s.shortDownDistanceText || '' };
+}
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
   if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
-  var cls = 'card' + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '');
+  var rzc = CONFIG.redZone ? redZoneOf(e, lg) : null;
+  var cls = 'card' + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '') + (rzc ? ' rz' : '');
   var hc = e.ufc ? '' : homeColor(h, lg);
   function row(t, s, lose, tint) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
@@ -1906,6 +1935,7 @@ function cardHTML(e, lg) {
     lineHTML(e, lg) +
     '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
       '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
+    (rzc ? '<span class="rzb">' + esc(rzc.team.abbreviation) + ' RED ZONE</span>' : '') +
     (e.live ? '<span class="lvb">LIVE</span>' : '') + esc(statusText(e, lg)) + '</div></div>';
 }
 
@@ -2291,7 +2321,8 @@ function ptHTML(g, kind, lg) {
     return '<div class="side ' + which + wl + '"' + tint + '><div class="ptlogo">' + logoHTML(t, lg) + '</div><div class="txt">' +
       '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"></span>' : '') + (which === 'away' ? rkh : '') + esc(t.abbreviation) + (which === 'home' ? rkh : '') +
       (which === 'away' && poss ? '<span class="ball"></span>' : '') + '</div>' +
-      '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div></div></div>';
+      '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div>' +
+      (poss && foot && s.isRedZone && CONFIG.redZone ? '<div class="rzp">RED ZONE</div>' : '') + '</div></div>';
   }
   var center = pre
     ? '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">' + startWord + '</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
@@ -2690,7 +2721,8 @@ function ptAnimate(pg) {
   var fb = root.querySelector('.field .fb'), los = root.querySelector('.field .los'), fd = root.querySelector('.field .fd');
   var bp = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? bigPlayOf(g) : null;
   var sitN = (compOf(g) || {}).situation || {};
-  var now = { a: a, h: h, fin: fin, fb: fb && fb.style.left, los: los && los.style.left, fd: fd && fd.style.left, play: bp && bp.id, poss: sitN.possession };
+  var rzN = CONFIG.redZone ? redZoneOf(g, pg.lg) : null;
+  var now = { a: a, h: h, fin: fin, fb: fb && fb.style.left, los: los && los.style.left, fd: fd && fd.style.left, play: bp && bp.id, poss: sitN.possession, rz: !!rzN, rzSide: rzN && rzN.side };
   var delay = 0, to = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? turnoverOf(g, prev && prev.poss) : null;
   if (prev && to && to.id !== prev.play) {                              // a turnover since we last looked
     var cc0 = compOf(g) || {}, sit0 = cc0.situation || {}, pid = String(sit0.possession || ''), aw0 = sideComp(cc0, 'away') || {};
@@ -2730,6 +2762,15 @@ function ptAnimate(pg) {
     for (var i = 0; i < els.length; i++) if (els[i][0] && els[i][1]) { els[i][0].style.left = els[i][1]; }
     void root.offsetWidth;
     setTimeout(function () { for (var j = 0; j < els.length; j++) if (els[j][0] && els[j][2]) els[j][0].style.left = els[j][2]; }, 60);
+  }
+  // just got inside the 20: a red RED ZONE alert sweeps across (after any big-play / turnover / sack animation)
+  if (prev && rzN && (!prev.rz || prev.rzSide !== rzN.side || a !== prev.a || h !== prev.h)) {   // a new trip inside the 20
+    var rzt = String(rzN.team.short || nickname(rzN.team.name) || rzN.team.abbreviation).toUpperCase();
+    var rzHtml = '<div class="rza"><div class="rzs"><b>RED ZONE</b><i>' + esc(rzt + (rzN.spot ? ' · ' + rzN.spot : '')) + '</i></div></div>';
+    var rzWait = delay ? delay - 0.3 : (entering ? 1.0 : 0);
+    if (rzWait > 0) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', rzHtml); }, rzWait * 1000);
+    else root.insertAdjacentHTML('beforeend', rzHtml);
+    delay = Math.max(delay, rzWait + 2.7);                            // any score banner waits its turn
   }
   // a score since this screen was last up: banner in the scoring team's color, then the number flips
   if (prev && !fin && (a > prev.a || h > prev.h) && pg.lg !== 'nba' && pg.lg !== 'wnba' && pg.lg !== 'ncaab') {
