@@ -461,6 +461,15 @@
   .ptv .bar { height: 0.6vh; margin-top: -0.4vh; margin-bottom: 0.2vh; background: #33405c; position: relative; }
   .ptv .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #f5b800; }
   .ptv .ld { margin-bottom: 0.5vh; }
+  .ptv .inj { margin-top: 0.8vh; padding-top: 0.6vh; border-top: 0.2vh solid #1b2338; overflow: hidden; }
+  .ptv .inj .ih { font-size: 1.9vh; color: #ff8a8a; font-weight: 700; letter-spacing: 0.15vw; line-height: 2.6vh; }
+  .ptv .inj .ir { font-size: 2.2vh; line-height: 2.9vh; color: #c9d0e0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptv .inj .ir b { display: inline-block; min-width: 3.4em; font-size: 0.82em; letter-spacing: 0.05em; color: #ff8a8a; }
+  .ptv .inj .ir b.q { color: #ffd27a; }
+  .ptv .inj .ir i { font-style: normal; color: #9FA9BD; }
+  .ptv .p3 .inj .ir b { min-width: 0; margin-left: 0.5em; }
+  .narrow .ptv .inj .ir { font-size: 1.8vh; line-height: 2.4vh; } .narrow .ptv .inj .ih { font-size: 1.6vh; }
+  #crawl .inj { margin-right: 3vw; } #crawl .inj b { color: #ff8a8a; font-weight: 700; margin: 0 0.4vw 0 0.8vw; } #crawl .inj b.q { color: #ffd27a; }
   .ptv .ld .c { font-size: 2vh; color: #9FA9BD; font-weight: 600; letter-spacing: 0.15vw; }
   .ptv .ld .p { font-size: 3vh; font-weight: 700; line-height: 3.6vh; }
   .ptv .ld .p span { font-size: 2.2vh; color: #a5aec4; font-weight: 600; margin-left: 0.4vw; }
@@ -738,6 +747,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
+  injuries: true,        // injury reports on the big screens and for your teams' games in the bottom bar (?injuries=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
   bigPlayJump: true,     // a 20+ yard play in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
@@ -829,6 +839,7 @@ function readParams() {
     if (k === 'motion') CONFIG.motion = v !== '0';
     if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
     if (k === 'favscreen') CONFIG.favScreens = v !== '0';
+    if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -2161,6 +2172,7 @@ function loadPtDetails(cb) {
         for (var u = 0; u < tl.length; u++) if (tl[u].team && tl[u].team.id) det.leaders[tl[u].team.id] = tl[u].leaders || [];
         var ss = data.seasonseries && data.seasonseries[0];
         if (ss) det.series = ss.summary || ss.description || '';
+        det.inj = parseInjuries(data);
         ptDetail[g.eid] = det;
       }
       step();
@@ -2273,7 +2285,7 @@ function ptHTML(g, kind, lg) {
       for (var k = 0; k < cells.length; k++) if (cells[k][1] !== undefined) c2 += '<span>' + cells[k][0] + '<b>' + esc(cells[k][1]) + '</b></span>';
       if (c2) html += '<div class="tst">' + c2 + '</div>';
     }
-    return html;
+    return html + injHTML(g, cp, pre, cp === ch);
   }
   var p1 = teamPanel(a, ca), p3 = teamPanel(h, ch);
 
@@ -2443,6 +2455,94 @@ function jumpTo(hit) {
     return true;
   }
   return false;
+}
+/* =================== INJURIES ===================
+   From ESPN's game feed: who's out (and doubtful / questionable / day-to-day) for each team.
+   Long-term lists (injured reserve, PUP, suspended) are left off: they're not news for tonight. */
+var INJ_RANK = { 'out': 0, 'doubtful': 1, 'questionable': 2, 'day-to-day': 3 };
+function parseInjuries(data) {
+  var out = {}, L = (data && data.injuries) || [];
+  for (var i = 0; i < L.length; i++) {
+    var tid = L[i].team && L[i].team.id, list = L[i].injuries || [], rows = [];
+    if (!tid) continue;
+    for (var j = 0; j < list.length; j++) {
+      var x = list[j], st = String(x.status || (x.type && (x.type.description || x.type.abbreviation)) || '').toLowerCase();
+      st = /day.to.day/.test(st) ? 'day-to-day' : st;
+      if (INJ_RANK[st] === undefined) continue;                                  // IR, PUP, suspended...
+      var at = x.athlete || {}, d = x.details || {};
+      rows.push({ st: st, name: at.shortName || at.displayName || '', pos: (at.position && at.position.abbreviation) || '',
+                  part: d.type || d.detail || '' });
+    }
+    rows.sort(function (p, q) { return INJ_RANK[p.st] - INJ_RANK[q.st]; });
+    out[tid] = rows;
+  }
+  return out;
+}
+/* injury lists for your teams' games today that don't have a big screen (those come with it) */
+var injCache = {}, INJ_PATHS = { nfl: 'football/nfl', ncaaf: 'football/college-football', nba: 'basketball/nba', nhl: 'hockey/nhl', mlb: 'baseball/mlb' };
+function favGamesSoon() {
+  var out = [], now = new Date().getTime();
+  for (var lg in INJ_PATHS) {
+    var d = state.data[lg];
+    if (!d || !inList(CONFIG.leagues, lg) || seasonOver(lg)) continue;
+    for (var i = 0; i < d.games.length; i++) {
+      var g = d.games[i], t = parseDate(g.date).getTime();
+      if (!isFav(g, lg) || !g.eid || isFinal(g)) continue;
+      if (g.live || (t > now - 3600000 && t - now < 24 * 3600000)) out.push({ g: g, lg: lg });
+    }
+  }
+  return out;
+}
+function injuriesFor(g) {
+  var d = ptDetail[g.eid], c = injCache[g.eid];
+  return (d && d.inj) || (c && c.inj) || null;
+}
+function loadInjuries(cb) {
+  if (!CONFIG.injuries || DEMO) return cb();
+  var list = favGamesSoon(), i = 0, now = new Date().getTime();
+  function step() {
+    if (i >= list.length) return cb();
+    var it = list[i++], g = it.g, c = injCache[g.eid], dd = ptDetail[g.eid];
+    if ((dd && dd.inj && now - dd.at < 30 * 60000) || (c && now - c.at < (g.live ? 15 : 30) * 60000)) return step();
+    getJSON(ESPN_API + INJ_PATHS[it.lg] + '/summary?event=' + g.eid, function (err, data) {
+      if (!err && data) injCache[g.eid] = { at: now, inj: parseInjuries(data) };
+      else if (c) c.at = now;
+      step();
+    });
+  }
+  step();
+}
+/* trim injury lists until each side panel fits (least serious go first; the block goes if nothing fits) */
+function fitInjuries() {
+  var panels = document.querySelectorAll ? document.querySelectorAll('#cards .ptv .panel') : [];
+  for (var i = 0; i < panels.length; i++) {
+    var pn = panels[i], blk = pn.querySelector('.inj');
+    if (!blk) continue;
+    for (var n = 0; n < 8 && pn.scrollHeight > pn.clientHeight + 1; n++) {
+      var rows = blk.querySelectorAll('.ir');
+      if (rows.length > 1) rows[rows.length - 1].parentNode.removeChild(rows[rows.length - 1]);
+      else { blk.parentNode.removeChild(blk); break; }
+    }
+  }
+}
+/* one team's list for the big screen: up to 4 before the game, a single "OUT:" line once it starts */
+function injHTML(g, cp, pre, right) {
+  var all = injuriesFor(g), tid = (cp.team || {}).id, rows = (all && tid && all[tid]) || [];
+  if (!CONFIG.injuries || !rows.length) return '';
+  var lab = { 'out': 'OUT', 'doubtful': 'DOUBT', 'questionable': 'QUES', 'day-to-day': 'DTD' }, html = '<div class="inj"><div class="ih">INJURY REPORT</div>';
+  if (pre) {
+    for (var i = 0; i < rows.length && i < 4; i++) {
+      var r = rows[i], tag = '<b class="' + (r.st === 'out' ? '' : 'q') + '">' + lab[r.st] + '</b>';
+      var txt = esc(r.name) + (r.pos || r.part ? ' <i>' + esc([r.pos, r.part].join(' · ').replace(/^ · | · $/g, '')) + '</i>' : '');
+      html += '<div class="ir">' + (right ? txt + tag : tag + txt) + '</div>';
+    }
+  } else {
+    var outs = [];
+    for (var j = 0; j < rows.length; j++) if (rows[j].st === 'out') outs.push(rows[j].name);
+    if (!outs.length) return '';
+    html = '<div class="inj"><div class="ir">' + (right ? esc(outs.join(', ')) + '<b>OUT</b>' : '<b>OUT</b>' + esc(outs.join(', '))) + '</div>';
+  }
+  return html + '</div>';
 }
 /* =================== BIG-SCREEN ANIMATIONS ===================
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
@@ -3222,6 +3322,7 @@ function renderPage() {
     $('heading').innerHTML = '';
     try {
       $('cards').innerHTML = pg.lg === 'mlb' ? wsHTML(pg.game, pg.kind) : ptHTML(pg.game, pg.kind, pg.lg);
+      try { fitInjuries(); } catch (e3) {}
       try { ptAnimate(pg); } catch (e2) {}
     } catch (err) {                                      // never let this screen stop the ticker
       $('heading').style.display = '';
@@ -3292,6 +3393,23 @@ function renderCrawl() {
       segs.push({ label: name, html: html });
     }
     if (segs.length) groups.push(segs);
+  }
+  if (CONFIG.injuries) {                                // your teams' games today: who's out
+    var soon = favGamesSoon(), isg = [], lab2 = { 'out': 'OUT', 'doubtful': 'DOUBTFUL', 'questionable': 'QUESTIONABLE', 'day-to-day': 'DAY-TO-DAY' };
+    for (var si = 0; si < soon.length; si++) {
+      var ig = soon[si].g, inj = injuriesFor(ig), html2 = '';
+      if (!inj) continue;
+      var sides = [ig.teams.away, ig.teams.home], cps = compOf(ig) || {};
+      for (var sd = 0; sd < 2; sd++) {
+        var cp2 = sideComp(cps, sd ? 'home' : 'away'), tid2 = cp2 && cp2.team && cp2.team.id, rows2 = (tid2 && inj[tid2]) || [], by = {};
+        for (var r2 = 0; r2 < rows2.length; r2++) { var k2 = rows2[r2].st; if (!by[k2]) by[k2] = []; if (by[k2].length < 4) by[k2].push(rows2[r2].name + (rows2[r2].pos ? ' (' + rows2[r2].pos + ')' : '')); }
+        var parts = '';
+        for (var kk in lab2) if (by[kk]) parts += '<b class="' + (kk === 'out' ? '' : 'q') + '">' + lab2[kk] + '</b>' + esc(by[kk].join(', '));
+        if (parts) html2 += '<span class="inj"><span class="nl">' + esc(sides[sd].abbreviation) + '</span>' + parts + '</span>';
+      }
+      if (html2) isg.push({ label: 'INJURIES', html: html2 });
+    }
+    if (isg.length) groups.push(isg);
   }
   if (CONFIG.crawlNews && news.items.length) {
     var ns = [];
@@ -3414,13 +3532,13 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       renderPage(); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); });
   }
   next();
 }
