@@ -275,6 +275,20 @@
   .t-bears .strow { border-color: #1b2c4c; } .t-bears .strow.sth { color: #FF8C3A; } .t-bears .strow.fav { background: rgba(200,56,3,0.22); }
   .t-usc .strow { border-color: #451519; } .t-usc .strow.sth { color: #FFC72C; } .t-usc .strow.fav { background: rgba(255,199,44,0.16); }
 
+  /* =========== NFL LEAGUE LEADERS (one-game nights) =========== */
+  .lead { padding: 0 0.6vw; }
+  .lead .lbox { float: left; width: 31.6%; margin: 0 2.6% 2.4vh 0; }
+  .lead .lbox:nth-child(3n) { margin-right: 0; }
+  .lead .lh { font-size: 2.2vh; line-height: 3.6vh; font-weight: 700; letter-spacing: 0.15vw; color: #f5b800; border-bottom: 0.3vh solid #1b2338; }
+  .lead .lr { position: relative; height: 5.4vh; line-height: 5.4vh; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden; padding-right: 0.4vw; }
+  .lead .lr.fav { background: rgba(245,184,0,0.14); }
+  .lead .ln { display: inline-block; width: 2.2vw; text-align: right; margin-right: 0.8vw; font-size: 2.6vh; font-weight: 700; color: #a5aec4; }
+  .lead .lp { font-size: 3vh; font-weight: 700; }
+  .lead .lt { font-size: 2.1vh; color: #9FA9BD; margin-left: 0.6vw; font-weight: 600; }
+  .lead .lv { position: absolute; right: 0.6vw; top: 0; font-size: 3.2vh; font-weight: 800; }
+  .narrow .lead .lp { font-size: 2.4vh; } .narrow .lead .lv { font-size: 2.6vh; } .narrow .lead .lh { font-size: 1.8vh; }
+  .t-bears .lead .lh { color: #FF8C3A; border-color: #1b2c4c; } .t-bears .lead .lr { border-color: #1b2c4c; } .t-bears .lead .lr.fav { background: rgba(200,56,3,0.22); }
+  .t-usc .lead .lh { color: #FFC72C; } .t-bulls .lead .lh { color: #FF7A92; } .t-sox .lead .lh { color: #C4CED4; }
   /* =========== MARCH MADNESS BRACKET =========== */
   .brk { position: relative; height: 66vh; margin: 0 0.6vw; }
   .brk .bh { position: absolute; top: 0; height: 3vh; line-height: 3vh; font-size: 1.8vh; font-weight: 700; letter-spacing: 0.12vw; color: #9FA9BD; white-space: nowrap; overflow: hidden; }
@@ -823,6 +837,7 @@ var CONFIG = {
   mustWatch: { nfl: ['CHI'], ncaaf: ['USC'] },
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
+  singleGameTab: true,   // one-game NFL nights: the game only on its primetime screen, NFL tab = standings + leaders (?onegame=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
   bigPlayJump: true,     // a 20+ yard play or a turnover in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
@@ -914,6 +929,7 @@ function readParams() {
     if (k === 'motion') CONFIG.motion = v !== '0';
     if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
     if (k === 'favscreen') CONFIG.favScreens = v !== '0';
+    if (k === 'onegame') CONFIG.singleGameTab = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
@@ -1975,6 +1991,11 @@ function buildPages() {
   var pages = [];
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], wg = windowGames(lg);
+    if (lg === 'nfl' && singleNflNight()) {          // one primetime game: it has its own screen; this tab = standings + leaders
+      pages = pages.concat(standingsPages(lg));
+      if (nflLeaders.cats.length) pages.push({ lg: lg, leaders: true, hold: CONFIG.standingsHoldSec + 5, num: 'leaders', of: 1, games: [] });
+      continue;
+    }
     if (!wg.length) {
       if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
       else if (rankingsFor(lg) && !seasonOver(lg)) pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] });
@@ -2762,6 +2783,78 @@ function fastRefresh() {
   }
   step();
 }
+/* =================== ONE-GAME NFL NIGHTS (Monday / Thursday night) ===================
+   When the only NFL game around is a primetime game that has its own screen, it isn't repeated as a
+   card: the NFL tab shows the standings and the league leaders instead. Thanksgiving and other
+   multi-game days have more than one game, so they're unchanged. */
+function singleNflNight() {
+  if (!CONFIG.singleGameTab || !inList(CONFIG.leagues, 'nfl')) return false;
+  var wg = windowGames('nfl');
+  if (wg.length !== 1) return false;
+  var pt = primetimeGames();
+  for (var i = 0; i < pt.length; i++) if (pt[i].id === wg[0].id) return true;
+  return false;
+}
+var nflLeaders = { at: 0, cats: [] };
+var LEADER_CATS = [['passingYards', 'PASSING YARDS'], ['passingTouchdowns', 'PASSING TD'], ['rushingYards', 'RUSHING YARDS'],
+                   ['receivingYards', 'RECEIVING YARDS'], ['sacks', 'SACKS'], ['interceptions', 'INTERCEPTIONS']];
+/* find leader categories anywhere in ESPN's answer: { name, leaders: [{ displayValue, athlete }] } */
+function leaderCats(data) {
+  var found = {}, i;
+  (function walk(o, depth) {
+    if (!o || typeof o !== 'object' || depth > 6) return;
+    if (o.length !== undefined) { for (var k = 0; k < o.length; k++) walk(o[k], depth + 1); return; }
+    if (o.name && o.leaders && o.leaders.length && !found[o.name]) found[o.name] = o;
+    for (var key in o) if (o.hasOwnProperty(key) && !(key === 'leaders' && o.name) && typeof o[key] === 'object') walk(o[key], depth + 1);
+  })(data, 0);
+  var out = [];
+  for (i = 0; i < LEADER_CATS.length; i++) if (found[LEADER_CATS[i][0]]) out.push({ title: LEADER_CATS[i][1], raw: found[LEADER_CATS[i][0]].leaders.slice(0, 3) });
+  return out;
+}
+function leaderRow(l) {
+  var at = l.athlete || {}, tm = at.team || l.team || {};
+  return { name: at.shortName || at.displayName || at.fullName || '', team: tm.abbreviation || '', val: l.displayValue || (l.value !== undefined ? String(l.value) : ''), ref: !at.displayName && !at.shortName && at.$ref };
+}
+function loadNflLeaders(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !singleNflNight() || now - nflLeaders.at < 3 * 3600000) return cb();
+  var y = now && new Date().getFullYear(), m = new Date().getMonth(), season = m < 6 ? y - 1 : y;   // Jan-Jul still last year's season
+  var urls = ['https://site.web.api.espn.com/apis/site/v3/sports/football/nfl/leaders?season=' + season + '&seasontype=2',
+              'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/' + season + '/types/2/leaders?limit=3'];
+  var u = 0;
+  function tryNext() {
+    if (u >= urls.length) { nflLeaders.at = now; return cb(); }
+    getJSON(urls[u++], function (err, data) {
+      var cats = (!err && data) ? leaderCats(data) : [];
+      if (!cats.length) return tryNext();
+      var refs = [], c, r;
+      for (c = 0; c < cats.length; c++) { cats[c].rows = []; for (r = 0; r < cats[c].raw.length; r++) { var row = leaderRow(cats[c].raw[r]); cats[c].rows.push(row); if (row.ref) refs.push(row); } }
+      var j = 0;
+      (function resolve() {                                              // the core feed names players by link only
+        if (j >= refs.length) { nflLeaders = { at: now, cats: cats }; return cb(); }
+        var rw = refs[j++];
+        getJSON(String(rw.ref).replace(/^http:/, 'https:'), function (e2, a) {
+          if (!e2 && a) { rw.name = a.shortName || a.displayName || ''; rw.team = (a.team && a.team.abbreviation) || rw.team; }
+          resolve();
+        });
+      })();
+    });
+  }
+  tryNext();
+}
+function leadersHTML() {
+  var cats = nflLeaders.cats, html = '<div class="lead">';
+  for (var c = 0; c < cats.length; c++) {
+    html += '<div class="lbox"><div class="lh">' + esc(cats[c].title) + '</div>';
+    for (var r = 0; r < cats[c].rows.length; r++) {
+      var rw = cats[c].rows[r], fav = inList(favList('nfl'), String(rw.team).toUpperCase());
+      html += '<div class="lr' + (fav ? ' fav' : '') + '"><span class="ln">' + (r + 1) + '</span><span class="lp">' + esc(rw.name) + '</span>' +
+              (rw.team ? '<span class="lt">' + esc(rw.team) + '</span>' : '') + '<span class="lv">' + esc(rw.val) + '</span></div>';
+    }
+    html += '</div>';
+  }
+  return html + '</div>';
+}
 /* =================== BIG-SCREEN ANIMATIONS ===================
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
    game looked like the last time its screen was up, so it can play what changed since. */
@@ -3097,6 +3190,7 @@ var standDoneAt = {}, standWasOpen = {};
 function standingsOpen(lg) {
   var d = state.data[lg];
   if (!d) return true;
+  if (lg === 'nfl' && singleNflNight()) return true;               // Monday / Thursday night: the tab is standings + leaders
   var today = ymd(new Date()), started = false, pending = false;
   for (var i = 0; i < d.games.length; i++) {
     var g = d.games[i];
@@ -3571,6 +3665,13 @@ function renderPage() {
     try { $('cards').innerHTML = pg.brk === 'final' ? bracketFinalHTML() : bracketRegionHTML(pg.brk); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
+  if (pg.leaders) {
+    renderTabs(pg.lg);
+    var sy = new Date().getMonth() < 6 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">League leaders · ' + sy + ' season</span>';
+    try { $('cards').innerHTML = leadersHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.stand) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Standings · ' + esc(pg.stand.title) + '</span>';
@@ -3793,14 +3894,14 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); });
   }
   next();
 }
