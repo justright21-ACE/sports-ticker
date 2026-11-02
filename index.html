@@ -738,6 +738,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
+  favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
   bigPlayJump: true,     // a 20+ yard play in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
   bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
@@ -827,6 +828,7 @@ function readParams() {
     if (k === 'bracket') CONFIG.bracket = v !== '0';
     if (k === 'motion') CONFIG.motion = v !== '0';
     if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
+    if (k === 'favscreen') CONFIG.favScreens = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -1042,7 +1044,7 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in'))) ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in')) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
@@ -1614,8 +1616,8 @@ function favList(lg) {
   return (f && f[lg]) || [];
 }
 /* raw ESPN event involves a favorite college team (keeps its full data for the game-day screen) */
-function favEv(ev) {
-  var cs = (ev.competitions && ev.competitions[0] && ev.competitions[0].competitors) || [], f = favList('ncaaf');
+function favEv(ev, lg) {
+  var cs = (ev.competitions && ev.competitions[0] && ev.competitions[0].competitors) || [], f = favList(lg || 'ncaaf');
   for (var i = 0; i < cs.length; i++) if (cs[i].team && inList(f, cs[i].team.abbreviation)) return true;
   return false;
 }
@@ -2049,7 +2051,8 @@ function quarterOf(g) {
    already have their own screen, USC/Wisconsin game day or NFL primetime, stay on theirs) */
 function closeGames(lg) {
   lg = lg || 'ncaaf';
-  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : cfbGames(), ownIds = {};
+  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : cfbGames(), ownIds = {}, fvs = favScreenGames();
+  for (var fz = 0; fz < fvs.length; fz++) if (fvs[fz].lg === lg) own.push(fvs[fz].g);
   if (!d || !CONFIG.closeGames || !inList(CONFIG.leagues, lg)) return out;
   for (var j = 0; j < own.length; j++) ownIds[own[j].id] = 1;
   for (var i = 0; i < d.games.length; i++) {
@@ -2070,10 +2073,41 @@ function closeKind(g, lg) {
   var open = Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8;      // just broke open (its last few minutes up)
   return ['CLOSE', (lg === 'nfl' ? 'NFL · ' : '') + (isFinal(g) ? 'Final' : (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter')) + ' · ' + (open ? 'Score Update' : 'One-Score Game')];
 }
+/* Your teams' games (Bears, Eagles, Spurs, Bulls, Blackhawks, White Sox) get their own tab and big
+   screen, as long as no primetime game (SNF / MNF / TNF, World Series) is on the board that day.
+   USC / Wisconsin have their own game-day screen every time. */
+var FAV_SCREEN_LEAGUES = ['nfl', 'nba', 'nhl', 'mlb'];
+function favScreenGames() {
+  var out = [], now = new Date().getTime(), today = ymd(new Date());
+  if (!CONFIG.favScreens || primetimeGames().length || wsGames().length) return out;
+  for (var k = 0; k < FAV_SCREEN_LEAGUES.length; k++) {
+    var lg = FAV_SCREEN_LEAGUES[k], d = state.data[lg];
+    if (!d || !inList(CONFIG.leagues, lg) || seasonOver(lg)) continue;
+    for (var i = 0; i < d.games.length; i++) {
+      var g = d.games[i];
+      if (!isFav(g, lg) || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+      if (isFinal(g)) {
+        if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
+      } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+      out.push({ g: g, lg: lg, kind: favKind(g, lg) });
+    }
+  }
+  return out;
+}
+function favKind(g, lg) {
+  var f = favList(lg), mine = [], t;
+  if (inList(f, g.teams.away.abbreviation)) mine.push(g.teams.away);
+  if (inList(f, g.teams.home.abbreviation)) mine.push(g.teams.home);
+  function nick(x) { return String(x.short || nickname(x.name) || x.abbreviation); }
+  t = mine[0] || g.teams.home;
+  var code = nick(t).split(' ').pop().toUpperCase();
+  return [code, mine.length > 1 ? nick(mine[0]) + ' vs ' + nick(mine[1]) : nick(t) + ' Game Day'];
+}
 function featuredGames() {
-  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl');
+  var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl'), fv = favScreenGames();
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
+  for (i = 0; i < fv.length; i++) out.push(fv[i]);
   for (i = 0; i < cn.length; i++) out.push({ g: cn[i], lg: 'nfl', kind: closeKind(cn[i], 'nfl'), hold: CONFIG.closeHoldSec });
   for (i = 0; i < cl.length; i++) out.push({ g: cl[i], lg: 'ncaaf', kind: closeKind(cl[i], 'ncaaf'), hold: CONFIG.closeHoldSec });
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i], lg: 'mlb', kind: ['WS', 'World Series'] });
@@ -2098,6 +2132,8 @@ function primetimeGames() {
 function loadPtDetails(cb) {
   var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')), i = 0, path = {};
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
+  var fvd = favScreenGames(), FAVPATH = { nfl: 'football/nfl', nba: 'basketball/nba', nhl: 'hockey/nhl' };
+  for (var fk = 0; fk < fvd.length; fk++) if (FAVPATH[fvd[fk].lg]) { games.push(fvd[fk].g); path[fvd[fk].g.id] = FAVPATH[fvd[fk].lg]; }
   var closeIds = {}, cg = closeGames('nfl').concat(closeGames('ncaaf'));
   for (var cj = 0; cj < cg.length; cj++) closeIds[cg[cj].id] = 1;
   function step() {
@@ -2140,9 +2176,9 @@ function recOf(cp, type) {
   }
   return '';
 }
-function clockText(g) {
+function clockText(g, lg) {
   var m = String(g.detail || '').match(/^(\d+:\d+)\s*-\s*(\S+)/);
-  if (m) return m[2].toUpperCase() + (/OT/i.test(m[2]) ? '' : ' QTR') + ' · ' + m[1];
+  if (m) return m[2].toUpperCase() + (/OT|SO/i.test(m[2]) ? '' : (lg === 'nhl' ? ' PER' : ' QTR')) + ' · ' + m[1];
   return String(g.detail || (g.live ? 'LIVE' : '')).toUpperCase();
 }
 function num(v) { var n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
@@ -2162,6 +2198,7 @@ function ptHTML(g, kind, lg) {
   var c = compOf(g) || {}, a = g.teams.away, h = g.teams.home, s = c.situation || {};
   var ca = sideComp(c, 'away') || {}, ch = sideComp(c, 'home') || {};
   var fin = isFinal(g), pre = !g.live && !fin;
+  var foot = lg === 'nfl' || lg === 'ncaaf', hock = lg === 'nhl', startWord = foot ? 'KICKOFF' : (hock ? 'PUCK DROP' : 'TIP-OFF');
   var hc = homeColor(h, lg), det = ptDetail[g.eid] || {}, ex = g.raw || {};
   if (!det.stats) det = { stats: {}, drive: det.drive || '', series: det.series || '' };
   var abbrById = {}; abbrById[(ca.team || {}).id] = a.abbreviation; abbrById[(ch.team || {}).id] = h.abbreviation;
@@ -2170,7 +2207,7 @@ function ptHTML(g, kind, lg) {
   var wk = ex.week && ex.week.number ? 'Week ' + ex.week.number : '';
   var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
   function timeouts(n) {
-    if (n === undefined || n === null || pre || fin) return '';
+    if (n === undefined || n === null || pre || fin || !foot) return '';
     var o = ''; for (var i = 0; i < 3; i++) o += '<span class="to' + (i < n ? '' : ' used') + '"></span>';
     return o;
   }
@@ -2188,17 +2225,18 @@ function ptHTML(g, kind, lg) {
       '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div></div></div>';
   }
   var center = pre
-    ? '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">KICKOFF</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
+    ? '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">' + startWord + '</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
       '</div><div class="clk">' + esc([bc, wx].join(' · ').replace(/^ · | · $/g, '')) + '</div>'
     : '<div class="bigsc"><b class="sa">' + esc(scoreOf(g, 'away')) + '</b><span>–</span><b class="sh">' + esc(scoreOf(g, 'home')) + '</b></div><div class="clk">' +
-      (g.live ? '<span class="dot"></span>' + esc(clockText(g)) : 'FINAL' + (/OT/i.test(g.detail) ? ' / OT' : '')) + '</div>';
+      (g.live ? '<span class="dot"></span>' + esc(clockText(g, lg)) : 'FINAL' + (/OT/i.test(g.detail) ? ' / OT' : '')) + '</div>';
   var band = '<div class="band">' + (hc ? '<div class="bstripe" style="background:#' + hc + '"></div>' : '') +
     side(a, ca, 'away') + '<div class="center">' + center + '</div>' + side(h, ch, 'home') +
     '<div class="wipe" style="background:#' + (hc || '33405c') + '"></div>' + (fin ? '<div class="stamp">' + ('FINAL' + (/OT/i.test(g.detail) ? ' / OT' : '')) + '</div>' : '') + '</div>';
 
   // ---- side panels: each team's own leaders (+ its key stats once the game starts)
   var L = c.leaders || [];
-  var CATS = { passingYards: 'PASSING', rushingYards: 'RUSHING', receivingYards: 'RECEIVING' };
+  var CATS = foot ? { passingYards: 'PASSING', rushingYards: 'RUSHING', receivingYards: 'RECEIVING' } :
+             (hock ? { goals: 'GOALS', assists: 'ASSISTS', points: 'POINTS', saves: 'SAVES' } : { points: 'POINTS', rebounds: 'REBOUNDS', assists: 'ASSISTS' });
   function teamLeaders(cp) {
     var tid = (cp.team || {}).id, list = (det.leaders && det.leaders[tid]) || cp.leaders || [], out = [], i, seen = {};
     for (i = 0; i < list.length && out.length < 3; i++) {             // per-team leaders (ESPN game feed or scoreboard)
@@ -2222,7 +2260,10 @@ function ptHTML(g, kind, lg) {
     if (!tl.length) html += '<div class="v" style="color:#9FA9BD">No leaders yet</div>';
     var st = det.stats[(cp.team || {}).id];
     if (!pre && st) {
-      var cells = [['YARDS', st.totalYards], ['PASS', st.netPassingYards], ['RUSH', st.rushingYards], ['TURNOVERS', st.turnovers]], c2 = '';
+      var cells = foot ? [['YARDS', st.totalYards], ['PASS', st.netPassingYards], ['RUSH', st.rushingYards], ['TURNOVERS', st.turnovers]] :
+                  hock ? [['SHOTS', st.shotsTotal || st.shots], ['POWER PLAY', st.powerPlayGoals !== undefined && st.powerPlayOpportunities !== undefined ? st.powerPlayGoals + '/' + st.powerPlayOpportunities : undefined],
+                          ['FACEOFF %', st.faceoffPercent], ['HITS', st.hits]] :
+                         [['FG %', st.fieldGoalPct], ['3PT %', st.threePointFieldGoalPct], ['REBOUNDS', st.totalRebounds || st.rebounds], ['TURNOVERS', st.totalTurnovers || st.turnovers]], c2 = '';
       for (var k = 0; k < cells.length; k++) if (cells[k][1] !== undefined) c2 += '<span>' + cells[k][0] + '<b>' + esc(cells[k][1]) + '</b></span>';
       if (c2) html += '<div class="tst">' + c2 + '</div>';
     }
@@ -2232,9 +2273,9 @@ function ptHTML(g, kind, lg) {
 
   // ---- middle panel: the game itself
   var p2, o = (c.odds && c.odds[0]) || {}, open = g.open;
-  var lsA = ca.linescores || [], lsH = ch.linescores || [], nq = Math.max(4, lsA.length, lsH.length), th = '<th></th>', ra = '', rh = '';
+  var nreg = hock ? 3 : 4, lsA = ca.linescores || [], lsH = ch.linescores || [], nq = Math.max(nreg, lsA.length, lsH.length), th = '<th></th>', ra = '', rh = '';
   for (var q = 0; q < nq; q++) {
-    th += '<th>' + (q < 4 ? q + 1 : 'OT') + '</th>';
+    th += '<th>' + (q < nreg ? q + 1 : (hock && q > nreg ? 'SO' : (q > nreg ? 'OT' + (q - nreg + 1) : 'OT'))) + '</th>';
     var va = lsA[q] ? (lsA[q].displayValue || lsA[q].value) : null, vh = lsH[q] ? (lsH[q].displayValue || lsH[q].value) : null;
     ra += va !== null && va !== undefined ? '<td>' + esc(va) + '</td>' : '<td class="na">–</td>';
     rh += vh !== null && vh !== undefined ? '<td>' + esc(vh) + '</td>' : '<td class="na">–</td>';
@@ -2260,14 +2301,14 @@ function ptHTML(g, kind, lg) {
       ml = a.abbreviation + ' ' + f(o.awayTeamOdds.moneyLine) + ' · ' + h.abbreviation + ' ' + f(o.homeTeamOdds.moneyLine);
     }
     var spr = open && spreadText(g) ? spreadText(g) : cur, tot2 = (open && open.total) || ou;
-    p2 = '<div class="ph">KICKOFF IN</div><div class="count" id="ptCount" data-t="' + parseDate(g.date).getTime() + '">' + countdown(parseDate(g.date).getTime()) +
+    p2 = '<div class="ph">' + startWord + ' IN</div><div class="count" id="ptCount" data-t="' + parseDate(g.date).getTime() + '">' + countdown(parseDate(g.date).getTime()) +
          '<small>HOURS · MIN · SEC</small></div>' +
          '<div class="ph" style="margin-top:1vh">' + (open ? 'OPENING LINE' : 'LINE') + '</div>' +
          (spr || tot2 ? '<div class="dd">' + esc([spr, tot2 ? 'O/U ' + tot2 : ''].join(' · ').replace(/^ · | · $/g, '')) +
            '<small>' + esc([cur && open && cur !== spr ? 'Now ' + cur : '', ou && open && open.total && +ou !== +open.total ? 'O/U now ' + ou : ''].join(' · ').replace(/^ · | · $/g, '')) + '</small></div>' : '') +
          (ml ? '<div class="note"><b>MONEYLINE</b>' + esc(ml) + '</div>' : '') +
          (det.series ? '<div class="note"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '');
-  } else if (g.live && (s.downDistanceText || s.shortDownDistanceText)) {
+  } else if (foot && g.live && (s.downDistanceText || s.shortDownDistanceText)) {
     var pt = String(s.possessionText || '').match(/^([A-Z]+)\s+(\d+)$/), field = '';
     var offAway = String(s.possession) === String((ca.team || {}).id);
     if (pt || /50/.test(s.possessionText || '')) {
@@ -2287,7 +2328,7 @@ function ptHTML(g, kind, lg) {
          '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
          (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '') + qtable;
   } else {
-    p2 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g)) + '</div>' +
+    p2 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g, lg)) + '</div>' +
          qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
   }
 
@@ -2402,12 +2443,15 @@ function jumpTo(hit) {
    game looked like the last time its screen was up, so it can play what changed since. */
 var ptSeen = {}, ptLastKey = '';
 function twoMinute(g, lg) {
-  if (!g.live || (lg !== 'nfl' && lg !== 'ncaaf')) return false;
+  if (!g.live || lg === 'mlb') return false;
   var q = quarterOf(g), m = String(g.detail || '').match(/^(\d+):(\d+)/);
-  return (q === 2 || q >= 4) && !!m && (+m[1] * 60 + +m[2]) <= 120;
+  var late = lg === 'nhl' ? q >= 3 : (lg === 'nfl' || lg === 'ncaaf' ? (q === 2 || q >= 4) : q >= 4);
+  return late && !!m && (+m[1] * 60 + +m[2]) <= 120;
 }
 function scoreLabel(lg, d) {
   if (lg === 'mlb') return d > 1 ? d + ' RUNS SCORE' : 'RUN SCORES';
+  if (lg === 'nhl') return 'GOAL!';
+  if (lg === 'nba' || lg === 'wnba' || lg === 'ncaab') return '';
   if (d >= 6) return 'TOUCHDOWN';
   if (d === 3) return 'FIELD GOAL';
   if (d === 2) return 'SAFETY';
@@ -2443,7 +2487,7 @@ function ptAnimate(pg) {
     setTimeout(function () { for (var j = 0; j < els.length; j++) if (els[j][0] && els[j][2]) els[j][0].style.left = els[j][2]; }, 60);
   }
   // a score since this screen was last up: banner in the scoring team's color, then the number flips
-  if (prev && !fin && (a > prev.a || h > prev.h)) {
+  if (prev && !fin && (a > prev.a || h > prev.h) && pg.lg !== 'nba' && pg.lg !== 'wnba' && pg.lg !== 'ncaab') {
     var side = a - prev.a >= h - prev.h ? 'away' : 'home', d = side === 'away' ? a - prev.a : h - prev.h, t = g.teams[side];
     var lab = scoreLabel(pg.lg, d), lead = (prev.a - prev.h) * (a - h) <= 0 && a !== h && prev.a !== prev.h ? ' TAKE THE LEAD' : (a === h ? ' TIE IT' : '');
     if (lab || lead) {
@@ -2481,7 +2525,7 @@ function wsHTML(g, kind) {
   var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
   var top = /^(top|mid)/i.test(g.detail || ''), batting = g.live ? (top ? 'away' : 'home') : '';
   var serNow = (c.series && c.series.summary) || g.series || '';
-  var title = String(g.tag || 'WORLD SERIES').replace(/\bGM\b/, 'GAME');
+  var title = /WORLD SERIES/.test(g.tag || '') ? String(g.tag).replace(/\bGM\b/, 'GAME') : String((kind && kind[1]) || 'GAME DAY').toUpperCase();
   var lsA = ca.linescores || [], lsH = ch.linescores || [];
   var innings = Math.max(9, lsA.length, lsH.length);
 
