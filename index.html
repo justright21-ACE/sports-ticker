@@ -818,6 +818,11 @@ var CONFIG = {
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
   injuries: true,        // injury reports on the big screens and for your teams' games in the bottom bar (?injuries=0 off)
+  // Bears and USC: always a big screen; live (not halftime) it holds 5 minutes, and their score, plays
+  // and stats are re-checked every 10 seconds (?fast=0 goes back to every 30)
+  mustWatch: { nfl: ['CHI'], ncaaf: ['USC'] },
+  mustWatchHoldSec: 300,
+  fastRefreshSec: 10,
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
   bigPlayJump: true,     // a 20+ yard play or a turnover in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
@@ -909,6 +914,7 @@ function readParams() {
     if (k === 'motion') CONFIG.motion = v !== '0';
     if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
     if (k === 'favscreen') CONFIG.favScreens = v !== '0';
+    if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
@@ -2018,7 +2024,8 @@ function buildPages() {
     for (var r = 0; r < ftg.length; r++) {
       if (ftg[r].g.live) live = true;
       ptPages.push({ pt: true, lg: ftg[r].lg, game: ftg[r].g, kind: ftg[r].kind,
-                     hold: ftg[r].hold || (ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre) });
+                     hold: isMustWatch(ftg[r].g, ftg[r].lg) && ftg[r].g.live ? (isHalftime(ftg[r].g) ? CONFIG.primetimeHoldPre : CONFIG.mustWatchHoldSec) :
+                           (ftg[r].hold || (ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre)) });
     }
     var mixed = [], n = 0;
     var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c); } };
@@ -2177,13 +2184,16 @@ function closeKind(g, lg) {
 var FAV_SCREEN_LEAGUES = ['nfl', 'nba', 'nhl', 'mlb'];
 function favScreenGames() {
   var out = [], now = new Date().getTime(), today = ymd(new Date());
-  if (!CONFIG.favScreens || primetimeGames().length || wsGames().length) return out;
+  if (!CONFIG.favScreens) return out;
+  var ptDay = primetimeGames().length || wsGames().length;            // a primetime night: only the must-watch teams (Bears)
   for (var k = 0; k < FAV_SCREEN_LEAGUES.length; k++) {
     var lg = FAV_SCREEN_LEAGUES[k], d = state.data[lg];
     if (!d || !inList(CONFIG.leagues, lg) || seasonOver(lg)) continue;
     for (var i = 0; i < d.games.length; i++) {
       var g = d.games[i];
       if (!isFav(g, lg) || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+      if (lg === 'nfl' && ptKind(g)) continue;                          // already has its primetime screen
+      if (ptDay && !isMustWatch(g, lg)) continue;
       if (isFinal(g)) {
         if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
       } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
@@ -2237,7 +2247,8 @@ function loadPtDetails(cb) {
   function step() {
     if (i >= games.length) return cb();
     var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
-    var ttl = g.live ? (closeIds[g.id] ? 45000 : 25000) : 10 * 60000;   // close-game screens: a bit gentler
+    var mwl = path[g.id] === 'football/college-football' ? 'ncaaf' : 'nfl';
+    var ttl = g.live ? (isMustWatch(g, mwl) && CONFIG.fastRefreshSec ? 9000 : (closeIds[g.id] ? 45000 : 25000)) : 10 * 60000;   // Bears/USC fast; CLOSE a bit gentler
     if (!CONFIG.primetimeDetail || !g.eid || DEMO || (c && now - c.at < ttl)) return step();
     getJSON(ESPN_API + (path[g.id] || 'football/nfl') + '/summary?event=' + g.eid, function (err, data) {
       if (!err && data) {
@@ -2535,7 +2546,7 @@ function jumpTo(hit) {
       ptSeen[hit.id] = { a: hit.was.a, h: hit.was.h, fin: false, play: hit.was.play, poss: hit.was.poss, fb: seen && seen.fb, los: seen && seen.los, fd: seen && seen.fd };
     if (state.pages[state.pageIndex] !== pg) ptLastKey = '';                   // arriving fresh: play the entrance too
     state.pageIndex = i;
-    state.holdOnce = CONFIG.bigPlayHoldSec;
+    state.holdOnce = isMustWatch(pg.game, pg.lg) && !isHalftime(pg.game) ? CONFIG.mustWatchHoldSec : CONFIG.bigPlayHoldSec;
     return true;
   }
   return false;
@@ -2691,6 +2702,66 @@ function sackHTML(sk, off, def, lg) {
   return '<div class="sack"><div class="qb">' + QB_FIG(oc) + '</div><div class="dl">' + RUNNER(dc) + '</div><div class="boom">' + BOOM + '</div>' +
     '<div class="sb" style="background:#' + dc + '"><b>SACK!</b><i>' + esc(sub) + '</i></div></div>';
 }
+/* =================== BEARS / USC: MUST-WATCH GAMES ===================
+   Always on the big screen; while live (not at halftime) the screen holds 5 minutes and the game's
+   score, plays and stats are re-checked every 10 seconds. */
+function isMustWatch(g, lg) {
+  var m = CONFIG.mustWatch && CONFIG.mustWatch[lg];
+  return !!m && (inList(m, g.teams.away.abbreviation) || inList(m, g.teams.home.abbreviation));
+}
+function isHalftime(g) { return /half\s*time|^half$/i.test(String(g.detail || '') + ' ' + String(g.status || '')); }
+function mustWatchLive() {
+  var out = [];
+  for (var lg in CONFIG.mustWatch) {
+    var d = state.data[lg];
+    if (!d || !inList(CONFIG.leagues, lg)) continue;
+    for (var i = 0; i < d.games.length; i++) if (d.games[i].live && !isHalftime(d.games[i]) && isMustWatch(d.games[i], lg)) out.push({ g: d.games[i], lg: lg });
+  }
+  return out;
+}
+/* redraw after new data: if a big-screen animation is still playing, let it finish first */
+function refreshRender(jumped) {
+  var pg = state.pages[state.pageIndex], now = new Date().getTime();
+  if (!jumped && pg && pg.pt && state.animUntil && now < state.animUntil) {
+    var key = pg.key;
+    if (state.redrawTimer) clearTimeout(state.redrawTimer);
+    state.redrawTimer = setTimeout(function () { var p2 = state.pages[state.pageIndex]; if (p2 && p2.key === key) renderPage(); }, state.animUntil - now + 80);
+    return;
+  }
+  renderPage();
+}
+var fastBusy = false;
+function fastRefresh() {
+  if (!CONFIG.fastRefreshSec || fastBusy || state.refreshing || DEMO) return;
+  var mw = mustWatchLive(), i = 0, days = {}, todo = [];
+  for (var k = 0; k < mw.length; k++) { var dk = mw[k].lg + '|' + ymd(parseDate(mw[k].g.date)); if (!days[dk]) { days[dk] = 1; todo.push(mw[k]); } }
+  if (!todo.length) return;
+  fastBusy = true;
+  function step() {
+    if (i >= todo.length) return done();
+    var it = todo[i++];
+    espnDay(it.lg, ymd(parseDate(it.g.date)), function (err, games) {
+      if (!err && games && state.data[it.lg]) {
+        var cur = state.data[it.lg].games;
+        for (var a = 0; a < games.length; a++) for (var b = 0; b < cur.length; b++) if (cur[b].id === games[a].id) {
+          games[a].open = cur[b].open; games[a].extra = cur[b].extra; games[a].sit = cur[b].sit;   // keep lines and crawl stats
+          cur[b] = games[a];
+        }
+      }
+      step();
+    });
+  }
+  function done() {
+    loadPtDetails(function () {
+      var hit = detectJump();
+      buildPages();
+      var jumped = jumpTo(hit);
+      refreshRender(jumped); if (jumped) scheduleRotate();
+      fastBusy = false;
+    });
+  }
+  step();
+}
 /* =================== BIG-SCREEN ANIMATIONS ===================
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
    game looked like the last time its screen was up, so it can play what changed since. */
@@ -2718,6 +2789,7 @@ function ptAnimate(pg) {
   var entering = ptLastKey !== key;
   ptLastKey = key;
   if (entering) root.className += ' enter';
+  var rzEnd = 0;
   var fb = root.querySelector('.field .fb'), los = root.querySelector('.field .los'), fd = root.querySelector('.field .fd');
   var bp = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? bigPlayOf(g) : null;
   var sitN = (compOf(g) || {}).situation || {};
@@ -2771,6 +2843,7 @@ function ptAnimate(pg) {
     if (rzWait > 0) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', rzHtml); }, rzWait * 1000);
     else root.insertAdjacentHTML('beforeend', rzHtml);
     delay = Math.max(delay, rzWait + 2.7);                            // any score banner waits its turn
+    rzEnd = rzWait + 2.9;
   }
   // a score since this screen was last up: banner in the scoring team's color, then the number flips
   if (prev && !fin && (a > prev.a || h > prev.h) && pg.lg !== 'nba' && pg.lg !== 'wnba' && pg.lg !== 'ncaab') {
@@ -2791,6 +2864,13 @@ function ptAnimate(pg) {
   }
   // the game just went final while we watched: stamp it now
   if (prev && fin && !prev.fin && !entering) root.className += ' stampnow';
+  // how long the animations run, so a data refresh doesn't redraw the screen in the middle of them
+  var animEnd = entering ? 2.0 : 0;
+  if (delay) animEnd = Math.max(animEnd, delay + 0.4);
+  if (root.querySelector('.pop')) animEnd = Math.max(animEnd, delay + 3.9);
+  if (rzEnd) animEnd = Math.max(animEnd, rzEnd);
+  if (/stampnow/.test(root.className)) animEnd = Math.max(animEnd, 2.0);
+  state.animUntil = animEnd ? new Date().getTime() + animEnd * 1000 : 0;
   ptSeen[id] = now;
 }
 /* =================== WORLD SERIES SCREEN =================== */
@@ -3681,6 +3761,7 @@ function applySeasonSwitch() {
 }
 
 function refreshAll() {
+  state.refreshing = true;
   applySeasonSwitch();
   var i = 0, errs = 0, anyLive = false;
   function next() {
@@ -3716,7 +3797,8 @@ function refreshAll() {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
-      renderPage(); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
+      refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
+      state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
     }); }); }); }); }); }); }); });
   }
@@ -3958,6 +4040,7 @@ $('msg').style.display = 'block';
 refreshAll();
 scheduleRotate();
 setInterval(antiBurn, 10 * 60000);
+if (CONFIG.fastRefreshSec) setInterval(fastRefresh, CONFIG.fastRefreshSec * 1000);   // Bears / USC live: every 10 s
 setTimeout(function () { window.location.reload(); }, 6 * 3600000); // fresh start every 6 hours
 }
 </script>
