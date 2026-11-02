@@ -415,8 +415,33 @@
   @keyframes ptLooseY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8vh); } }
   @-webkit-keyframes ptSpin { from { -webkit-transform: rotate(0); } to { -webkit-transform: rotate(360deg); } }
   @keyframes ptSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  /* sack: a defender charges in, impact burst, the scoreboard shakes, the quarterback goes down */
+  .ptv .sack { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 8; overflow: hidden; pointer-events: none;
+    -webkit-animation: ptGone 3s linear 1 both; animation: ptGone 3s linear 1 both; }
+  .ptv .sack .qb { position: absolute; left: 50%; top: 9vh; width: 18vh; height: 18vh; margin-left: -20vh; -webkit-transform-origin: 40% 95%; transform-origin: 40% 95%;
+    -webkit-animation: ptQbDown 2.6s ease-in 1 both; animation: ptQbDown 2.6s ease-in 1 both; }
+  .ptv .sack .qb svg, .ptv .sack .dl svg { width: 18vh; height: 18vh; }
+  @-webkit-keyframes ptQbDown { 0%, 24% { -webkit-transform: rotate(0); } 40% { -webkit-transform: rotate(-72deg) translateX(-2vh); } 46% { -webkit-transform: rotate(-66deg) translateX(-2vh); } 100% { -webkit-transform: rotate(-72deg) translateX(-2vh); } }
+  @keyframes ptQbDown { 0%, 24% { transform: rotate(0); } 40% { transform: rotate(-72deg) translateX(-2vh); } 46% { transform: rotate(-66deg) translateX(-2vh); } 100% { transform: rotate(-72deg) translateX(-2vh); } }
+  .ptv .sack .dl { position: absolute; left: 50%; top: 9vh; width: 18vh; height: 18vh; margin-left: -8vh; -webkit-animation: ptDlIn 2.6s ease-out 1 both; animation: ptDlIn 2.6s ease-out 1 both; }
+  .ptv .sack .dl svg { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  @-webkit-keyframes ptDlIn { 0% { -webkit-transform: translateX(60vw); } 26% { -webkit-transform: translateX(0); } 40% { -webkit-transform: translateX(-4vh) rotate(-24deg); } 100% { -webkit-transform: translateX(-4vh) rotate(-24deg); } }
+  @keyframes ptDlIn { 0% { transform: translateX(60vw); } 26% { transform: translateX(0); } 40% { transform: translateX(-4vh) rotate(-24deg); } 100% { transform: translateX(-4vh) rotate(-24deg); } }
+  .ptv .sack .boom { position: absolute; left: 50%; top: 8vh; width: 16vh; height: 16vh; margin-left: -12vh; opacity: 0; -webkit-animation: ptBoom 2.6s ease-out 1 both; animation: ptBoom 2.6s ease-out 1 both; }
+  .ptv .sack .boom svg { width: 16vh; height: 16vh; }
+  @-webkit-keyframes ptBoom { 0%, 24% { opacity: 0; -webkit-transform: scale(0.2); } 30% { opacity: 1; -webkit-transform: scale(1.25); } 44% { opacity: 1; -webkit-transform: scale(1); } 58%, 100% { opacity: 0; -webkit-transform: scale(1.4); } }
+  @keyframes ptBoom { 0%, 24% { opacity: 0; transform: scale(0.2); } 30% { opacity: 1; transform: scale(1.25); } 44% { opacity: 1; transform: scale(1); } 58%, 100% { opacity: 0; transform: scale(1.4); } }
+  .ptv .sack .sb { position: absolute; right: 3vw; top: 9vh; width: 40vh; text-align: center; color: #ffffff; border: 0.4vh solid #ffffff; border-radius: 1vh;
+    -webkit-animation: ptSackLbl 3s ease-out 1 both; animation: ptSackLbl 3s ease-out 1 both; }
+  .ptv .sack .sb b { display: block; font-size: 6.4vh; line-height: 7.4vh; font-weight: 800; letter-spacing: 0.5vw; }
+  .ptv .sack .sb i { display: block; font-style: normal; font-size: 2.3vh; line-height: 2.9vh; padding-bottom: 0.8vh; font-weight: 700; letter-spacing: 0.15vw; }
+  @-webkit-keyframes ptSackLbl { 0%, 26% { opacity: 0; -webkit-transform: scale(2); } 34% { opacity: 1; -webkit-transform: scale(1); } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes ptSackLbl { 0%, 26% { opacity: 0; transform: scale(2); } 34% { opacity: 1; transform: scale(1); } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @-webkit-keyframes ptShake { 0%, 100% { -webkit-transform: none; } 20% { -webkit-transform: translateX(-1.2vh); } 40% { -webkit-transform: translateX(1.1vh); } 60% { -webkit-transform: translateX(-0.8vh); } 80% { -webkit-transform: translateX(0.5vh); } }
+  @keyframes ptShake { 0%, 100% { transform: none; } 20% { transform: translateX(-1.2vh); } 40% { transform: translateX(1.1vh); } 60% { transform: translateX(-0.8vh); } 80% { transform: translateX(0.5vh); } }
+  .ptv .band.shake { -webkit-animation: ptShake 0.45s 0.7s ease-in-out 1; animation: ptShake 0.45s 0.7s ease-in-out 1; }
   .nomotion .ptv * { -webkit-animation: none !important; animation: none !important; -webkit-transition: none !important; transition: none !important; }
-  .nomotion .ptv .pop, .nomotion .ptv .wipe, .nomotion .ptv .bigplay, .nomotion .ptv .tov { display: none; }
+  .nomotion .ptv .pop, .nomotion .ptv .wipe, .nomotion .ptv .bigplay, .nomotion .ptv .tov, .nomotion .ptv .sack { display: none; }
   /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
   .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
   .tab.pt.on { background: #f5b800; color: #05070d; }
@@ -2573,7 +2598,7 @@ function injHTML(g, cp, pre, right) {
   return html + '</div>';
 }
 /* ---- turnovers: interceptions, lost fumbles, turnover on downs ---- */
-var NAME_RE = /^([A-Z][a-zA-Z'\-]*\.? ?[A-Z][a-zA-Z'\-]+(?:\.[A-Z][a-zA-Z'\-]+)?)/;
+var NAME_RE = /^([A-Z][a-zA-Z'\-]*\.? ?[A-Z][a-zA-Z'\-]+(?:\.[A-Z][a-zA-Z'\-]+)?(?: [A-Z][a-z][a-zA-Z'\-]*)?)/;   // "L.Van Ness", not "C.Watson INTERCEPTED"
 /* prevPoss: team id that had the ball before the play (so a fumble the offense falls on isn't a turnover) */
 function turnoverOf(g, prevPoss) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
@@ -2605,6 +2630,35 @@ function turnoverHTML(to, t, lg) {
   return '<div class="tov"><div class="arw l">' + ARROWS + '</div><div class="arw r">' + ARROWS + '</div>' +
     '<div class="tb" style="background:#' + col + '"><b>' + esc(to.kind) + '</b><i>' + esc(nick + ' BALL' + (to.who ? ' · ' + String(to.who).toUpperCase() : '')) + '</i></div>' +
     '<div class="bx"><div class="by">' + FOOTBALL + '</div></div></div>';
+}
+/* ---- sacks ---- */
+function sackOf(g) {
+  var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
+  if (!lp || !lp.text) return null;
+  var tx = String(lp.text), ty = String((lp.type && (lp.type.text || lp.type.abbreviation)) || '');
+  if (!/sack/i.test(ty) && !/\bsacked\b/i.test(tx)) return null;
+  if (/no play/i.test(tx)) return null;
+  var yd = lp.statYardage !== undefined && lp.statYardage !== null ? Math.abs(+lp.statYardage) : 0;
+  if (!yd) { var m = tx.match(/for (-?\d+) (?:yds?|yards?)/i) || tx.match(/for a loss of (\d+)/i); yd = m ? Math.abs(+m[1]) : 0; }
+  var who = '', sb = tx.search(/sacked by /i);
+  if (sb >= 0) who = (tx.substr(sb + 10).match(NAME_RE) || [])[1] || '';
+  if (!who) { var par = tx.match(/\(([A-Z][^()]*?)\)/); if (par) who = (par[1].split(/[;,]/)[0].match(NAME_RE) || [])[1] || ''; }
+  return { id: lp.id || tx, yd: yd, who: who };
+}
+var QB_FIG = function (c) {
+  return '<svg viewBox="0 0 100 100"><g stroke-linecap="round" stroke-linejoin="round" fill="none">' +
+    '<g stroke="#ffffff" stroke-width="13"><path d="M48 32 L48 62"/><path d="M48 62 L40 90"/><path d="M48 62 L58 90"/><path d="M48 36 L62 26 L66 14"/><path d="M48 38 L36 46"/></g>' +
+    '<g stroke="#' + c + '" stroke-width="9"><path d="M48 32 L48 62"/><path d="M48 62 L40 90"/><path d="M48 62 L58 90"/><path d="M48 36 L62 26 L66 14"/><path d="M48 38 L36 46"/></g>' +
+    '<ellipse cx="67" cy="11" rx="6" ry="3.6" fill="#8b4a22" stroke="#ffffff" stroke-width="1.5" transform="rotate(-50 67 11)"/>' +
+    '<circle cx="48" cy="19" r="10" fill="#' + c + '" stroke="#ffffff" stroke-width="2.5"/><path d="M54 21 L60 22" stroke="#ffffff" stroke-width="2.5"/></g></svg>';
+};
+var BOOM = '<svg viewBox="0 0 100 100"><polygon points="50,2 60,32 92,18 70,44 98,58 66,62 76,94 50,72 24,94 34,62 2,58 30,44 8,18 40,32" fill="#ffd400" stroke="#ffffff" stroke-width="3"/>' +
+  '<polygon points="50,22 56,40 74,34 62,50 76,60 58,60 62,78 50,64 38,78 42,60 24,60 38,50 26,34 44,40" fill="#ff6a00"/></svg>';
+function sackHTML(sk, off, def, lg) {
+  var oc = homeColor(off, lg) || '33405c', dc = homeColor(def, lg) || 'e23d3d', nick = String(def.short || nickname(def.name) || def.abbreviation).toUpperCase();
+  var sub = nick + ' DEFENSE' + (sk.who ? ' · ' + String(sk.who).toUpperCase() : '') + (sk.yd ? ' · −' + sk.yd + ' YDS' : '');
+  return '<div class="sack"><div class="qb">' + QB_FIG(oc) + '</div><div class="dl">' + RUNNER(dc) + '</div><div class="boom">' + BOOM + '</div>' +
+    '<div class="sb" style="background:#' + dc + '"><b>SACK!</b><i>' + esc(sub) + '</i></div></div>';
 }
 /* =================== BIG-SCREEN ANIMATIONS ===================
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
@@ -2645,6 +2699,19 @@ function ptAnimate(pg) {
     if (w0) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', toHtml); }, w0 * 1000);
     else root.insertAdjacentHTML('beforeend', toHtml);
     delay = 3.0 + w0;
+    bp = null;
+  }
+  var sk = !to && (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? sackOf(g) : null;
+  if (prev && sk && sk.id !== prev.play) {                              // a sack since we last looked
+    var cc1 = compOf(g) || {}, sit1 = cc1.situation || {}, aw1 = sideComp(cc1, 'away') || {}, lp1 = sit1.lastPlay || {};
+    var offId = String((lp1.team && lp1.team.id) || sit1.possession || prev.poss || ''), defS;
+    if (h - prev.h === 2) defS = 'home'; else if (a - prev.a === 2) defS = 'away';               // safety: the 2 points went to the defense
+    else defS = String((aw1.team || {}).id) === offId ? 'home' : 'away';
+    var offS = defS === 'home' ? 'away' : 'home';
+    var skHtml = sackHTML(sk, g.teams[offS], g.teams[defS], pg.lg), w1 = entering ? 1.0 : 0, bandEl = root.querySelector('.band');
+    var addSack = function () { if (!root.parentNode) return; root.insertAdjacentHTML('beforeend', skHtml); if (bandEl) bandEl.className += ' shake'; };
+    if (w1) setTimeout(addSack, w1 * 1000); else addSack();
+    delay = 2.8 + w1;
     bp = null;
   }
   if (prev && bp && bp.id !== prev.play && bp.yd >= 20 && bp.kind) {     // a 20+ yard run or pass since we last looked
