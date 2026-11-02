@@ -2069,6 +2069,12 @@ function closeGames(lg) {
   }
   return out;
 }
+/* the CLOSE rule on its own: live, 4th quarter / OT, within 8 (college: a Top 25 team) */
+function closeCond(g, lg) {
+  if (!g.live || quarterOf(g) < 4 || (lg !== 'nfl' && lg !== 'ncaaf')) return false;
+  if (lg === 'ncaaf') { var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf'); if (!((ra && ra <= 25) || (rh && rh <= 25))) return false; }
+  return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= 8;
+}
 function closeKind(g, lg) {
   var open = Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8;      // just broke open (its last few minutes up)
   return ['CLOSE', (lg === 'nfl' ? 'NFL · ' : '') + (isFinal(g) ? 'Final' : (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter')) + ' · ' + (open ? 'Score Update' : 'One-Score Game')];
@@ -2416,7 +2422,7 @@ function detectJump() {
     if (lg !== 'nfl' && lg !== 'ncaaf') continue;
     var bp = bigPlayOf(g), was = evTrack[g.id];
     if (!hit && was && bp && bp.id !== was.play && bp.yd >= 20 && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
-    next[g.id] = { lg: lg, close: ftg[i].kind[0] === 'CLOSE', play: bp && bp.id, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
+    next[g.id] = { lg: lg, close: ftg[i].kind[0] === 'CLOSE' || closeCond(g, lg), play: bp && bp.id, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
   for (var k in closeGrace) if (closeGrace[k] < now) delete closeGrace[k];
   evTrack = next;
