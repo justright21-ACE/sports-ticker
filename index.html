@@ -174,6 +174,10 @@
   .fight .name { display: none; }
   .fight .abbr { max-width: 24vw; }
   .fight .score { color: #f5b800; }
+  /* WWE premium live event card: the event's name on top, the venue under it */
+  .showbox { height: 20vh; padding: 2.2vh 1.2vw 0; box-sizing: border-box; overflow: hidden; }
+  .showbox .sn { font-size: 3.8vh; font-weight: 800; line-height: 4.6vh; max-height: 9.2vh; overflow: hidden; }
+  .showbox .sv { margin-top: 1.2vh; font-size: 2.6vh; color: #a5aec4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .t-bears .fight .score { color: #FF8C3A; }
   .t-usc .fight .score { color: #FFC72C; }
   .dot {
@@ -200,6 +204,15 @@
   .llg img, .llg svg { position: absolute; left: 0.7vh; top: 0.7vh; width: 4.8vh; height: 4.8vh; }
   .llg.sm { width: 4.6vh; height: 4.6vh; margin: -0.5vh 0.6vw 0 0; } .llg.sm img, .llg.sm svg { left: 0.5vh; top: 0.5vh; width: 3.6vh; height: 3.6vh; }
   .lalt { display: none; }
+  /* league logos in the top tabs */
+  .tab.lgo { padding: 0 0.45vw; }
+  .tab .tl { display: inline-block; vertical-align: middle; position: relative; width: 4.3vh; height: 4.3vh; margin-top: -0.4vh; border-radius: 50%; background: #f2f4f8; }
+  .tab .tl img, .tab .tl svg { position: absolute; left: 0.45vh; top: 0.45vh; width: 3.4vh; height: 3.4vh; }
+  .tab .tl.coll { width: 4.8vh; border-radius: 0.6vh; } .tab .tl.coll img { left: 0.1vh; top: 0; width: 4.3vh; height: 4.3vh; }
+  .tab.empty .tl { opacity: 0.35; }
+  #tabs.s4 .tab .tl, #tabs.s5 .tab .tl { width: 3.3vh; height: 3.3vh; margin-top: -0.2vh; }
+  #tabs.s4 .tab .tl img, #tabs.s4 .tab .tl svg, #tabs.s5 .tab .tl img, #tabs.s5 .tab .tl svg { left: 0.35vh; top: 0.35vh; width: 2.6vh; height: 2.6vh; }
+  #tabs.s4 .tab .tl.coll, #tabs.s5 .tab .tl.coll { width: 3.7vh; } #tabs.s4 .tab .tl.coll img, #tabs.s5 .tab .tl.coll img { left: 0.1vh; top: 0; width: 3.3vh; height: 3.3vh; }
   /* the NCAA logos are detailed, so they get a bigger rounded white tile instead of the small circle */
   .llg.coll { width: 8vh; height: 7.4vh; border-radius: 1vh; margin-top: -0.6vh; }
   .llg.coll img { left: 0.3vh; top: 0.1vh; width: 7.2vh; height: 7.2vh; }
@@ -840,7 +853,7 @@ var CONFIG = {
   // Leagues to show, in this order.
   //   From SportsBlaze: nfl, nba, mlb, wnba
   //   From ESPN:        ncaaf (college football), ncaab (men's college basketball), nhl,
-  //                     ufc = COMBAT tab: UFC + PFL main cards, plus major boxing (TheSportsDB)
+  //                     ufc = COMBAT tab: UFC + PFL main cards, plus major boxing and WWE premium live events (TheSportsDB)
   leagues: ['nfl', 'ncaaf', 'nba', 'nhl', 'mlb', 'wnba', 'ufc'],
 
   // Season change: starting on this date, WNBA comes off and men's college basketball
@@ -1492,7 +1505,7 @@ function addNew(list, more) {
 }
 
 /* ---- UFC (ESPN): the current or next event, main card fights only ---- */
-/* =================== COMBAT tab: UFC + PFL (ESPN) + major boxing (TheSportsDB) =================== */
+/* =================== COMBAT tab: UFC + PFL (ESPN) + major boxing and WWE PLEs (TheSportsDB) =================== */
 function loadCombat(cb) {
   if (DEMO) return cb(null, demoUfc());
   var all = [], ok = 0, evIdx = 0;
@@ -1575,9 +1588,11 @@ function loadBoxing(cb) {
       var evs = (boxCache[keys[q]] && boxCache[keys[q]].events) || [];
       for (var r = 0; r < evs.length; r++) {
         var ev = evs[r], lgn = (ev.strLeague || '') + ' ' + (ev.strSport || '');
-        if (!/box|wbc|wba|ibf|wbo|ring magazine|matchroom|top rank/i.test(lgn) || seen[ev.idEvent]) continue;
+        var wwe = /\bwwe\b/i.test(lgn + ' ' + (ev.strEvent || ''));
+        if ((!wwe && !/box|wbc|wba|ibf|wbo|ring magazine|matchroom|top rank/i.test(lgn)) || seen[ev.idEvent]) continue;
+        if (wwe && !isPLE(ev.strEvent)) continue;             // WWE: premium live events only, no weekly TV
         seen[ev.idEvent] = true;
-        var b = fromBoxing(ev, n++);
+        var b = wwe ? fromWrestling(ev, n++) : fromBoxing(ev, n++);
         if (b) out.push(b);
       }
     }
@@ -1606,6 +1621,33 @@ function fromBoxing(ev, idx) {
     detail: fin ? (res ? (res.length > 30 ? res.substr(0, 29) + '…' : res) : 'FINAL') : '',
     wclass: ev.strVenue || '', order: idx + 1, mainEvent: true, winner: '', scores: null,
     evLabel: 'Boxing · ' + m[0].replace(/^\s+|\s+$/g, '') + ' vs ' + m[1].replace(/^\s+|\s+$/g, '') + ' · ' + day
+  };
+}
+/* WWE premium live events (PLEs) only: the weekly TV shows and TV specials are skipped */
+var WWE_WEEKLY = /^(monday night raw|raw|friday night smackdown|smackdown|nxt|wwe nxt|main event|speed|level up|nxt level up|evolve|superstars|saturday night'?s main event|nxt (on cw|tuesday))$/i;
+function wweShow(title) {
+  return String(title || '').replace(/\s+/g, ' ').replace(/^\s*wwe\s*[:\-]?\s*/i, '')
+    .replace(/\s*[\-:#]?\s*(\d{1,2}[\/.\-]\d{1,2}([\/.\-]\d{2,4})?|\d{4}-\d{2}-\d{2}|episode \d+|#\d+)\s*$/i, '').replace(/^\s+|\s+$/g, '');
+}
+function isPLE(title) {
+  var show = wweShow(title);
+  return !!show && !WWE_WEEKLY.test(show) && !/\b(raw|smackdown)\b.*\b(results|episode)\b/i.test(show);
+}
+/* a WWE premium live event: the event name, start time and venue */
+function fromWrestling(ev, idx) {
+  var show = wweShow(ev.strEvent) || 'WWE';
+  var ts = ev.strTimestamp || (ev.dateEvent && ev.strTime ? ev.dateEvent + 'T' + ev.strTime : '');
+  var d = ts ? parseDate(/Z|[+-]\d\d:?\d\d$/.test(ts) ? ts : ts + 'Z') : null;
+  if (!d || isNaN(d.getTime())) { var p = String(ev.dateEvent || '').split('-'); d = new Date(+p[0], +p[1] - 1, +p[2], 19, 0); }
+  var fin = /finish|final|^ft$|ended|complete/i.test(ev.strStatus || '');
+  var day = ymd(d) === ymd(new Date()) ? 'Tonight' : DAYS[d.getDay()].charAt(0) + DAYS[d.getDay()].substr(1).toLowerCase();
+  var place = ev.strVenue || ev.strCity || '';
+  return {
+    id: 'wwe' + ev.idEvent, ufc: true, box: true, wwe: true, promo: 'WWE', show: show,
+    teams: { away: { abbreviation: 'WWE', name: show, short: show, rank: 0 }, home: { abbreviation: '', name: place, short: place, rank: 0 } },
+    date: d.toISOString(), live: false, status: fin ? 'Final' : 'Scheduled', detail: fin ? 'ENDED' : '',
+    wclass: 'PREMIUM LIVE EVENT', order: idx + 1, mainEvent: true, winner: '', scores: null,
+    evLabel: 'WWE · ' + show + ' · ' + day
   };
 }
 function fromFight(c, idx, count) {
@@ -1952,7 +1994,7 @@ function patternLogo(t, lg) {
   return 'https://a.espncdn.com/i/teamlogos/' + dir + '/500/' + (LOGO_ABBR[ab] || ab.toLowerCase()) + '.png';
 }
 /* league logos for the bottom bar (from ESPN, like the team logos); hidden if none loads */
-var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaaf'], ncaab: ['ncaab'] };   // COMBAT (UFC + PFL + boxing) keeps its name
+var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaaf'], ncaab: ['ncaab'] };   // COMBAT gets a drawn icon (combatIcon)
 /* college gets a football / basketball icon plus CFB / CBB, so it isn't mistaken for the NFL or NBA */
 var LEAGUE_LOGO_TAG = { ncaaf: 'CFB', ncaab: 'CBB' };
 /* college: the NCAA football / basketball logos saved with the site (img/), and if one of those can't
@@ -1967,16 +2009,52 @@ var SPORT_ICONS = {
   ncaab: '<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="21" fill="#e8741c"/><g stroke="#2a1405" stroke-width="2" fill="none">' +
          '<line x1="4" y1="25" x2="46" y2="25"/><line x1="25" y1="4" x2="25" y2="46"/><path d="M10 10 Q20 25 10 40"/><path d="M40 10 Q30 25 40 40"/></g></svg>'
 };
+/* COMBAT: the icon follows what's on: UFC / PFL = octagon (with the promotion's name),
+   boxing = a glove, WWE = a wrestling ring. Live event first, else the next one, else the latest. */
+var COMBAT_ICONS = {
+  glove: '<svg viewBox="0 0 50 50"><path d="M13 29 Q9 9 26 7 Q43 6 43 23 Q43 34 35 38 L19 38 Q14 35 13 29Z" fill="#d62828"/><ellipse cx="15.5" cy="24" rx="5.5" ry="8" fill="#a51d1d"/>' +
+         '<path d="M22 14 Q30 11 37 15" stroke="#fff" stroke-opacity=".45" stroke-width="2" fill="none"/><rect x="18" y="37" width="18" height="8" rx="2" fill="#fff" stroke="#99aaaa" stroke-width="1"/>' +
+         '<line x1="18" y1="41" x2="36" y2="41" stroke="#99aaaa" stroke-width="1"/></svg>',
+  ring: '<svg viewBox="0 0 50 50"><polygon points="10,27 40,27 47,38 3,38" fill="#e9edf2" stroke="#9aa3ad" stroke-width="0.8"/><rect x="3" y="38" width="44" height="7" fill="#1f4fbf"/>' +
+        '<g stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round"><line x1="10" y1="12" x2="10" y2="27"/><line x1="40" y1="12" x2="40" y2="27"/><line x1="3" y1="20" x2="3" y2="38"/><line x1="47" y1="20" x2="47" y2="38"/></g>' +
+        '<g stroke="#d62828" stroke-width="1.6" fill="none"><path d="M10 14 L40 14 M10 18.5 L40 18.5 M10 23 L40 23"/><path d="M3 22 L47 22 M3 27.5 L47 27.5 M3 33 L47 33"/>' +
+        '<path d="M10 14 L3 22 M10 18.5 L3 27.5 M10 23 L3 33 M40 14 L47 22 M40 18.5 L47 27.5 M40 23 L47 33"/></g></svg>',
+  octagon: function (txt) {
+    return '<svg viewBox="0 0 50 50"><polygon points="16,3 34,3 47,16 47,34 34,47 16,47 3,34 3,16" fill="#d62828"/>' +
+           '<polygon points="17.5,7 32.5,7 43,17.5 43,32.5 32.5,43 17.5,43 7,32.5 7,17.5" fill="#151515"/>' +
+           '<text x="25" y="30" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="13" fill="#fff" text-anchor="middle">' + txt + '</text></svg>';
+  }
+};
+function combatKind(e) {
+  if (!e) return '';
+  if (e.wwe) return 'wwe';
+  if (e.box) return 'box';
+  return e.promo === 'PFL' ? 'pfl' : 'ufc';
+}
+function combatNow() {                                    // the kind of combat card that's on now / next
+  var d = state.data && state.data.ufc, g = (d && d.games) || [], now = new Date().getTime(), best = null, bestT = 0, i, t;
+  for (i = 0; i < g.length; i++) if (g[i].live) return combatKind(g[i]);
+  for (i = 0; i < g.length; i++) { t = parseDate(g[i].date).getTime(); if (!isFinal(g[i]) && t >= now - 6 * 3600000 && (!best || t < bestT)) { best = g[i]; bestT = t; } }
+  if (best) return combatKind(best);
+  for (i = 0; i < g.length; i++) { t = parseDate(g[i].date).getTime(); if (!best || t > bestT) { best = g[i]; bestT = t; } }
+  return best ? combatKind(best) : 'ufc';
+}
+function combatIcon(kind) {
+  if (kind === 'box') return COMBAT_ICONS.glove;
+  if (kind === 'wwe') return COMBAT_ICONS.ring;
+  return COMBAT_ICONS.octagon(kind === 'pfl' ? 'PFL' : 'UFC');
+}
 /* logo in place of the league's name; the name (class lalt) only appears if the logo can't load */
-function leagueMarkHTML(lg, name, cls) {
+function leagueMarkHTML(lg, name, cls, noTag) {
   var logo = leagueLogoHTML(lg, cls);
   if (!logo) return '<span class="lname">' + esc(name) + '</span>';
-  return logo + '<span class="lalt">' + esc(name) + '</span>' + (LEAGUE_LOGO_TAG[lg] ? '<span class="ltag">' + LEAGUE_LOGO_TAG[lg] + '</span>' : '');
+  return logo + '<span class="lalt">' + esc(name) + '</span>' + (LEAGUE_LOGO_TAG[lg] && !noTag ? '<span class="ltag">' + LEAGUE_LOGO_TAG[lg] + '</span>' : '');
 }
 /* pro leagues: the logo named in the league's own scoreboard feed first, then ESPN's league logo folder */
 var feedLeagueLogo = {};
 function leagueLogoHTML(lg, cls) {
   var keys = LEAGUE_LOGOS[lg], urls = [], i;
+  if (lg === 'ufc' && CONFIG.leagueLogos) return '<span class="' + (cls || 'llg') + ' cmb">' + combatIcon(combatNow()) + '</span>';
   if (!keys || !CONFIG.leagueLogos) return '';
   if (COLLEGE_LOGO_FILES[lg]) return '<span class="' + (cls || 'llg') + ' coll"><img src="' + COLLEGE_LOGO_FILES[lg] + '" data-icon="' + lg + '" onerror="collegeLogoErr(this)" alt=""></span>';
   if (SPORT_ICONS[lg]) return '<span class="' + (cls || 'llg') + '">' + SPORT_ICONS[lg] + '</span>';
@@ -2063,7 +2141,7 @@ function cardHTML(e, lg) {
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
   if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
   var rzc = CONFIG.redZone ? redZoneOf(e, lg) : null;
-  var cls = 'card' + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '') + (rzc ? ' rz' : '');
+  var cls = 'card' + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '') + (e.wwe ? ' show' : '') + (rzc ? ' rz' : '');
   var hc = e.ufc ? '' : homeColor(h, lg);
   function row(t, s, lose, tint) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
@@ -2073,7 +2151,8 @@ function cardHTML(e, lg) {
   }
   return '<div class="' + cls + '">' +
     (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
-    row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '') +
+    (e.wwe ? '<div class="showbox"><div class="sn">' + esc(e.show) + '</div><div class="sv">' + esc(h.name || '') + '</div></div>'
+           : row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '')) +
     lineHTML(e, lg) +
     '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
       '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
@@ -2197,7 +2276,8 @@ function renderTabs(activeLg) {
     var lg = CONFIG.leagues[i];
     if (seasonOver(lg)) continue;
     var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length && !(lg === 'ncaab' && bracketPages().length) ? ' empty' : '');
-    html += '<span class="' + cls + '">' + (LEAGUE_NAMES[lg] || lg.toUpperCase()) + '</span>';
+    var tnm = LEAGUE_NAMES[lg] || lg.toUpperCase();
+    html += '<span class="' + cls + (CONFIG.leagueLogos ? ' lgo' : '') + '">' + (CONFIG.leagueLogos ? leagueMarkHTML(lg, tnm, 'tl', true) : tnm) + '</span>';
   }
   $('tabs').innerHTML = html;
   fitTabs();
@@ -3945,7 +4025,7 @@ function crawlGameHTML(e, lg, sx) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
   if (e.ufc) {
     var w = e.winner === 'away' ? a : (e.winner === 'home' ? h : null), l = w === a ? h : a;
-    var txt = isFinal(e) && w ? esc(w.abbreviation) + ' def. ' + esc(l.abbreviation) : esc(a.abbreviation) + ' vs ' + esc(h.abbreviation);
+    var txt = e.wwe ? 'WWE ' + esc(String(e.show).toUpperCase()) : (isFinal(e) && w ? esc(w.abbreviation) + ' def. ' + esc(l.abbreviation) : esc(a.abbreviation) + ' vs ' + esc(h.abbreviation));
     return '<span class="g">' + txt + '<span class="st' + (e.live ? ' lv' : '') + '">' + esc(statusText(e, lg)) + '</span></span>';
   }
   var st = statusText(e, lg);
