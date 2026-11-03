@@ -275,6 +275,42 @@
   .t-bears .strow { border-color: #1b2c4c; } .t-bears .strow.sth { color: #FF8C3A; } .t-bears .strow.fav { background: rgba(200,56,3,0.22); }
   .t-usc .strow { border-color: #451519; } .t-usc .strow.sth { color: #FFC72C; } .t-usc .strow.fav { background: rgba(255,199,44,0.16); }
 
+  /* =========== PRIMETIME INACTIVES (pre-game): title card, then each team's list =========== */
+  .inx { position: relative; height: 70vh; margin: -1vh 0 0 0; overflow: hidden; }
+  .inx .ph0, .inx .ph1, .inx .ph2 { position: absolute; left: 0; right: 0; top: 0; bottom: 0; opacity: 0; visibility: hidden;
+    -webkit-transition: opacity 0.5s, visibility 0s 0.5s; transition: opacity 0.5s, visibility 0s 0.5s; }
+  .inx.p0 .ph0, .inx.p1 .ph1, .inx.p2 .ph2 { opacity: 1; visibility: visible; -webkit-transition: opacity 0.5s; transition: opacity 0.5s; }
+  .inx .tcard { position: absolute; left: 4%; right: 4%; top: 12vh; height: 40vh; border-radius: 1.4vh; overflow: hidden; background: #0f1626; border: 0.3vh solid #1b2338; text-align: center; }
+  .inx .tcard .tl { position: absolute; top: 0; bottom: 0; width: 50%; }
+  .inx .tcard .tl.a { left: 0; } .inx .tcard .tl.h { right: 0; }
+  .inx .tcard .lg2 { position: absolute; top: 9vh; width: 22vh; height: 22vh; }
+  .inx .tcard .tl.a .lg2 { left: 4vw; } .inx .tcard .tl.h .lg2 { right: 4vw; }
+  .inx .tcard .mid { position: absolute; left: 25%; right: 25%; top: 7vh; z-index: 2; text-shadow: 0 0.3vh 1.2vh rgba(0,0,0,0.6); }
+  .inx .tcard .mid small { display: block; font-size: 2.8vh; letter-spacing: 0.4vw; font-weight: 700; color: #c9d0e0; }
+  .inx .tcard .mid b { display: block; font-size: 10vh; line-height: 12vh; font-weight: 800; letter-spacing: 0.6vw; color: #ffffff; }
+  .inx .tcard .mid i { display: block; font-style: normal; font-size: 2.6vh; color: #c9d0e0; margin-top: 1vh; }
+  .inx .tcard .mid em { display: block; font-style: normal; font-size: 2.1vh; color: #9BA3B8; margin-top: 1.4vh; }
+  .inx.p0 .tl.a .lg2 { -webkit-animation: ptInL 0.8s ease-out both; animation: ptInL 0.8s ease-out both; }
+  .inx.p0 .tl.h .lg2 { -webkit-animation: ptInR 0.8s ease-out both; animation: ptInR 0.8s ease-out both; }
+  .inx .big .logo, .inx .lg2 .logo { width: 100%; height: 100%; margin: 0; }
+  .inx .big .logo img, .inx .lg2 .logo img { left: 9%; top: 9%; width: 82%; height: 82%; }
+  .inx .tpanel { position: absolute; left: 0; top: 0; bottom: 3vh; width: 36%; border-radius: 1.4vh; overflow: hidden; text-align: center; color: #ffffff; border: 0.3vh solid rgba(255,255,255,0.22); -webkit-box-sizing: border-box; box-sizing: border-box; }
+  .inx .tpanel .big { width: 26vh; height: 26vh; margin: 6vh auto 2vh auto; }
+  .inx .tpanel .tn { font-size: 5vh; font-weight: 800; letter-spacing: 0.3vw; line-height: 6vh; }
+  .inx .tpanel .tt { font-size: 2.6vh; font-weight: 700; letter-spacing: 0.4vw; opacity: 0.9; }
+  .inx .tlist { position: absolute; left: 39%; right: 1%; top: 0; bottom: 3vh; }
+  .inx .tlist .lh2 { font-size: 3vh; font-weight: 800; letter-spacing: 0.3vw; color: #f5b800; line-height: 5vh; border-bottom: 0.3vh solid #1b2338; }
+  .inx .tlist .ir2 { position: relative; height: 6vh; line-height: 6vh; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden; opacity: 0; }
+  .inx.p1 .ph1 .ir2, .inx.p2 .ph2 .ir2 { -webkit-animation: ptUp 0.45s ease-out both; animation: ptUp 0.45s ease-out both; }
+  .inx .ir2 .jn { display: inline-block; width: 4.4vw; text-align: right; margin-right: 1vw; font-size: 3vh; font-weight: 800; color: #a5aec4; }
+  .inx .ir2 .ps { display: inline-block; width: 4.6vw; font-size: 2.4vh; font-weight: 700; color: #9BA3B8; letter-spacing: 0.1vw; }
+  .inx .ir2 .nm2 { font-size: 3.4vh; font-weight: 700; }
+  .inx .ir2 .rs { position: absolute; right: 0.6vw; top: 0; font-size: 2.3vh; color: #9BA3B8; }
+  .inx .tlist .none { margin-top: 4vh; font-size: 2.8vh; line-height: 4vh; color: #9BA3B8; }
+  .narrow .inx .ir2 .nm2 { font-size: 2.7vh; } .narrow .inx .ir2 .jn { font-size: 2.4vh; width: 5.4vw; } .narrow .inx .ir2 .ps { width: 6vw; font-size: 2vh; }
+  .narrow .inx .tcard .mid b { font-size: 7.4vh; } .narrow .inx .tcard .lg2 { width: 17vh; height: 17vh; top: 11vh; } .narrow .inx .tpanel .tn { font-size: 3.8vh; }
+  .t-bears .inx .tlist .lh2 { color: #FF8C3A; } .t-usc .inx .tlist .lh2 { color: #FFC72C; } .t-bulls .inx .tlist .lh2 { color: #FF7A92; } .t-sox .inx .tlist .lh2 { color: #C4CED4; }
+  .nomotion .inx * { -webkit-animation: none !important; animation: none !important; } .nomotion .inx .ir2 { opacity: 1; }
   /* =========== NFL LEAGUE LEADERS (one-game nights) =========== */
   .lead { padding: 0 0.6vw; }
   .lead .lbox { float: left; width: 31.6%; margin: 0 2.6% 2.4vh 0; }
@@ -837,6 +873,7 @@ var CONFIG = {
   mustWatch: { nfl: ['CHI'], ncaaf: ['USC'] },
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
+  inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
   singleGameTab: true,   // one-game NFL nights: the game only on its primetime screen, NFL tab = standings + leaders (?onegame=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
@@ -930,6 +967,7 @@ function readParams() {
     if (k === 'jump') CONFIG.bigPlayJump = v !== '0';
     if (k === 'favscreen') CONFIG.favScreens = v !== '0';
     if (k === 'onegame') CONFIG.singleGameTab = v !== '0';
+    if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
@@ -1919,6 +1957,17 @@ function homeColor(t, lg) {
   if (lum(c) < 0.18) c = '8a94a8';
   return String(c).replace('#', '');
 }
+/* a team's real color for a big filled panel with white text: dark is fine, too light gets darkened */
+function panelColor(t, lg) {
+  var look = teamLook(t, lg);
+  if (!look) return '33405c';
+  var c = String(look.color || '').replace('#', ''), a = String(look.alt || '').replace('#', '');
+  if (lum(c) < 0 || !c) c = '33405c';
+  if (lum(c) > 0.55 && a && lum(a) >= 0 && lum(a) < lum(c)) c = a;
+  if (lum(c) > 0.55) { var r = Math.round(parseInt(c.substr(0, 2), 16) * 0.45), g = Math.round(parseInt(c.substr(2, 2), 16) * 0.45), b = Math.round(parseInt(c.substr(4, 2), 16) * 0.45);
+    c = (r < 16 ? '0' : '') + r.toString(16) + (g < 16 ? '0' : '') + g.toString(16) + (b < 16 ? '0' : '') + b.toString(16); }
+  return c;
+}
 function rgba(hex, alpha) {
   return 'rgba(' + parseInt(hex.substr(0, 2), 16) + ',' + parseInt(hex.substr(2, 2), 16) + ',' +
          parseInt(hex.substr(4, 2), 16) + ',' + alpha + ')';
@@ -2049,7 +2098,10 @@ function buildPages() {
                            (ftg[r].hold || (ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre)) });
     }
     var mixed = [], n = 0;
-    var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c); } };
+    var inxIds = {}, ig = inactivesGames();
+    for (var ii = 0; ii < ig.length; ii++) inxIds[ig[ii].id] = 1;
+    var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c);
+        if (inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
     addPt();
     for (var x = 0; x < pages.length; x++) { mixed.push(pages[x]); if (live && x % 2 === 1 && x < pages.length - 1) addPt(); }
     pages = mixed;
@@ -2286,6 +2338,7 @@ function loadPtDetails(cb) {
         var ss = data.seasonseries && data.seasonseries[0];
         if (ss) det.series = ss.summary || ss.description || '';
         det.inj = parseInjuries(data);
+        det.inact = parseInactives(data);
         ptDetail[g.eid] = det;
       }
       step();
@@ -2743,6 +2796,7 @@ function mustWatchLive() {
 /* redraw after new data: if a big-screen animation is still playing, let it finish first */
 function refreshRender(jumped) {
   var pg = state.pages[state.pageIndex], now = new Date().getTime();
+  if (!jumped && pg && pg.inact && document.getElementById('inx')) return;      // let the inactives sequence play through
   if (!jumped && pg && pg.pt && state.animUntil && now < state.animUntil) {
     var key = pg.key;
     if (state.redrawTimer) clearTimeout(state.redrawTimer);
@@ -2854,6 +2908,102 @@ function leadersHTML() {
     html += '</div>';
   }
   return html + '</div>';
+}
+/* =================== PRIMETIME INACTIVES ===================
+   Before a primetime NFL game: a title card, then each team's logo and its inactive players. Uses the
+   official inactive list if ESPN's game feed has one (out about 90 minutes before kickoff); until then,
+   the players its injury report rules OUT. */
+function parseInactives(data) {
+  var out = {}, any = false;
+  function add(tid, a) {
+    if (!tid || !a) return;
+    var at = a.athlete || a, pos = (at.position && (at.position.abbreviation || at.position.displayName)) || a.position || '';
+    if (typeof pos === 'object') pos = pos.abbreviation || '';
+    var nm = at.shortName || at.displayName || at.fullName || '';
+    if (!nm) return;
+    if (!out[tid]) out[tid] = [];
+    for (var i = 0; i < out[tid].length; i++) if (out[tid][i].name === nm) return;
+    out[tid].push({ name: nm, pos: pos, jersey: at.jersey || a.jersey || '', why: (a.reason || a.status || (a.injury && a.injury.type) || '') });
+    any = true;
+  }
+  (function walk(o, tid, depth) {                       // any "inactives" list in the feed, under whichever team it sits
+    if (!o || typeof o !== 'object' || depth > 7) return;
+    if (o.length !== undefined) { for (var k = 0; k < o.length; k++) walk(o[k], tid, depth + 1); return; }
+    var t2 = (o.team && o.team.id) || tid;
+    for (var key in o) {
+      if (!o.hasOwnProperty(key)) continue;
+      var v = o[key];
+      if (/inactive/i.test(key) && v && typeof v === 'object') {
+        var list = v.length !== undefined ? v : (v.athletes || v.players || []);
+        for (var j = 0; j < list.length; j++) {
+          var it = list[j], sub = it.athletes || it.players || it.inactives;
+          if (sub && sub.length !== undefined) { for (var q = 0; q < sub.length; q++) add((it.team && it.team.id) || t2, sub[q]); }   // grouped by team
+          else add((it.team && it.team.id) || t2, it);
+        }
+      } else if (v && typeof v === 'object') walk(v, t2, depth + 1);
+    }
+  })(data, null, 0);
+  // box score: players marked as not playing because they're inactive
+  var bt = (data && data.boxscore && data.boxscore.players) || [];
+  for (var b = 0; b < bt.length; b++) {
+    var tid2 = bt[b].team && bt[b].team.id, st = bt[b].statistics || [];
+    for (var c = 0; c < st.length; c++) for (var d = 0; d < (st[c].athletes || []).length; d++) {
+      var x = st[c].athletes[d];
+      if (x.didNotPlay && /inactive/i.test(String(x.reason || ''))) add(tid2, x);
+    }
+  }
+  return any ? out : null;
+}
+function inactivesGames() {
+  var out = [], now = new Date().getTime();
+  if (!CONFIG.inactives) return out;
+  var pt = primetimeGames();
+  for (var i = 0; i < pt.length; i++) {
+    var g = pt[i], t = parseDate(g.date).getTime();
+    if (!g.live && !isFinal(g) && t - now < 3 * 3600000 && t - now > -15 * 60000) out.push(g);
+  }
+  return out;
+}
+function inactHTML(pg) {
+  var g = pg.game, kind = pg.kind, c = compOf(g) || {}, det = ptDetail[g.eid] || {}, off = det.inact || null;
+  var ca = sideComp(c, 'away') || {}, ch = sideComp(c, 'home') || {}, a = g.teams.away, h = g.teams.home;
+  var title = off ? 'INACTIVES' : 'RULED OUT';
+  function teamList(t, cp) {
+    var tid = (cp.team || {}).id, rows = [];
+    if (off) rows = off[tid] || [];
+    else { var inj = injuriesFor(g), r = (inj && tid && inj[tid]) || []; for (var i = 0; i < r.length; i++) if (r[i].st === 'out') rows.push({ name: r[i].name, pos: r[i].pos, jersey: '', why: r[i].part }); }
+    return rows;
+  }
+  function teamPhase(t, cp, ph) {
+    var col = panelColor(t, 'nfl'), rows = teamList(t, cp), html = '<div class="ph' + ph + '">' +
+      '<div class="tpanel" style="background:#' + col + ';background-image:-webkit-linear-gradient(top, rgba(255,255,255,0.12), rgba(0,0,0,0.35));background-image:linear-gradient(to bottom, rgba(255,255,255,0.12), rgba(0,0,0,0.35))">' +
+      '<div class="big">' + logoHTML(t, 'nfl') + '</div><div class="tn">' + esc(String(t.name || t.abbreviation).toUpperCase()) + '</div><div class="tt">' + esc(kind[0] + ' ' + title) + '</div></div>' +
+      '<div class="tlist"><div class="lh2">' + esc(t.abbreviation + ' ' + title) + '</div>';
+    if (!rows.length) html += '<div class="none">' + (off ? 'No inactives listed.' : 'Nobody ruled out yet.<br>Official inactives come out about 90 minutes before kickoff.') + '</div>';
+    for (var i = 0; i < rows.length && i < 9; i++) {
+      var r = rows[i];
+      html += '<div class="ir2" style="-webkit-animation-delay:' + (0.25 + i * 0.12).toFixed(2) + 's;animation-delay:' + (0.25 + i * 0.12).toFixed(2) + 's">' +
+        '<span class="jn">' + esc(r.jersey ? '#' + r.jersey : '') + '</span><span class="ps">' + esc(r.pos || '') + '</span><span class="nm2">' + esc(r.name) + '</span>' +
+        (r.why ? '<span class="rs">' + esc(String(r.why).replace(/^inactive$/i, '')) + '</span>' : '') + '</div>';
+    }
+    return html + '</div></div>';
+  }
+  var hc = panelColor(h, 'nfl'), ac = panelColor(a, 'nfl');
+  var card = '<div class="ph0"><div class="tcard">' +
+    '<div class="tl a" style="background:#' + ac + '"><div class="lg2">' + logoHTML(a, 'nfl') + '</div></div>' +
+    '<div class="tl h" style="background:#' + hc + '"><div class="lg2">' + logoHTML(h, 'nfl') + '</div></div>' +
+    '<div class="mid"><small>' + esc(String(kind[1]).toUpperCase()) + '</small><b>' + title + '</b><i>' + esc(a.abbreviation + ' at ' + h.abbreviation + ' · Kickoff ' + timeStr(parseDate(g.date))) + '</i>' +
+    (off ? '' : '<em>Official inactives are announced about 90 minutes before kickoff</em>') + '</div></div></div>';
+  return '<div class="inx p0" id="inx">' + card + teamPhase(a, ca, 1) + teamPhase(h, ch, 2) + '</div>';
+}
+/* title card 5 s, away team 12 s, home team 12 s */
+function runInactives() {
+  if (state.inxTimers) for (var i = 0; i < state.inxTimers.length; i++) clearTimeout(state.inxTimers[i]);
+  state.inxTimers = [];
+  var el = document.getElementById('inx');
+  if (!el) return;
+  state.inxTimers.push(setTimeout(function () { var e = document.getElementById('inx'); if (e) e.className = 'inx p1'; }, 5000));
+  state.inxTimers.push(setTimeout(function () { var e = document.getElementById('inx'); if (e) e.className = 'inx p2'; }, 17000));
 }
 /* =================== BIG-SCREEN ANIMATIONS ===================
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
@@ -3663,6 +3813,12 @@ function renderPage() {
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">March Madness · ' +
       esc(pg.brk === 'final' ? 'Elite Eight to the title' : pg.brk + ' Region') + ' · ' + esc(brkRoundName()) + '</span>';
     try { $('cards').innerHTML = pg.brk === 'final' ? bracketFinalHTML() : bracketRegionHTML(pg.brk); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
+  if (pg.inact) {
+    renderTabs('pt:' + pg.kind[0]);
+    $('heading').style.display = 'none';
+    try { $('cards').innerHTML = inactHTML(pg); runInactives(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
   if (pg.leaders) {
