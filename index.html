@@ -561,25 +561,25 @@
     -webkit-animation: bwSlide 7s linear 1 both; animation: bwSlide 7s linear 1 both; }
   .bwin .cf { position: absolute; top: -6vh; border-radius: 0.2vh; -webkit-backface-visibility: hidden; backface-visibility: hidden;
     -webkit-animation-name: bwFall; animation-name: bwFall; -webkit-animation-timing-function: linear; animation-timing-function: linear;
-    -webkit-animation-iteration-count: 1; animation-iteration-count: 1; -webkit-animation-fill-mode: both; animation-fill-mode: both; }
+    -webkit-animation-iteration-count: infinite; animation-iteration-count: infinite; -webkit-animation-fill-mode: both; animation-fill-mode: both; }
   .bwin .bwlogo { position: absolute; left: 50%; top: 3%; border-radius: 50%; background: #ffffff;
     -webkit-animation: bwLogo 0.9s 0.35s cubic-bezier(0.2,0.9,0.3,1.25) 1 both; animation: bwLogo 0.9s 0.35s cubic-bezier(0.2,0.9,0.3,1.25) 1 both; }
   .bwin .bwlogo img { position: absolute; left: 12%; top: 12%; width: 76%; height: 76%; }
   .bwin .bwt { position: absolute; left: 0; right: 0; text-align: center; font-weight: 900; letter-spacing: 0.4vw; white-space: nowrap; }
   .bwin .bwt span { display: inline-block; }
   .bwin .bw1 span {
-    -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out 6 forwards; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out 6 forwards; }
+    -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out infinite forwards; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out infinite forwards; }
   .bwin .bw2 span {
-    -webkit-animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out 6 forwards; animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out 6 forwards; }
+    -webkit-animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out infinite forwards; animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out infinite forwards; }
   .bwin .bwsc { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; color: #ffffff; font-size: 4.4vh; font-weight: 800; letter-spacing: 0.3vw;
     -webkit-animation: bwUp 0.6s 2.2s ease-out 1 both; animation: bwUp 0.6s 2.2s ease-out 1 both; }
   .bwin .jmp span { -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both; }
   .bwin .bw2.jmp span { -webkit-animation-delay: 1.5s; animation-delay: 1.5s; }
-  .bwin .jl { display: inline-block; font-weight: 900; -webkit-animation: bwJump 0.55s ease-in-out 5 forwards; animation: bwJump 0.55s ease-in-out 5 forwards; }
+  .bwin .jl { display: inline-block; font-weight: 900; -webkit-animation: bwJump 0.55s ease-in-out infinite forwards; animation: bwJump 0.55s ease-in-out infinite forwards; }
   .bwin .bwh { position: absolute; top: 4%; overflow: visible; }
   .bwin .bwh.l { left: 16%; } .bwin .bwh.r { right: 16%; -webkit-transform: scaleX(-1); transform: scaleX(-1); }
-  .bwin .bwh div { width: 100%; height: 100%; -webkit-animation: bwHandUp 0.7s 0.6s cubic-bezier(0.2,0.9,0.3,1.2) 1 both, bwPump 0.5s 1.5s ease-in-out 9 forwards;
-    animation: bwHandUp 0.7s 0.6s cubic-bezier(0.2,0.9,0.3,1.2) 1 both, bwPump 0.5s 1.5s ease-in-out 9 forwards; }
+  .bwin .bwh div { width: 100%; height: 100%; -webkit-animation: bwHandUp 0.7s 0.6s cubic-bezier(0.2,0.9,0.3,1.2) 1 both, bwPump 0.5s 1.5s ease-in-out infinite forwards;
+    animation: bwHandUp 0.7s 0.6s cubic-bezier(0.2,0.9,0.3,1.2) 1 both, bwPump 0.5s 1.5s ease-in-out infinite forwards; }
   .bwin .bwh.r div { -webkit-animation-delay: 0.75s, 1.75s; animation-delay: 0.75s, 1.75s; }
   .bwin .bwh svg { width: 100%; height: 100%; }
   @-webkit-keyframes bwJump { 0%, 100% { -webkit-transform: translate3d(0,0,0); } 45% { -webkit-transform: translate3d(0,-22%,0); } }
@@ -588,12 +588,12 @@
   @keyframes bwHandUp { 0% { opacity: 0; transform: translate3d(0,140%,0) rotate(-20deg); } 100% { opacity: 1; transform: translate3d(0,0,0) rotate(0deg); } }
   @-webkit-keyframes bwPump { 0%, 100% { -webkit-transform: translate3d(0,0,0); } 40% { -webkit-transform: translate3d(0,-12%,0) rotate(-6deg); } }
   @keyframes bwPump { 0%, 100% { transform: translate3d(0,0,0); } 40% { transform: translate3d(0,-12%,0) rotate(-6deg); } }
-  @-webkit-keyframes bwOut { 0%, 91% { opacity: 1; } 100% { opacity: 0; } }
-  @keyframes bwOut { 0%, 91% { opacity: 1; } 100% { opacity: 0; } }
+  @-webkit-keyframes bwOut { 0%, 95% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes bwOut { 0%, 95% { opacity: 1; } 100% { opacity: 0; } }
   @-webkit-keyframes bwBg { 0% { -webkit-transform: scaleY(0); } 100% { -webkit-transform: scaleY(1); } }
   @keyframes bwBg { 0% { transform: scaleY(0); } 100% { transform: scaleY(1); } }
-  @-webkit-keyframes bwSlide { 0% { -webkit-transform: translate3d(0,0,0); } 100% { -webkit-transform: translate3d(-30%,0,0); } }
-  @keyframes bwSlide { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-30%,0,0); } }
+  @-webkit-keyframes bwSlide { 0% { -webkit-transform: translate3d(0,0,0); } 100% { -webkit-transform: translate3d(-50%,0,0); } }
+  @keyframes bwSlide { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-50%,0,0); } }
   @-webkit-keyframes bwFall { 0% { -webkit-transform: translate3d(0,0,0) rotate(0deg); } 100% { -webkit-transform: translate3d(4vw,118vh,0) rotate(720deg); } }
   @keyframes bwFall { 0% { transform: translate3d(0,0,0) rotate(0deg); } 100% { transform: translate3d(4vw,118vh,0) rotate(720deg); } }
   @-webkit-keyframes bwLogo { 0% { -webkit-transform: scale(0) rotate(-270deg); } 100% { -webkit-transform: scale(1) rotate(0deg); } }
@@ -965,6 +965,7 @@ var CONFIG = {
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
+  celebrateSec: 15,      // how long it stays up (?celebratesec=20)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
   leagueLogos: true,     // league logos in the bottom bar (?leaguelogos=0 shows just the names)
   injuries: true,        // injury reports on the big screens and for your teams' games in the bottom bar (?injuries=0 off)
@@ -1073,6 +1074,7 @@ function readParams() {
     if (k === 'leaguelogos') CONFIG.leagueLogos = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
     if (k === 'celebrate' || k === 'bearswin') CONFIG.celebrate = v !== '0';
+    if (k === 'celebratesec' && +v >= 5) CONFIG.celebrateSec = Math.min(+v, 60);
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -3290,7 +3292,8 @@ function winHTML(g, w, root) {
             '<div class="bwh r" style="width:' + hz + 'px;height:' + Math.round(hz * 1.4) + 'px"><div>' + V_HAND + '</div></div>';
   }
   var opp = String(w.opp.short || nickname(w.opp.name) || w.opp.abbreviation).toUpperCase(), top1 = Math.round(H * 0.33);
-  return '<div class="bwin"><div class="bwbg" style="background:' + c.bg + '"></div><div class="bwst" style="background:repeating-linear-gradient(120deg,' + c.st + ' 0,' + c.st + ' 4vh,rgba(0,0,0,0) 4vh,rgba(0,0,0,0) 11vh)"></div>' + cf + hands +
+  var dur = '-webkit-animation-duration:' + CONFIG.celebrateSec + 's;animation-duration:' + CONFIG.celebrateSec + 's;';
+  return '<div class="bwin" style="' + dur + '"><div class="bwbg" style="background:' + c.bg + '"></div><div class="bwst" style="' + dur + 'background:repeating-linear-gradient(120deg,' + c.st + ' 0,' + c.st + ' 4vh,rgba(0,0,0,0) 4vh,rgba(0,0,0,0) 11vh)"></div>' + cf + hands +
     '<div class="bwlogo" style="width:' + lz + 'px;height:' + lz + 'px;margin-left:' + (-lz / 2) + 'px;box-shadow:0 0 0 0.8vh ' + c.ring + '">' + logo + '</div>' +
     line(c.l1, 'bw1', top1, c.c1, c.s1) + line(c.l2, 'bw2', Math.round(top1 + fs * 1.22), c.c2, c.s2) +
     '<div class="bwsc">' + esc(c.name) + ' ' + w.me + ' &nbsp;·&nbsp; ' + esc(opp) + ' ' + w.op + '</div></div>';
@@ -3399,8 +3402,12 @@ function ptAnimate(pg) {
   var bw = CONFIG.celebrate ? winFor(g, pg.lg) : null, bwEnd = 0;
   if (bw && (entering || (prev && !prev.fin))) {
     var bwWait = 2.0;
-    setTimeout(function () { if (root.parentNode && !root.querySelector('.bwin')) root.insertAdjacentHTML('beforeend', winHTML(g, bw, root)); }, bwWait * 1000);
-    bwEnd = bwWait + 7.2;
+    setTimeout(function () {
+      if (!root.parentNode || root.querySelector('.bwin')) return;
+      root.insertAdjacentHTML('beforeend', winHTML(g, bw, root));
+      setTimeout(function () { var el = root.querySelector('.bwin'); if (el) el.parentNode.removeChild(el); }, CONFIG.celebrateSec * 1000 + 100);   // done: take it away
+    }, bwWait * 1000);
+    bwEnd = bwWait + CONFIG.celebrateSec + 0.2;
   }
   // how long the animations run, so a data refresh doesn't redraw the screen in the middle of them
   var animEnd = entering ? 2.0 : 0;
