@@ -3108,13 +3108,17 @@ function leaderRow(l) {
 }
 function loadNflLeaders(cb) {
   var now = new Date().getTime();
-  if (DEMO || !singleNflNight() || now - nflLeaders.at < 3 * 3600000) return cb();
+  // fresh every 30 minutes, and straight away when another NFL game has gone final (season totals change then)
+  var finals = 0, nd = state.data.nfl, q0;
+  if (nd) for (q0 = 0; q0 < nd.games.length; q0++) if (isFinal(nd.games[q0])) finals++;
+  if (DEMO || !singleNflNight() || (now - nflLeaders.at < 30 * 60000 && finals === nflLeaders.finals)) return cb();
+  var bust = '&_=' + Math.floor(now / 600000);                       // so the TV's browser can't hand back an old copy
   var y = now && new Date().getFullYear(), m = new Date().getMonth(), season = m < 6 ? y - 1 : y;   // Jan-Jul still last year's season
-  var urls = ['https://site.web.api.espn.com/apis/site/v3/sports/football/nfl/leaders?season=' + season + '&seasontype=2',
-              'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/' + season + '/types/2/leaders?limit=' + LEADER_TOP];
+  var urls = ['https://site.web.api.espn.com/apis/site/v3/sports/football/nfl/leaders?season=' + season + '&seasontype=2' + bust,
+              'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/' + season + '/types/2/leaders?limit=' + LEADER_TOP + bust];
   var u = 0;
   function tryNext() {
-    if (u >= urls.length) { nflLeaders.at = now; return cb(); }
+    if (u >= urls.length) { nflLeaders.at = now; nflLeaders.finals = finals; return cb(); }
     getJSON(urls[u++], function (err, data) {
       var cats = (!err && data) ? leaderCats(data) : [];
       if (!cats.length) return tryNext();
@@ -3136,7 +3140,7 @@ function loadNflLeaders(cb) {
     var have = {}, q;
     for (q = 0; q < cats.length; q++) have[cats[q].key] = true;
     var jobs = [];
-    if (!have.QBR) jobs.push(['QBR', 'https://site.web.api.espn.com/apis/fitt/v3/sports/football/nfl/qbr?region=us&lang=en&qbrType=seasons&seasontype=2&isqualified=true&sort=schedAdjQBR%3Adesc&season=' + season, ['schedAdjQBR', 'qbr', 'QBR', 'totalQBR']]);
+    if (!have.QBR) jobs.push(['QBR', 'https://site.web.api.espn.com/apis/fitt/v3/sports/football/nfl/qbr?region=us&lang=en&qbrType=seasons&seasontype=2&isqualified=true&sort=schedAdjQBR%3Adesc&season=' + season + bust, ['schedAdjQBR', 'qbr', 'QBR', 'totalQBR']]);
     var x = 0;
     (function next() {
       if (x >= jobs.length) { finish(cats); return; }
@@ -3155,7 +3159,7 @@ function loadNflLeaders(cb) {
       var want = LEADER_CATS[k2][0], ck = cats[i2].key;
       if (ck === want || (want === 'QBR' && !hasQbr && ck === 'passerRating')) out.push(cats[i2]);
     }
-    nflLeaders = { at: now, cats: out };
+    nflLeaders = { at: now, finals: finals, cats: out };
     cb();
   }
   tryNext();
@@ -4190,7 +4194,7 @@ function renderPage() {
   if (pg.leaders) {
     renderTabs(pg.lg);
     var sy = new Date().getMonth() < 6 ? new Date().getFullYear() - 1 : new Date().getFullYear();
-    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">League leaders · ' + (LEADER_PAGES[pg.grp] || '') + ' · ' + sy + ' season</span>';
+    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">League leaders · ' + (LEADER_PAGES[pg.grp] || '') + ' · ' + sy + ' season' + (nflLeaders.at ? ' · as of ' + timeStr(new Date(nflLeaders.at)) : '') + '</span>';
     try { $('cards').innerHTML = leadersHTML(pg.grp); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
