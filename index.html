@@ -589,6 +589,8 @@
   .ptv .p3 .inj .ir b { min-width: 0; margin: 0 0 0 0.5em; }
   .narrow .ptv .inj .ir { font-size: 1.8vh; line-height: 2.4vh; } .narrow .ptv .inj .ih { font-size: 1.6vh; }
   #crawl .inj { margin-right: 3vw; } #crawl .inj b { color: #ff8a8a; font-weight: 700; margin: 0 0.4vw 0 0.8vw; } #crawl .inj b.q { color: #ffd27a; }
+  #crawl .ig { display: inline-block; margin: 0 2vw 0 3vw; padding: 0 1vw; line-height: 5.4vh; border-radius: 0.5vh; background: rgba(255,255,255,0.12); font-weight: 800; letter-spacing: 0.1vw; }
+  #crawl .inj .it { font-weight: 800; color: #ffffff; letter-spacing: 0.05vw; }
   .ptv .ld .c { font-size: 2vh; color: #9FA9BD; font-weight: 600; letter-spacing: 0.15vw; }
   .ptv .ld .p { font-size: 3vh; font-weight: 700; line-height: 3.6vh; }
   .ptv .ld .p span { font-size: 2.2vh; color: #a5aec4; font-weight: 600; margin-left: 0.4vw; }
@@ -3920,7 +3922,7 @@ function renderCrawl() {
   if (CONFIG.injuries) {                                // your teams' games today: who's out
     var soon = favGamesSoon(), isg = [], lab2 = { 'out': 'OUT', 'doubtful': 'DOUBTFUL', 'questionable': 'QUESTIONABLE', 'day-to-day': 'DAY-TO-DAY' };
     for (var si = 0; si < soon.length; si++) {
-      var ig = soon[si].g, inj = injuriesFor(ig), html2 = '';
+      var ig = soon[si].g, igl = soon[si].lg, inj = injuriesFor(ig), html2 = '';
       if (!inj) continue;
       var sides = [ig.teams.away, ig.teams.home], cps = compOf(ig) || {};
       for (var sd = 0; sd < 2; sd++) {
@@ -3928,9 +3930,12 @@ function renderCrawl() {
         for (var r2 = 0; r2 < rows2.length; r2++) { var k2 = rows2[r2].st; if (!by[k2]) by[k2] = []; if (by[k2].length < 4) by[k2].push(rows2[r2].name + (rows2[r2].pos ? ' (' + rows2[r2].pos + ')' : '')); }
         var parts = '';
         for (var kk in lab2) if (by[kk]) parts += '<b class="' + (kk === 'out' ? '' : 'q') + '">' + lab2[kk] + '</b>' + esc(by[kk].join(', '));
-        if (parts) html2 += '<span class="inj"><span class="nl">' + esc(sides[sd].abbreviation) + '</span>' + parts + '</span>';
+        var tnm = String(sides[sd].short || nickname(sides[sd].name) || sides[sd].abbreviation).toUpperCase();
+        if (parts) html2 += '<span class="inj"><span class="it">' + esc(tnm) + ':</span>' + parts + '</span>';
       }
-      if (html2) isg.push({ label: 'INJURIES', html: html2 });
+      // say which sport and game this is: "NFL INJURIES · KC @ CHI · CHIEFS: OUT ... · BEARS: OUT ..."
+      if (html2) isg.push({ label: (LEAGUE_NAMES[igl] || String(igl).toUpperCase()) + ' INJURIES',
+                            html: '<span class="ig">' + esc(ig.teams.away.abbreviation + ' @ ' + ig.teams.home.abbreviation) + '</span>' + html2 });
     }
     if (isg.length) groups.push(isg);
   }
