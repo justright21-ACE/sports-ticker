@@ -199,6 +199,11 @@
   .llg { display: inline-block; vertical-align: middle; position: relative; width: 6.2vh; height: 6.2vh; margin: -0.6vh 1vw 0 -0.4vw; border-radius: 50%; background: #f2f4f8; }
   .llg img { position: absolute; left: 0.7vh; top: 0.7vh; width: 4.8vh; height: 4.8vh; }
   .llg.sm { width: 4.6vh; height: 4.6vh; margin: -0.5vh 0.6vw 0 0; } .llg.sm img { left: 0.5vh; top: 0.5vh; width: 3.6vh; height: 3.6vh; }
+  .lalt { display: none; }
+  .ltag { font-size: 0.8em; margin-left: -0.3vw; }
+  .llg.lone { width: 7.4vh; height: 7.4vh; margin: -0.6vh 0 0 0; } .llg.lone img { left: 0.8vh; top: 0.8vh; width: 5.8vh; height: 5.8vh; }
+  .llg.lone + .lalt + .ltag { margin-left: 0.8vw; }
+  #crawl .nl .ltag { font-size: 0.75em; margin: 0; }
   .narrow .llg { width: 5vh; height: 5vh; margin-right: 0.7vw; } .narrow .llg img { width: 3.8vh; height: 3.8vh; left: 0.6vh; top: 0.6vh; }
   #crawllabel {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
@@ -1936,7 +1941,15 @@ function patternLogo(t, lg) {
   return 'https://a.espncdn.com/i/teamlogos/' + dir + '/500/' + (LOGO_ABBR[ab] || ab.toLowerCase()) + '.png';
 }
 /* league logos for the bottom bar (from ESPN, like the team logos); hidden if none loads */
-var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaa', 'ncaaf'], ncaab: ['ncaa', 'ncaam'], ufc: ['ufc'] };
+var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaa', 'ncaaf'], ncaab: ['ncaa', 'ncaam'] };   // COMBAT (UFC + PFL + boxing) keeps its name
+/* college shares the NCAA logo, so a short word says which sport */
+var LEAGUE_LOGO_TAG = { ncaaf: 'FOOTBALL', ncaab: 'HOOPS' };
+/* logo in place of the league's name; the name (class lalt) only appears if the logo can't load */
+function leagueMarkHTML(lg, name, cls) {
+  var logo = leagueLogoHTML(lg, cls);
+  if (!logo) return '<span class="lname">' + esc(name) + '</span>';
+  return logo + '<span class="lalt">' + esc(name) + '</span>' + (LEAGUE_LOGO_TAG[lg] ? '<span class="ltag">' + LEAGUE_LOGO_TAG[lg] + '</span>' : '');
+}
 function leagueLogoHTML(lg, cls) {
   var keys = LEAGUE_LOGOS[lg], urls = [];
   if (!keys || !CONFIG.leagueLogos) return '';
@@ -1948,7 +1961,10 @@ function leagueLogoErr(img) {
   while (list.length && !next) next = list.shift();
   img.setAttribute('data-next', list.join('|'));
   if (next) { img.src = next; return; }
-  img.parentNode.style.display = 'none';                // no logo: the text label is still there
+  var box = img.parentNode, n = box.nextSibling;
+  box.style.display = 'none';                            // no logo: show the league's name instead
+  if (n && /\blalt\b/.test(n.className)) { n.style.display = 'inline'; n = n.nextSibling; }
+  if (n && /\bltag\b/.test(n.className)) n.style.display = 'none';
 }
 function logoErr(img) {                             // try the next address in line, else hide
   var list = (img.getAttribute('data-next') || '').split('|'), next = '';
@@ -3967,7 +3983,7 @@ function renderCrawl() {
       var nh = '';
       for (var q = n; q < n + 3 && q < news.items.length; q++) {
         var it = news.items[q];
-        nh += '<span class="n">' + leagueLogoHTML(it.lg, 'llg sm') + '<span class="nl">' + (LEAGUE_NAMES[it.lg] || it.lg.toUpperCase()) + '</span>' + esc(it.h) + '</span>';
+        nh += '<span class="n">' + '<span class="nl">' + leagueMarkHTML(it.lg, LEAGUE_NAMES[it.lg] || it.lg.toUpperCase(), 'llg sm') + '</span>' + esc(it.h) + '</span>';
       }
       ns.push({ label: 'HEADLINES', html: nh });
     }
@@ -3997,7 +4013,9 @@ function playSegment(i) {
   i = i % segs.length;
   state.crawlIdx = i;
   var seg = segs[i];
-  $('crawllabel').innerHTML = (seg.lg ? leagueLogoHTML(seg.lg) : '') + esc(seg.label);
+  var lnm = seg.lg && LEAGUE_NAMES[seg.lg], lab = esc(seg.label);
+  if (lnm && seg.label.indexOf(lnm) === 0) lab = leagueMarkHTML(seg.lg, lnm, seg.label === lnm ? 'llg lone' : 'llg') + esc(seg.label.slice(lnm.length));
+  $('crawllabel').innerHTML = lab;
   el.innerHTML = seg.html;
   var start = $('crawlbar').offsetWidth, w = el.offsetWidth;
   var secs = Math.max(4, Math.round((start + w) / CONFIG.crawlSpeed));
