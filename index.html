@@ -341,10 +341,11 @@
   .nomotion .inx * { -webkit-animation: none !important; animation: none !important; } .nomotion .inx .ir2 { opacity: 1; }
   /* =========== NFL LEAGUE LEADERS (one-game nights) =========== */
   .lead { padding: 0 0.6vw; }
-  .lead .lbox { float: left; width: 31.6%; margin: 0 2.6% 2.4vh 0; }
+  .lead .lbox { float: left; width: 31.6%; margin: 0 2.6% 2vh 0; }
+  .lead.def .lbox { width: 48.5%; margin-right: 3%; } .lead.def .lbox:nth-child(3n) { margin-right: 3%; } .lead.def .lbox:nth-child(2n) { margin-right: 0; }   /* 2 x 2 */
   .lead .lbox:nth-child(3n) { margin-right: 0; }
   .lead .lh { font-size: 2.2vh; line-height: 3.6vh; font-weight: 700; letter-spacing: 0.15vw; color: #f5b800; border-bottom: 0.3vh solid #1b2338; }
-  .lead .lr { position: relative; height: 5.4vh; line-height: 5.4vh; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden; padding-right: 0.4vw; }
+  .lead .lr { position: relative; height: 4.9vh; line-height: 4.9vh; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden; padding-right: 0.4vw; }
   .lead .lr.fav { background: rgba(245,184,0,0.14); }
   .lead .ln { display: inline-block; width: 2.2vw; text-align: right; margin-right: 0.8vw; font-size: 2.6vh; font-weight: 700; color: #a5aec4; }
   .lead .lp { font-size: 3vh; font-weight: 700; }
@@ -2264,7 +2265,12 @@ function buildPages() {
     var lg = CONFIG.leagues[i], wg = windowGames(lg);
     if (lg === 'nfl' && singleNflNight()) {          // one primetime game: it has its own screen; this tab = standings + leaders
       pages = pages.concat(standingsPages(lg));
-      if (nflLeaders.cats.length) pages.push({ lg: lg, leaders: true, hold: CONFIG.standingsHoldSec + 5, num: 'leaders', of: 1, games: [] });
+      var lgrp = ['off', 'def'];
+      for (var lq = 0; lq < lgrp.length; lq++) {
+        var anyC = false;
+        for (var lc = 0; lc < nflLeaders.cats.length; lc++) if ((nflLeaders.cats[lc].grp || 'off') === lgrp[lq]) anyC = true;
+        if (anyC) pages.push({ lg: lg, leaders: true, grp: lgrp[lq], hold: CONFIG.standingsHoldSec + 5, num: 'leaders-' + lgrp[lq], of: 1, games: [] });
+      }
       continue;
     }
     if (!wg.length) {
@@ -3075,8 +3081,13 @@ function singleNflNight() {
   return false;
 }
 var nflLeaders = { at: 0, cats: [] };
-var LEADER_CATS = [['passingYards', 'PASSING YARDS'], ['passingTouchdowns', 'PASSING TD'], ['rushingYards', 'RUSHING YARDS'],
-                   ['receivingYards', 'RECEIVING YARDS'], ['sacks', 'SACKS'], ['interceptions', 'INTERCEPTIONS']];
+/* top 5 in each, on two screens: passing & rushing, then receiving & defense */
+var LEADER_CATS = [['passingYards', 'PASSING YARDS', 'off'], ['passingTouchdowns', 'PASSING TD', 'off'], ['QBR', 'QBR', 'off'],
+                   ['rushingYards', 'RUSHING YARDS', 'off'], ['rushingTouchdowns', 'RUSHING TD', 'off'],
+                   ['receivingYards', 'RECEIVING YARDS', 'def'], ['receivingTouchdowns', 'RECEIVING TD', 'def'],
+                   ['sacks', 'SACKS', 'def'], ['interceptions', 'INTERCEPTIONS', 'def']];
+var LEADER_PAGES = { off: 'Passing & rushing', def: 'Receiving & defense' };
+var LEADER_TOP = 5;
 /* find leader categories anywhere in ESPN's answer: { name, leaders: [{ displayValue, athlete }] } */
 function leaderCats(data) {
   var found = {}, i;
@@ -3087,7 +3098,8 @@ function leaderCats(data) {
     for (var key in o) if (o.hasOwnProperty(key) && !(key === 'leaders' && o.name) && typeof o[key] === 'object') walk(o[key], depth + 1);
   })(data, 0);
   var out = [];
-  for (i = 0; i < LEADER_CATS.length; i++) if (found[LEADER_CATS[i][0]]) out.push({ title: LEADER_CATS[i][1], raw: found[LEADER_CATS[i][0]].leaders.slice(0, 3) });
+  for (i = 0; i < LEADER_CATS.length; i++) if (found[LEADER_CATS[i][0]]) out.push({ key: LEADER_CATS[i][0], title: LEADER_CATS[i][1], grp: LEADER_CATS[i][2], raw: found[LEADER_CATS[i][0]].leaders.slice(0, LEADER_TOP) });
+  if (found.quarterbackRating) out.push({ key: 'passerRating', title: 'PASSER RATING', grp: 'off', raw: found.quarterbackRating.leaders.slice(0, LEADER_TOP) });   // stand-in if QBR can't be had
   return out;
 }
 function leaderRow(l) {
@@ -3099,7 +3111,7 @@ function loadNflLeaders(cb) {
   if (DEMO || !singleNflNight() || now - nflLeaders.at < 3 * 3600000) return cb();
   var y = now && new Date().getFullYear(), m = new Date().getMonth(), season = m < 6 ? y - 1 : y;   // Jan-Jul still last year's season
   var urls = ['https://site.web.api.espn.com/apis/site/v3/sports/football/nfl/leaders?season=' + season + '&seasontype=2',
-              'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/' + season + '/types/2/leaders?limit=3'];
+              'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/' + season + '/types/2/leaders?limit=' + LEADER_TOP];
   var u = 0;
   function tryNext() {
     if (u >= urls.length) { nflLeaders.at = now; return cb(); }
@@ -3110,7 +3122,7 @@ function loadNflLeaders(cb) {
       for (c = 0; c < cats.length; c++) { cats[c].rows = []; for (r = 0; r < cats[c].raw.length; r++) { var row = leaderRow(cats[c].raw[r]); cats[c].rows.push(row); if (row.ref) refs.push(row); } }
       var j = 0;
       (function resolve() {                                              // the core feed names players by link only
-        if (j >= refs.length) { nflLeaders = { at: now, cats: cats }; return cb(); }
+        if (j >= refs.length) return extras(cats);
         var rw = refs[j++];
         getJSON(String(rw.ref).replace(/^http:/, 'https:'), function (e2, a) {
           if (!e2 && a) { rw.name = a.shortName || a.displayName || ''; rw.team = (a.team && a.team.abbreviation) || rw.team; }
@@ -3119,10 +3131,61 @@ function loadNflLeaders(cb) {
       })();
     });
   }
+  // QBR isn't in ESPN's standard leader lists: it comes from ESPN's QBR table
+  function extras(cats) {
+    var have = {}, q;
+    for (q = 0; q < cats.length; q++) have[cats[q].key] = true;
+    var jobs = [];
+    if (!have.QBR) jobs.push(['QBR', 'https://site.web.api.espn.com/apis/fitt/v3/sports/football/nfl/qbr?region=us&lang=en&qbrType=seasons&seasontype=2&isqualified=true&sort=schedAdjQBR%3Adesc&season=' + season, ['schedAdjQBR', 'qbr', 'QBR', 'totalQBR']]);
+    var x = 0;
+    (function next() {
+      if (x >= jobs.length) { finish(cats); return; }
+      var jb = jobs[x++];
+      getJSON(jb[1], function (e3, d3) {
+        var rows = (!e3 && d3) ? statTableTop(d3, jb[2]) : [];
+        if (rows.length) cats.push({ key: jb[0], title: 'QBR', grp: 'off', rows: rows });
+        next();
+      });
+    })();
+  }
+  function finish(cats) {                                            // keep the planned order; passer rating only if there's no QBR
+    var out = [], hasQbr = false, i2, k2;
+    for (i2 = 0; i2 < cats.length; i2++) if (cats[i2].key === 'QBR') hasQbr = true;
+    for (k2 = 0; k2 < LEADER_CATS.length; k2++) for (i2 = 0; i2 < cats.length; i2++) {
+      var want = LEADER_CATS[k2][0], ck = cats[i2].key;
+      if (ck === want || (want === 'QBR' && !hasQbr && ck === 'passerRating')) out.push(cats[i2]);
+    }
+    nflLeaders = { at: now, cats: out };
+    cb();
+  }
   tryNext();
 }
-function leadersHTML() {
-  var cats = nflLeaders.cats, html = '<div class="lead">';
+/* an ESPN stat table ({ categories: [{ name, names }], athletes: [{ athlete, categories: [{ name, totals }] }] }):
+   the top players for the first of these stats it has */
+function statTableTop(data, statNames) {
+  var cats = (data && data.categories) || [], ath = (data && (data.athletes || (data.results && data.results.athletes))) || [];
+  var ci = -1, si = -1, cname = '', i, k;
+  for (i = 0; i < cats.length && si < 0; i++) {
+    var names = cats[i].names || cats[i].labels || [];
+    for (var w = 0; w < statNames.length && si < 0; w++) for (k = 0; k < names.length; k++) if (String(names[k]).toLowerCase() === statNames[w].toLowerCase()) { ci = i; si = k; cname = cats[i].name; break; }
+  }
+  if (si < 0) return [];
+  var rows = [];
+  for (i = 0; i < ath.length; i++) {
+    var a = ath[i], at = a.athlete || {}, ac = a.categories || [], c = null;
+    for (k = 0; k < ac.length; k++) if (ac[k].name === cname) c = ac[k];
+    if (!c) c = ac[ci];
+    var vals = c && (c.totals || c.values), v = vals ? vals[si] : '';
+    if (v === undefined || v === null || v === '' || isNaN(parseFloat(v))) continue;
+    var tm = at.teamShortName || (at.team && at.team.abbreviation) || (at.teams && at.teams[0] && at.teams[0].abbreviation) || a.teamShortName || '';
+    rows.push({ name: at.shortName || at.displayName || at.name || '', team: tm, val: String(v), n: parseFloat(String(v).replace(/,/g, '')) });
+  }
+  rows.sort(function (p, q) { return q.n - p.n; });
+  return rows.slice(0, LEADER_TOP);
+}
+function leadersHTML(grp) {
+  var all = nflLeaders.cats, cats = [], html = '<div class="lead ' + (grp || 'off') + '">';
+  for (var c0 = 0; c0 < all.length; c0++) if (!grp || (all[c0].grp || 'off') === grp) cats.push(all[c0]);
   for (var c = 0; c < cats.length; c++) {
     html += '<div class="lbox"><div class="lh">' + esc(cats[c].title) + '</div>';
     for (var r = 0; r < cats[c].rows.length; r++) {
@@ -4127,8 +4190,8 @@ function renderPage() {
   if (pg.leaders) {
     renderTabs(pg.lg);
     var sy = new Date().getMonth() < 6 ? new Date().getFullYear() - 1 : new Date().getFullYear();
-    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">League leaders · ' + sy + ' season</span>';
-    try { $('cards').innerHTML = leadersHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">League leaders · ' + (LEADER_PAGES[pg.grp] || '') + ' · ' + sy + ' season</span>';
+    try { $('cards').innerHTML = leadersHTML(pg.grp); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
   if (pg.stand) {
