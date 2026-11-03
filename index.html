@@ -200,6 +200,11 @@
   .llg img, .llg svg { position: absolute; left: 0.7vh; top: 0.7vh; width: 4.8vh; height: 4.8vh; }
   .llg.sm { width: 4.6vh; height: 4.6vh; margin: -0.5vh 0.6vw 0 0; } .llg.sm img, .llg.sm svg { left: 0.5vh; top: 0.5vh; width: 3.6vh; height: 3.6vh; }
   .lalt { display: none; }
+  /* the NCAA logos are detailed, so they get a bigger rounded white tile instead of the small circle */
+  .llg.coll { width: 8vh; height: 7.4vh; border-radius: 1vh; margin-top: -0.6vh; }
+  .llg.coll img { left: 0.3vh; top: 0.1vh; width: 7.2vh; height: 7.2vh; }
+  .llg.sm.coll { width: 5.6vh; height: 5.2vh; border-radius: 0.8vh; } .llg.sm.coll img { left: 0.2vh; top: 0; width: 5.2vh; height: 5.2vh; }
+  .narrow .llg.coll { width: 6.2vh; height: 5.8vh; } .narrow .llg.coll img { left: 0.3vh; top: 0.1vh; width: 5.6vh; height: 5.6vh; }
   .ltag { margin-left: -0.3vw; }
   .llg.lone { width: 7.4vh; height: 7.4vh; margin: -0.6vh 0 0 0; } .llg.lone img, .llg.lone svg { left: 0.8vh; top: 0.8vh; width: 5.8vh; height: 5.8vh; }
   .llg.lone + .lalt + .ltag { margin-left: 0.8vw; }
@@ -1950,7 +1955,10 @@ function patternLogo(t, lg) {
 var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaaf'], ncaab: ['ncaab'] };   // COMBAT (UFC + PFL + boxing) keeps its name
 /* college gets a football / basketball icon plus CFB / CBB, so it isn't mistaken for the NFL or NBA */
 var LEAGUE_LOGO_TAG = { ncaaf: 'CFB', ncaab: 'CBB' };
-/* college: our own football / basketball drawing (always shows, nothing to download) */
+/* college: the NCAA football / basketball logos saved with the site (img/), and if one of those can't
+   load, our own football / basketball drawing (always shows, nothing to download) */
+var COLLEGE_LOGO_FILES = { ncaaf: 'img/ncaa-football.png', ncaab: 'img/ncaa-basketball.png' };
+function collegeLogoErr(img) { var box = img.parentNode; box.className = box.className.replace(/\s*coll\b/, ''); box.innerHTML = SPORT_ICONS[img.getAttribute('data-icon')] || ''; }
 var SPORT_ICONS = {
   ncaaf: '<svg viewBox="0 0 50 50"><g transform="rotate(-35 25 25)"><ellipse cx="25" cy="25" rx="22" ry="13.5" fill="#7a3b12"/>' +
          '<g stroke="#fff" stroke-width="2.3"><line x1="16" y1="25" x2="34" y2="25"/><line x1="19" y1="21.5" x2="19" y2="28.5"/><line x1="23" y1="21.5" x2="23" y2="28.5"/>' +
@@ -1970,6 +1978,7 @@ var feedLeagueLogo = {};
 function leagueLogoHTML(lg, cls) {
   var keys = LEAGUE_LOGOS[lg], urls = [], i;
   if (!keys || !CONFIG.leagueLogos) return '';
+  if (COLLEGE_LOGO_FILES[lg]) return '<span class="' + (cls || 'llg') + ' coll"><img src="' + COLLEGE_LOGO_FILES[lg] + '" data-icon="' + lg + '" onerror="collegeLogoErr(this)" alt=""></span>';
   if (SPORT_ICONS[lg]) return '<span class="' + (cls || 'llg') + '">' + SPORT_ICONS[lg] + '</span>';
   if (feedLeagueLogo[lg]) urls.push(feedLeagueLogo[lg]);
   for (i = 0; i < keys.length; i++) { var path = '/i/teamlogos/leagues/500/' + keys[i] + '.png'; urls.push('https://a.espncdn.com/combiner/i?img=' + path + '&w=80&h=80'); urls.push('https://a.espncdn.com' + path); }
