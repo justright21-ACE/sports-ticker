@@ -197,14 +197,14 @@
   }
   /* league logo on a light disc (so dark logos show) in the bottom bar's label and next to each headline */
   .llg { display: inline-block; vertical-align: middle; position: relative; width: 6.2vh; height: 6.2vh; margin: -0.6vh 1vw 0 -0.4vw; border-radius: 50%; background: #f2f4f8; }
-  .llg img { position: absolute; left: 0.7vh; top: 0.7vh; width: 4.8vh; height: 4.8vh; }
-  .llg.sm { width: 4.6vh; height: 4.6vh; margin: -0.5vh 0.6vw 0 0; } .llg.sm img { left: 0.5vh; top: 0.5vh; width: 3.6vh; height: 3.6vh; }
+  .llg img, .llg svg { position: absolute; left: 0.7vh; top: 0.7vh; width: 4.8vh; height: 4.8vh; }
+  .llg.sm { width: 4.6vh; height: 4.6vh; margin: -0.5vh 0.6vw 0 0; } .llg.sm img, .llg.sm svg { left: 0.5vh; top: 0.5vh; width: 3.6vh; height: 3.6vh; }
   .lalt { display: none; }
-  .ltag { font-size: 0.8em; margin-left: -0.3vw; }
-  .llg.lone { width: 7.4vh; height: 7.4vh; margin: -0.6vh 0 0 0; } .llg.lone img { left: 0.8vh; top: 0.8vh; width: 5.8vh; height: 5.8vh; }
+  .ltag { margin-left: -0.3vw; }
+  .llg.lone { width: 7.4vh; height: 7.4vh; margin: -0.6vh 0 0 0; } .llg.lone img, .llg.lone svg { left: 0.8vh; top: 0.8vh; width: 5.8vh; height: 5.8vh; }
   .llg.lone + .lalt + .ltag { margin-left: 0.8vw; }
   #crawl .nl .ltag { font-size: 0.75em; margin: 0; }
-  .narrow .llg { width: 5vh; height: 5vh; margin-right: 0.7vw; } .narrow .llg img { width: 3.8vh; height: 3.8vh; left: 0.6vh; top: 0.6vh; }
+  .narrow .llg { width: 5vh; height: 5vh; margin-right: 0.7vw; } .narrow .llg img, .narrow .llg svg { width: 3.8vh; height: 3.8vh; left: 0.6vh; top: 0.6vh; }
   #crawllabel {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
     background: #f5b800; color: #05070d; padding: 0 1.6vw;
@@ -1947,30 +1947,32 @@ function patternLogo(t, lg) {
   return 'https://a.espncdn.com/i/teamlogos/' + dir + '/500/' + (LOGO_ABBR[ab] || ab.toLowerCase()) + '.png';
 }
 /* league logos for the bottom bar (from ESPN, like the team logos); hidden if none loads */
-var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaa', 'ncaaf'], ncaab: ['ncaa', 'ncaam'] };   // COMBAT (UFC + PFL + boxing) keeps its name
-/* college shares the NCAA logo, so a short word says which sport */
-var LEAGUE_LOGO_TAG = { ncaaf: 'FOOTBALL', ncaab: 'HOOPS' };
+var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaaf'], ncaab: ['ncaab'] };   // COMBAT (UFC + PFL + boxing) keeps its name
+/* college gets a football / basketball icon plus CFB / CBB, so it isn't mistaken for the NFL or NBA */
+var LEAGUE_LOGO_TAG = { ncaaf: 'CFB', ncaab: 'CBB' };
+/* college: our own football / basketball drawing (always shows, nothing to download) */
+var SPORT_ICONS = {
+  ncaaf: '<svg viewBox="0 0 50 50"><g transform="rotate(-35 25 25)"><ellipse cx="25" cy="25" rx="22" ry="13.5" fill="#7a3b12"/>' +
+         '<g stroke="#fff" stroke-width="2.3"><line x1="16" y1="25" x2="34" y2="25"/><line x1="19" y1="21.5" x2="19" y2="28.5"/><line x1="23" y1="21.5" x2="23" y2="28.5"/>' +
+         '<line x1="27" y1="21.5" x2="27" y2="28.5"/><line x1="31" y1="21.5" x2="31" y2="28.5"/></g>' +
+         '<path d="M6 25 Q8 19 11 17 M44 25 Q42 31 39 33" stroke="#fff" stroke-width="1.8" fill="none"/></g></svg>',
+  ncaab: '<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="21" fill="#e8741c"/><g stroke="#2a1405" stroke-width="2" fill="none">' +
+         '<line x1="4" y1="25" x2="46" y2="25"/><line x1="25" y1="4" x2="25" y2="46"/><path d="M10 10 Q20 25 10 40"/><path d="M40 10 Q30 25 40 40"/></g></svg>'
+};
 /* logo in place of the league's name; the name (class lalt) only appears if the logo can't load */
 function leagueMarkHTML(lg, name, cls) {
   var logo = leagueLogoHTML(lg, cls);
   if (!logo) return '<span class="lname">' + esc(name) + '</span>';
   return logo + '<span class="lalt">' + esc(name) + '</span>' + (LEAGUE_LOGO_TAG[lg] ? '<span class="ltag">' + LEAGUE_LOGO_TAG[lg] + '</span>' : '');
 }
-/* ESPN has no NCAA logo where the pro league logos live, so college tries the logo its own feed names,
-   then ESPN's college icons, then the NCAA logo on Wikimedia Commons */
+/* pro leagues: the logo named in the league's own scoreboard feed first, then ESPN's league logo folder */
 var feedLeagueLogo = {};
-var COLLEGE_LOGOS = {
-  ncaaf: ['https://a.espncdn.com/redesign/assets/img/icons/ESPN-icon-football-college.png'],
-  ncaab: ['https://a.espncdn.com/redesign/assets/img/icons/ESPN-icon-basketball.png']
-};
-var NCAA_LOGO_FALLBACKS = ['https://a.espncdn.com/i/espn/misc_logos/500/ncaa.png',
-  'https://commons.wikimedia.org/wiki/Special:FilePath/NCAA_logo.svg?width=120'];
 function leagueLogoHTML(lg, cls) {
   var keys = LEAGUE_LOGOS[lg], urls = [], i;
   if (!keys || !CONFIG.leagueLogos) return '';
+  if (SPORT_ICONS[lg]) return '<span class="' + (cls || 'llg') + '">' + SPORT_ICONS[lg] + '</span>';
   if (feedLeagueLogo[lg]) urls.push(feedLeagueLogo[lg]);
-  if (COLLEGE_LOGOS[lg]) urls = urls.concat(COLLEGE_LOGOS[lg], NCAA_LOGO_FALLBACKS);
-  else for (i = 0; i < keys.length; i++) { var path = '/i/teamlogos/leagues/500/' + keys[i] + '.png'; urls.push('https://a.espncdn.com/combiner/i?img=' + path + '&w=80&h=80'); urls.push('https://a.espncdn.com' + path); }
+  for (i = 0; i < keys.length; i++) { var path = '/i/teamlogos/leagues/500/' + keys[i] + '.png'; urls.push('https://a.espncdn.com/combiner/i?img=' + path + '&w=80&h=80'); urls.push('https://a.espncdn.com' + path); }
   return '<span class="' + (cls || 'llg') + '"><img src="' + esc(urls[0]) + '" data-next="' + esc(urls.slice(1).join('|')) + '" onerror="leagueLogoErr(this)" onload="if (this.naturalWidth < 8) leagueLogoErr(this)" alt=""></span>';
 }
 function leagueLogoErr(img) {
