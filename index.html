@@ -1984,6 +1984,9 @@ function redZoneOf(e, lg) {
   if (!e.live || (lg !== 'nfl' && lg !== 'ncaaf')) return null;
   var c = compOf(e), s = c && c.situation;
   if (!s || !s.isRedZone) return null;
+  // right after a score ESPN often still says "red zone" until the kickoff: that's left over, not a drive
+  var lp = s.lastPlay || {}, lpt = String(lp.text || '') + ' ' + String((lp.type && lp.type.text) || '');
+  if (/touchdown|field goal|extra point|two-point|2-pt|safety|kickoff|kicks? off|onside/i.test(lpt)) return null;
   var aw = sideComp(c, 'away') || {}, side = String((aw.team || {}).id) === String(s.possession) ? 'away' : 'home';
   return { side: side, team: e.teams[side], spot: s.downDistanceText || s.shortDownDistanceText || '' };
 }
@@ -2407,7 +2410,7 @@ function ptHTML(g, kind, lg) {
       '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"></span>' : '') + (which === 'away' ? rkh : '') + esc(t.abbreviation) + (which === 'home' ? rkh : '') +
       (which === 'away' && poss ? '<span class="ball"></span>' : '') + '</div>' +
       '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div>' +
-      (poss && foot && s.isRedZone && CONFIG.redZone ? '<div class="rzp">RED ZONE</div>' : '') + '</div></div>';
+      (poss && foot && CONFIG.redZone && redZoneOf(g, lg) ? '<div class="rzp">RED ZONE</div>' : '') + '</div></div>';
   }
   var center = pre
     ? '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">' + startWord + '</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
@@ -2747,6 +2750,7 @@ function turnoverHTML(to, t, lg) {
     '<div class="tb" style="background:#' + col + '"><b>' + esc(to.kind) + '</b><i>' + esc(nick + ' BALL' + (to.who ? ' · ' + String(to.who).toUpperCase() : '')) + '</i></div>' +
     '<div class="bx"><div class="by">' + FOOTBALL + '</div></div></div>';
 }
+function prev_a(p) { return p ? p.a : 0; } function prev_h(p) { return p ? p.h : 0; }
 /* ---- sacks ---- */
 function sackOf(g) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
@@ -3079,7 +3083,9 @@ function ptAnimate(pg) {
     setTimeout(function () { for (var j = 0; j < els.length; j++) if (els[j][0] && els[j][2]) els[j][0].style.left = els[j][2]; }, 60);
   }
   // just got inside the 20: a red RED ZONE alert sweeps across (after any big-play / turnover / sack animation)
-  if (prev && rzN && (!prev.rz || prev.rzSide !== rzN.side || a !== prev.a || h !== prev.h)) {   // a new trip inside the 20
+  var scorer = a > prev_a(prev) ? 'away' : (h > prev_h(prev) ? 'home' : '');
+  // a new trip inside the 20; never for the team that just scored (that "red zone" is left over until the kickoff)
+  if (prev && rzN && rzN.side !== scorer && (!prev.rz || prev.rzSide !== rzN.side || scorer)) {
     var rzt = String(rzN.team.short || nickname(rzN.team.name) || rzN.team.abbreviation).toUpperCase();
     var rzHtml = '<div class="rza"><div class="rzs"><b>RED ZONE</b><i>' + esc(rzt + (rzN.spot ? ' · ' + rzN.spot : '')) + '</i></div></div>';
     var rzWait = delay ? delay - 0.3 : (entering ? 1.0 : 0);
