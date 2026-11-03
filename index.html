@@ -1623,8 +1623,8 @@ function fromBoxing(ev, idx) {
     evLabel: 'Boxing · ' + m[0].replace(/^\s+|\s+$/g, '') + ' vs ' + m[1].replace(/^\s+|\s+$/g, '') + ' · ' + day
   };
 }
-/* WWE premium live events (PLEs) only: the weekly TV shows and TV specials are skipped */
-var WWE_WEEKLY = /^(monday night raw|raw|friday night smackdown|smackdown|nxt|wwe nxt|main event|speed|level up|nxt level up|evolve|superstars|saturday night'?s main event|nxt (on cw|tuesday))$/i;
+/* WWE premium live events (PLEs) plus Saturday Night's Main Event; the weekly TV shows are skipped */
+var WWE_WEEKLY = /^(monday night raw|raw|friday night smackdown|smackdown|nxt|wwe nxt|main event|speed|level up|nxt level up|evolve|superstars|nxt (on cw|tuesday))$/i;   // Saturday Night's Main Event counts as a big event, so it shows
 function wweShow(title) {
   return String(title || '').replace(/\s+/g, ' ').replace(/^\s*wwe\s*[:\-]?\s*/i, '')
     .replace(/\s*[\-:#]?\s*(\d{1,2}[\/.\-]\d{1,2}([\/.\-]\d{2,4})?|\d{4}-\d{2}-\d{2}|episode \d+|#\d+)\s*$/i, '').replace(/^\s+|\s+$/g, '');
