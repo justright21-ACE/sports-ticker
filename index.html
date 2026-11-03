@@ -195,6 +195,11 @@
     position: absolute; left: 0; right: 0; bottom: 4vh; height: 9vh;
     background: #0b1020; border-top: 0.35vh solid #f5b800; overflow: hidden;
   }
+  /* league logo on a light disc (so dark logos show) in the bottom bar's label and next to each headline */
+  .llg { display: inline-block; vertical-align: middle; position: relative; width: 6.2vh; height: 6.2vh; margin: -0.6vh 1vw 0 -0.4vw; border-radius: 50%; background: #f2f4f8; }
+  .llg img { position: absolute; left: 0.7vh; top: 0.7vh; width: 4.8vh; height: 4.8vh; }
+  .llg.sm { width: 4.6vh; height: 4.6vh; margin: -0.5vh 0.6vw 0 0; } .llg.sm img { left: 0.5vh; top: 0.5vh; width: 3.6vh; height: 3.6vh; }
+  .narrow .llg { width: 5vh; height: 5vh; margin-right: 0.7vw; } .narrow .llg img { width: 3.8vh; height: 3.8vh; left: 0.6vh; top: 0.6vh; }
   #crawllabel {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
     background: #f5b800; color: #05070d; padding: 0 1.6vw;
@@ -869,6 +874,7 @@ var CONFIG = {
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
+  leagueLogos: true,     // league logos in the bottom bar (?leaguelogos=0 shows just the names)
   injuries: true,        // injury reports on the big screens and for your teams' games in the bottom bar (?injuries=0 off)
   // Bears and USC: always a big screen; live (not halftime) it holds 5 minutes, and their score, plays
   // and stats are re-checked every 10 seconds (?fast=0 goes back to every 30)
@@ -972,6 +978,7 @@ function readParams() {
     if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'injuries') CONFIG.injuries = v !== '0';
+    if (k === 'leaguelogos') CONFIG.leagueLogos = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
@@ -1927,6 +1934,21 @@ function patternLogo(t, lg) {
   var ab = String(t.abbreviation || '').toUpperCase();
   if (!ab) return '';
   return 'https://a.espncdn.com/i/teamlogos/' + dir + '/500/' + (LOGO_ABBR[ab] || ab.toLowerCase()) + '.png';
+}
+/* league logos for the bottom bar (from ESPN, like the team logos); hidden if none loads */
+var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaa', 'ncaaf'], ncaab: ['ncaa', 'ncaam'], ufc: ['ufc'] };
+function leagueLogoHTML(lg, cls) {
+  var keys = LEAGUE_LOGOS[lg], urls = [];
+  if (!keys || !CONFIG.leagueLogos) return '';
+  for (var i = 0; i < keys.length; i++) { var path = '/i/teamlogos/leagues/500/' + keys[i] + '.png'; urls.push('https://a.espncdn.com/combiner/i?img=' + path + '&w=80&h=80'); urls.push('https://a.espncdn.com' + path); }
+  return '<span class="' + (cls || 'llg') + '"><img src="' + esc(urls[0]) + '" data-next="' + esc(urls.slice(1).join('|')) + '" onerror="leagueLogoErr(this)" alt=""></span>';
+}
+function leagueLogoErr(img) {
+  var list = (img.getAttribute('data-next') || '').split('|'), next = '';
+  while (list.length && !next) next = list.shift();
+  img.setAttribute('data-next', list.join('|'));
+  if (next) { img.src = next; return; }
+  img.parentNode.style.display = 'none';                // no logo: the text label is still there
 }
 function logoErr(img) {                             // try the next address in line, else hide
   var list = (img.getAttribute('data-next') || '').split('|'), next = '';
@@ -3915,7 +3937,7 @@ function renderCrawl() {
         }
         html += crawlGameHTML(e, lg, sx);
       }
-      segs.push({ label: name, html: html });
+      segs.push({ label: name, lg: lg, html: html });
     }
     if (segs.length) groups.push(segs);
   }
@@ -3934,7 +3956,7 @@ function renderCrawl() {
         if (parts) html2 += '<span class="inj"><span class="it">' + esc(tnm) + ':</span>' + parts + '</span>';
       }
       // say which sport and game this is: "NFL INJURIES · KC @ CHI · CHIEFS: OUT ... · BEARS: OUT ..."
-      if (html2) isg.push({ label: (LEAGUE_NAMES[igl] || String(igl).toUpperCase()) + ' INJURIES',
+      if (html2) isg.push({ label: (LEAGUE_NAMES[igl] || String(igl).toUpperCase()) + ' INJURIES', lg: igl,
                             html: '<span class="ig">' + esc(ig.teams.away.abbreviation + ' @ ' + ig.teams.home.abbreviation) + '</span>' + html2 });
     }
     if (isg.length) groups.push(isg);
@@ -3945,7 +3967,7 @@ function renderCrawl() {
       var nh = '';
       for (var q = n; q < n + 3 && q < news.items.length; q++) {
         var it = news.items[q];
-        nh += '<span class="n"><span class="nl">' + (LEAGUE_NAMES[it.lg] || it.lg.toUpperCase()) + '</span>' + esc(it.h) + '</span>';
+        nh += '<span class="n">' + leagueLogoHTML(it.lg, 'llg sm') + '<span class="nl">' + (LEAGUE_NAMES[it.lg] || it.lg.toUpperCase()) + '</span>' + esc(it.h) + '</span>';
       }
       ns.push({ label: 'HEADLINES', html: nh });
     }
@@ -3975,7 +3997,7 @@ function playSegment(i) {
   i = i % segs.length;
   state.crawlIdx = i;
   var seg = segs[i];
-  $('crawllabel').innerHTML = esc(seg.label);
+  $('crawllabel').innerHTML = (seg.lg ? leagueLogoHTML(seg.lg) : '') + esc(seg.label);
   el.innerHTML = seg.html;
   var start = $('crawlbar').offsetWidth, w = el.offsetWidth;
   var secs = Math.max(4, Math.round((start + w) / CONFIG.crawlSpeed));
