@@ -523,21 +523,89 @@
   @keyframes rzGlow { 0%, 100% { box-shadow: 0 0 0 0.4vh #ff2a2a, 0 0 3.4vh rgba(255,42,42,0.75); } 50% { box-shadow: 0 0 0 0.4vh #ff2a2a, 0 0 1vh rgba(255,42,42,0.25); } }
   .card.rz { -webkit-animation: rzGlow 1.3s ease-in-out infinite; animation: rzGlow 1.3s ease-in-out infinite; }
   .status .rzb { float: right; margin: 0.9vh 0 0 0.6vw; padding: 0 0.7vw; height: 3.4vh; line-height: 3.4vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff;
-    font-size: 2vh; font-weight: 800; letter-spacing: 0.12vw; -webkit-animation: ptPulse 1.3s ease-in-out infinite; animation: ptPulse 1.3s ease-in-out infinite; }
+    font-size: 2vh; font-weight: 800; letter-spacing: 0.12vw; -webkit-animation: rzSoft 1.6s ease-in-out infinite; animation: rzSoft 1.6s ease-in-out infinite; }
   .narrow .status .rzb { font-size: 1.6vh; padding: 0 0.5vw; }
   .ptv .rzp { display: inline-block; margin-top: 0.6vh; padding: 0 0.8vw; line-height: 3.2vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff; font-size: 2vh;
-    font-weight: 800; letter-spacing: 0.15vw; -webkit-animation: ptPulse 1.2s ease-in-out infinite; animation: ptPulse 1.2s ease-in-out infinite; }
+    font-weight: 800; letter-spacing: 0.15vw; -webkit-animation: rzSoft 1.6s ease-in-out infinite; animation: rzSoft 1.6s ease-in-out infinite; }
+  /* red-zone badges breathe gently instead of blinking */
+  @-webkit-keyframes rzSoft { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+  @keyframes rzSoft { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
   .ptv .rza { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 7; overflow: hidden; pointer-events: none; }
   .ptv .rza .rzs { position: absolute; left: 0; right: 0; top: 8vh; height: 13vh; text-align: center; color: #ffffff;
     background: #d81e1e; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 2vh, rgba(0,0,0,0) 2vh, rgba(0,0,0,0) 4vh);
-    border-top: 0.4vh solid #ffffff; border-bottom: 0.4vh solid #ffffff; -webkit-animation: rzSweep 2.8s ease-in-out 1 both; animation: rzSweep 2.8s ease-in-out 1 both; }
+    border-top: 0.4vh solid #ffffff; border-bottom: 0.4vh solid #ffffff; overflow: hidden;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;     /* its own layer: glides without repainting the screen under it */
+    -webkit-animation: rzSweep 2.8s linear 1 both; animation: rzSweep 2.8s linear 1 both; }
+  /* a light sheen glides across the banner once it's in, instead of blinking it (the old blink let the score show through) */
+  .ptv .rza .rzs:after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
+    background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0) 100%);
+    background: linear-gradient(to right, rgba(255,255,255,0) 0, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0) 100%);
+    -webkit-animation: rzShine 2.8s linear 1 both; animation: rzShine 2.8s linear 1 both; }
   .ptv .rza .rzs b { display: block; font-size: 7vh; line-height: 8.4vh; font-weight: 800; letter-spacing: 1vw; }
   .ptv .rza .rzs i { display: block; font-style: normal; font-size: 2.4vh; line-height: 3vh; font-weight: 700; letter-spacing: 0.25vw; }
-  @-webkit-keyframes rzSweep { 0% { -webkit-transform: translateX(-102%); } 16% { -webkit-transform: translateX(0); } 28% { opacity: 1; } 34% { opacity: 0.55; } 40% { opacity: 1; } 46% { opacity: 0.55; } 52% { opacity: 1; } 84% { -webkit-transform: translateX(0); opacity: 1; } 100% { -webkit-transform: translateX(102%); opacity: 1; } }
-  @keyframes rzSweep { 0% { transform: translateX(-102%); } 16% { transform: translateX(0); } 28% { opacity: 1; } 34% { opacity: 0.55; } 40% { opacity: 1; } 46% { opacity: 0.55; } 52% { opacity: 1; } 84% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(102%); opacity: 1; } }
+  /* slides in fast and settles, holds solid, then glides off: transform only, never see-through */
+  @-webkit-keyframes rzSweep { 0% { -webkit-transform: translate3d(-102%,0,0); -webkit-animation-timing-function: cubic-bezier(0.16,0.84,0.3,1); }
+    15% { -webkit-transform: translate3d(0,0,0); } 84% { -webkit-transform: translate3d(0,0,0); -webkit-animation-timing-function: cubic-bezier(0.6,0,0.84,0.4); } 100% { -webkit-transform: translate3d(102%,0,0); } }
+  @keyframes rzSweep { 0% { transform: translate3d(-102%,0,0); animation-timing-function: cubic-bezier(0.16,0.84,0.3,1); }
+    15% { transform: translate3d(0,0,0); } 84% { transform: translate3d(0,0,0); animation-timing-function: cubic-bezier(0.6,0,0.84,0.4); } 100% { transform: translate3d(102%,0,0); } }
+  @-webkit-keyframes rzShine { 0%, 20% { -webkit-transform: translate3d(-110%,0,0); } 52% { -webkit-transform: translate3d(360%,0,0); } 100% { -webkit-transform: translate3d(360%,0,0); } }
+  @keyframes rzShine { 0%, 20% { transform: translate3d(-110%,0,0); } 52% { transform: translate3d(360%,0,0); } 100% { transform: translate3d(360%,0,0); } }
   .nomotion .card.rz { -webkit-animation: none; animation: none; box-shadow: 0 0 0 0.4vh #ff2a2a; } .nomotion .status .rzb { -webkit-animation: none; animation: none; }
+  /* BEARS WIN: navy panel, orange stripes, logo spins in, the chant slams in line by line, confetti */
+  .ptv .bwin { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 9; overflow: hidden; pointer-events: none;
+    -webkit-animation: bwOut 7s linear 1 both; animation: bwOut 7s linear 1 both; }
+  .bwin .bwbg { position: absolute; left: 0; top: 0; right: 0; bottom: 0; -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%;
+    -webkit-animation: bwBg 0.45s cubic-bezier(0.2,0.8,0.3,1) 1 both; animation: bwBg 0.45s cubic-bezier(0.2,0.8,0.3,1) 1 both; }
+  .bwin .bwst { position: absolute; top: 0; bottom: 0; left: 0; width: 200%; opacity: 0.22;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    -webkit-animation: bwSlide 7s linear 1 both; animation: bwSlide 7s linear 1 both; }
+  .bwin .cf { position: absolute; top: -6vh; border-radius: 0.2vh; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    -webkit-animation-name: bwFall; animation-name: bwFall; -webkit-animation-timing-function: linear; animation-timing-function: linear;
+    -webkit-animation-iteration-count: 1; animation-iteration-count: 1; -webkit-animation-fill-mode: both; animation-fill-mode: both; }
+  .bwin .bwlogo { position: absolute; left: 50%; top: 3%; border-radius: 50%; background: #ffffff;
+    -webkit-animation: bwLogo 0.9s 0.35s cubic-bezier(0.2,0.9,0.3,1.25) 1 both; animation: bwLogo 0.9s 0.35s cubic-bezier(0.2,0.9,0.3,1.25) 1 both; }
+  .bwin .bwlogo img { position: absolute; left: 12%; top: 12%; width: 76%; height: 76%; }
+  .bwin .bwt { position: absolute; left: 0; right: 0; text-align: center; font-weight: 900; letter-spacing: 0.4vw; white-space: nowrap; }
+  .bwin .bwt span { display: inline-block; }
+  .bwin .bw1 span {
+    -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out 6 forwards; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out 6 forwards; }
+  .bwin .bw2 span {
+    -webkit-animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out 6 forwards; animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out 6 forwards; }
+  .bwin .bwsc { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; color: #ffffff; font-size: 4.4vh; font-weight: 800; letter-spacing: 0.3vw;
+    -webkit-animation: bwUp 0.6s 2.2s ease-out 1 both; animation: bwUp 0.6s 2.2s ease-out 1 both; }
+  .bwin .jmp span { -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both; }
+  .bwin .bw2.jmp span { -webkit-animation-delay: 1.5s; animation-delay: 1.5s; }
+  .bwin .jl { display: inline-block; font-weight: 900; -webkit-animation: bwJump 0.55s ease-in-out 5 forwards; animation: bwJump 0.55s ease-in-out 5 forwards; }
+  .bwin .bwh { position: absolute; top: 4%; overflow: visible; }
+  .bwin .bwh.l { left: 16%; } .bwin .bwh.r { right: 16%; -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  .bwin .bwh div { width: 100%; height: 100%; -webkit-animation: bwHandUp 0.7s 0.6s cubic-bezier(0.2,0.9,0.3,1.2) 1 both, bwPump 0.5s 1.5s ease-in-out 9 forwards;
+    animation: bwHandUp 0.7s 0.6s cubic-bezier(0.2,0.9,0.3,1.2) 1 both, bwPump 0.5s 1.5s ease-in-out 9 forwards; }
+  .bwin .bwh.r div { -webkit-animation-delay: 0.75s, 1.75s; animation-delay: 0.75s, 1.75s; }
+  .bwin .bwh svg { width: 100%; height: 100%; }
+  @-webkit-keyframes bwJump { 0%, 100% { -webkit-transform: translate3d(0,0,0); } 45% { -webkit-transform: translate3d(0,-22%,0); } }
+  @keyframes bwJump { 0%, 100% { transform: translate3d(0,0,0); } 45% { transform: translate3d(0,-22%,0); } }
+  @-webkit-keyframes bwHandUp { 0% { opacity: 0; -webkit-transform: translate3d(0,140%,0) rotate(-20deg); } 100% { opacity: 1; -webkit-transform: translate3d(0,0,0) rotate(0deg); } }
+  @keyframes bwHandUp { 0% { opacity: 0; transform: translate3d(0,140%,0) rotate(-20deg); } 100% { opacity: 1; transform: translate3d(0,0,0) rotate(0deg); } }
+  @-webkit-keyframes bwPump { 0%, 100% { -webkit-transform: translate3d(0,0,0); } 40% { -webkit-transform: translate3d(0,-12%,0) rotate(-6deg); } }
+  @keyframes bwPump { 0%, 100% { transform: translate3d(0,0,0); } 40% { transform: translate3d(0,-12%,0) rotate(-6deg); } }
+  @-webkit-keyframes bwOut { 0%, 91% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes bwOut { 0%, 91% { opacity: 1; } 100% { opacity: 0; } }
+  @-webkit-keyframes bwBg { 0% { -webkit-transform: scaleY(0); } 100% { -webkit-transform: scaleY(1); } }
+  @keyframes bwBg { 0% { transform: scaleY(0); } 100% { transform: scaleY(1); } }
+  @-webkit-keyframes bwSlide { 0% { -webkit-transform: translate3d(0,0,0); } 100% { -webkit-transform: translate3d(-30%,0,0); } }
+  @keyframes bwSlide { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-30%,0,0); } }
+  @-webkit-keyframes bwFall { 0% { -webkit-transform: translate3d(0,0,0) rotate(0deg); } 100% { -webkit-transform: translate3d(4vw,118vh,0) rotate(720deg); } }
+  @keyframes bwFall { 0% { transform: translate3d(0,0,0) rotate(0deg); } 100% { transform: translate3d(4vw,118vh,0) rotate(720deg); } }
+  @-webkit-keyframes bwLogo { 0% { -webkit-transform: scale(0) rotate(-270deg); } 100% { -webkit-transform: scale(1) rotate(0deg); } }
+  @keyframes bwLogo { 0% { transform: scale(0) rotate(-270deg); } 100% { transform: scale(1) rotate(0deg); } }
+  @-webkit-keyframes bwSlam { 0% { opacity: 0; -webkit-transform: scale(2.6); } 60% { opacity: 1; -webkit-transform: scale(0.94); } 78% { -webkit-transform: scale(1.04) translate3d(-0.6vw,0,0); } 90% { -webkit-transform: scale(1) translate3d(0.4vw,0,0); } 100% { opacity: 1; -webkit-transform: scale(1); } }
+  @keyframes bwSlam { 0% { opacity: 0; transform: scale(2.6); } 60% { opacity: 1; transform: scale(0.94); } 78% { transform: scale(1.04) translate3d(-0.6vw,0,0); } 90% { transform: scale(1) translate3d(0.4vw,0,0); } 100% { opacity: 1; transform: scale(1); } }
+  @-webkit-keyframes bwBeat { 0%, 100% { -webkit-transform: scale(1); } 40% { -webkit-transform: scale(1.08); } }
+  @keyframes bwBeat { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.08); } }
+  @-webkit-keyframes bwUp { 0% { opacity: 0; -webkit-transform: translate3d(0,3vh,0); } 100% { opacity: 1; -webkit-transform: translate3d(0,0,0); } }
+  @keyframes bwUp { 0% { opacity: 0; transform: translate3d(0,3vh,0); } 100% { opacity: 1; transform: translate3d(0,0,0); } }
   .nomotion .ptv * { -webkit-animation: none !important; animation: none !important; -webkit-transition: none !important; transition: none !important; }
-  .nomotion .ptv .pop, .nomotion .ptv .wipe, .nomotion .ptv .bigplay, .nomotion .ptv .tov, .nomotion .ptv .sack, .nomotion .ptv .rza { display: none; }
+  .nomotion .ptv .pop, .nomotion .ptv .wipe, .nomotion .ptv .bigplay, .nomotion .ptv .tov, .nomotion .ptv .sack, .nomotion .ptv .rza, .nomotion .ptv .bwin { display: none; }
   /* =========== NFL PRIMETIME SCREEN (SNF / MNF / TNF) =========== */
   .tab.pt { border: 0.3vh solid #f5b800; color: #ffffff; }
   .tab.pt.on { background: #f5b800; color: #05070d; }
@@ -896,6 +964,7 @@ var CONFIG = {
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
+  celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
   leagueLogos: true,     // league logos in the bottom bar (?leaguelogos=0 shows just the names)
   injuries: true,        // injury reports on the big screens and for your teams' games in the bottom bar (?injuries=0 off)
@@ -1003,6 +1072,7 @@ function readParams() {
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'leaguelogos') CONFIG.leagueLogos = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
+    if (k === 'celebrate' || k === 'bearswin') CONFIG.celebrate = v !== '0';
     if (k === 'standings') CONFIG.standings = v !== '0';               // ?standings=0 off, ?standings=all every day
     if (k === 'standings' && v === 'all') CONFIG.standingsDaily = true;
     if (k === 'gamedayafter' && +v >= 0) CONFIG.gamedayAfterMin = +v;  // minutes the game-day screen stays after the final
@@ -2754,7 +2824,8 @@ function detectJump() {
     var tov = turnoverOf(g, was && was.poss);
     if (!hit && was && tov && tov.id !== was.play && (g.live || isFinal(g))) hit = { id: g.id, was: was, why: 'turnover' };
     if (!hit && was && bp && bp.id !== was.play && bp.yd >= 20 && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
-    next[g.id] = { lg: lg, close: ftg[i].kind[0] === 'CLOSE' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
+    if (!hit && was && !was.fin && CONFIG.celebrate && winFor(g, lg)) hit = { id: g.id, was: was, why: 'win' };
+    next[g.id] = { lg: lg, fin: isFinal(g), close: ftg[i].kind[0] === 'CLOSE' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
   for (var k in closeGrace) if (closeGrace[k] < now) delete closeGrace[k];
   evTrack = next;
@@ -3161,6 +3232,69 @@ function runInactives() {
    Runs after a primetime / game-day / CLOSE / World Series screen is drawn. Remembers what each
    game looked like the last time its screen was up, so it can play what changed since. */
 var ptSeen = {}, ptLastKey = '';
+/* =================== WIN CELEBRATIONS: Bears, USC, Wisconsin ===================
+   When one of these teams wins, its big screen gets a full-screen celebration in the team's colors:
+   Bears: "BEARS WIN! BEARS WIN!"; USC: "TROJANS WIN! FIGHT ON!" with the Trojan V hand sign pumping;
+   Wisconsin: "BADGERS WIN! ON, WISCONSIN!" with the letters jumping around. */
+var V_HAND = '<svg viewBox="0 0 100 140"><g fill="#FFC72C" stroke="#5a0000" stroke-width="2.6" stroke-linejoin="round">' +
+  '<rect x="27" y="4" width="17" height="66" rx="8.5" transform="rotate(-13 35 66)"/><rect x="50" y="2" width="17" height="68" rx="8.5" transform="rotate(11 58 66)"/>' +
+  '<path d="M24 66 Q24 58 32 58 L74 58 Q82 58 82 68 L82 104 Q82 124 60 126 L44 126 Q26 124 24 106 Z"/>' +
+  '<path d="M56 60 Q56 50 64 50 Q72 50 72 60 L72 74 Q72 80 64 80 Q56 80 56 74 Z"/><path d="M68 64 Q68 56 75 56 Q82 56 82 64 L82 76 Q82 82 75 82 Q68 82 68 76 Z"/>' +
+  '<path d="M24 84 Q16 80 14 90 Q14 98 26 102 L52 92 Q58 89 56 83 Q54 77 47 79 Z"/>' +
+  '<rect x="36" y="124" width="34" height="14" rx="3" fill="#990000" stroke="#FFC72C"/></g></svg>';
+var CELEBRATE = {
+  'nfl:CHI':   { name: 'BEARS', bg: '#0B162A', st: '#C83803', ring: '#C83803', l1: 'BEARS WIN!', l2: 'BEARS WIN!',
+                 c1: '#ffffff', s1: '#C83803', c2: '#C83803', s2: '#ffffff', conf: ['#C83803', '#ffffff', '#ff7a33', '#a5aec4'] },
+  'ncaaf:USC': { name: 'TROJANS', bg: '#990000', st: '#FFC72C', ring: '#FFC72C', l1: 'TROJANS WIN!', l2: 'FIGHT ON!',
+                 c1: '#FFC72C', s1: '#4a0000', c2: '#ffffff', s2: '#4a0000', conf: ['#FFC72C', '#ffffff', '#ffdf80', '#ff6b6b'], hand: true },
+  'ncaaf:WIS': { name: 'BADGERS', bg: '#C5050C', st: '#ffffff', ring: '#ffffff', l1: 'BADGERS WIN!', l2: 'ON, WISCONSIN!',
+                 c1: '#ffffff', s1: '#5e0003', c2: '#ffffff', s2: '#282728', conf: ['#ffffff', '#282728', '#ffd6d8', '#dadfe1'], jump: true }
+};
+function winFor(g, lg) {                       // one of our teams just won this game: which, and the score
+  if (!g || !isFinal(g) || !g.teams) return null;
+  var sides = ['away', 'home'];
+  for (var i = 0; i < 2; i++) {
+    var cfg = CELEBRATE[lg + ':' + g.teams[sides[i]].abbreviation];
+    if (!cfg) continue;
+    var side = sides[i], other = side === 'away' ? 'home' : 'away', me = num(scoreOf(g, side)), op = num(scoreOf(g, other));
+    if (me > op) return { cfg: cfg, side: side, me: me, op: op, opp: g.teams[other] };
+  }
+  return null;
+}
+function winHTML(g, w, root) {
+  var c = w.cfg, W = root.offsetWidth || 1000, H = root.offsetHeight || 700, longest = Math.max(c.l1.length, c.l2.length);
+  var fs = Math.round(Math.min(H * 0.16, W / (longest * 0.68))), lz = Math.round(Math.min(H * 0.24, W * 0.22)), lh = Math.round(fs * 1.12);
+  var t = g.teams[w.side], logo = t.logo ? '<img src="' + esc(t.logo) + '" onerror="this.style.display=\'none\'" alt="">' : '';
+  var cf = '', i;
+  for (i = 0; i < 44; i++) {
+    var d = (0.5 + Math.random() * 2.6).toFixed(2), dur = (2.6 + Math.random() * 1.8).toFixed(2), sz = (0.8 + Math.random() * 1.2).toFixed(1);
+    cf += '<i class="cf" style="left:' + (Math.random() * 100).toFixed(1) + '%;width:' + sz + 'vh;height:' + (sz * 1.8).toFixed(1) + 'vh;background:' + c.conf[i % c.conf.length] +
+          ';-webkit-animation-delay:' + d + 's;animation-delay:' + d + 's;-webkit-animation-duration:' + dur + 's;animation-duration:' + dur + 's"></i>';
+  }
+  function line(txt, cls, top, col, sh) {
+    var inner = esc(txt);
+    if (c.jump) {                              // "Jump Around": every letter hops, one after another
+      inner = '';
+      for (var k = 0; k < txt.length; k++) {
+        var dl = (2.3 + k * 0.07 + (cls === 'bw2' ? 0.35 : 0)).toFixed(2);
+        inner += txt.charAt(k) === ' ' ? '&nbsp;' : '<b class="jl" style="-webkit-animation-delay:' + dl + 's;animation-delay:' + dl + 's">' + esc(txt.charAt(k)) + '</b>';
+      }
+    }
+    return '<div class="bwt ' + cls + (c.jump ? ' jmp' : '') + '" style="font-size:' + fs + 'px;line-height:' + lh + 'px;top:' + top + 'px">' +
+      '<span style="color:' + col + ';text-shadow:0 0.6vh 0 ' + sh + ',0 0 3vh ' + sh + '">' + inner + '</span></div>';
+  }
+  var hands = '';
+  if (c.hand) {                                // the Trojan "Fight On" V sign, one each side, pumping
+    var hz = Math.round(Math.min(H * 0.2, W * 0.15));           // beside the logo, above the words
+    hands = '<div class="bwh l" style="width:' + hz + 'px;height:' + Math.round(hz * 1.4) + 'px"><div>' + V_HAND + '</div></div>' +
+            '<div class="bwh r" style="width:' + hz + 'px;height:' + Math.round(hz * 1.4) + 'px"><div>' + V_HAND + '</div></div>';
+  }
+  var opp = String(w.opp.short || nickname(w.opp.name) || w.opp.abbreviation).toUpperCase(), top1 = Math.round(H * 0.33);
+  return '<div class="bwin"><div class="bwbg" style="background:' + c.bg + '"></div><div class="bwst" style="background:repeating-linear-gradient(120deg,' + c.st + ' 0,' + c.st + ' 4vh,rgba(0,0,0,0) 4vh,rgba(0,0,0,0) 11vh)"></div>' + cf + hands +
+    '<div class="bwlogo" style="width:' + lz + 'px;height:' + lz + 'px;margin-left:' + (-lz / 2) + 'px;box-shadow:0 0 0 0.8vh ' + c.ring + '">' + logo + '</div>' +
+    line(c.l1, 'bw1', top1, c.c1, c.s1) + line(c.l2, 'bw2', Math.round(top1 + fs * 1.22), c.c2, c.s2) +
+    '<div class="bwsc">' + esc(c.name) + ' ' + w.me + ' &nbsp;·&nbsp; ' + esc(opp) + ' ' + w.op + '</div></div>';
+}
 function twoMinute(g, lg) {
   if (!g.live || lg === 'mlb') return false;
   var q = quarterOf(g), m = String(g.detail || '').match(/^(\d+):(\d+)/);
@@ -3261,11 +3395,19 @@ function ptAnimate(pg) {
   }
   // the game just went final while we watched: stamp it now
   if (prev && fin && !prev.fin && !entering) root.className += ' stampnow';
+  // Bears / USC / Wisconsin win: the celebration, right after the FINAL stamp (and again whenever that final screen comes up)
+  var bw = CONFIG.celebrate ? winFor(g, pg.lg) : null, bwEnd = 0;
+  if (bw && (entering || (prev && !prev.fin))) {
+    var bwWait = 2.0;
+    setTimeout(function () { if (root.parentNode && !root.querySelector('.bwin')) root.insertAdjacentHTML('beforeend', winHTML(g, bw, root)); }, bwWait * 1000);
+    bwEnd = bwWait + 7.2;
+  }
   // how long the animations run, so a data refresh doesn't redraw the screen in the middle of them
   var animEnd = entering ? 2.0 : 0;
   if (delay) animEnd = Math.max(animEnd, delay + 0.4);
   if (root.querySelector('.pop')) animEnd = Math.max(animEnd, delay + 3.9);
   if (rzEnd) animEnd = Math.max(animEnd, rzEnd);
+  if (bwEnd) animEnd = Math.max(animEnd, bwEnd);
   if (/stampnow/.test(root.className)) animEnd = Math.max(animEnd, 2.0);
   state.animUntil = animEnd ? new Date().getTime() + animEnd * 1000 : 0;
   ptSeen[id] = now;
