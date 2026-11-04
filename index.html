@@ -215,20 +215,24 @@
   .cfpb { position: relative; height: 68vh; }
   .cfpb .cl { position: relative; height: 3.4vh; font-size: 2vh; line-height: 3.4vh; font-weight: 700; letter-spacing: 0.2vw; color: #f5b800; }
   .cfpb .cl span { position: absolute; top: 0; white-space: nowrap; }
-  .cfpb .bx { position: absolute; height: 10.8vh; background: #111829; border: 0.25vh solid #26324a; border-radius: 0.8vh; overflow: hidden; -webkit-box-sizing: border-box; box-sizing: border-box; }
-  .cfpb .bx.fr { left: 0; width: 26%; } .cfpb .bx.qf { left: 30%; width: 26%; } .cfpb .bx.sf { left: 60.5%; width: 20%; } .cfpb .bx.fn { left: 84%; width: 16%; border-color: #f5b800; }
-  .cfpb .br2 { position: relative; height: 5.15vh; line-height: 5.15vh; padding: 0 0.6vw 0 0; white-space: nowrap; overflow: hidden; }
-  .cfpb .br2 + .br2 { border-top: 0.2vh solid #1b2338; }
-  .cfpb .br2.fav { background: rgba(245,184,0,0.16); }
-  .cfpb .sd { display: inline-block; width: 3.4vh; text-align: center; font-size: 2.4vh; font-weight: 800; color: #0b1220; background: #c9cfdc; margin-right: 0.5vw; height: 100%; vertical-align: top; }
+  /* full team-color score bars (square), seed in a white block, logo straight on the bar */
+  .cfpb .bx { position: absolute; height: 10.8vh; overflow: visible; }
+  .cfpb .bx.fr { left: 0; width: 26%; } .cfpb .bx.qf { left: 30%; width: 26%; } .cfpb .bx.sf { left: 60.5%; width: 20%; } .cfpb .bx.fn { left: 84%; width: 16%; }
+  .cfpb .br2 { position: relative; height: 5vh; line-height: 5vh; padding: 0 0.6vw 0 0; white-space: nowrap; overflow: hidden; background-color: #2a3550;
+    background-image: -webkit-linear-gradient(left, rgba(255,255,255,0.10), rgba(0,0,0,0.30)); background-image: linear-gradient(to right, rgba(255,255,255,0.10), rgba(0,0,0,0.30)); }
+  .cfpb .br2 + .br2 { margin-top: 0.5vh; }
+  .cfpb .br2.fav { box-shadow: inset 0 0 0 0.35vh #f5b800; }
+  .cfpb .tbd { background: #141c30; background-image: none; border: 0.2vh dashed #2f3b58; -webkit-box-sizing: border-box; box-sizing: border-box; }
+  .cfpb .bx.fn .tbd { border-color: #f5b800; }
+  .cfpb .sd { display: inline-block; width: 3.6vh; text-align: center; font-size: 2.4vh; font-weight: 800; color: #0b1220; background: #ffffff; margin-right: 0.6vw; height: 100%; vertical-align: top; }
   .cfpb .tbd .sd { background: transparent; }
-  .cfpb .br2 .logo { display: inline-block; width: 3.6vh; height: 3.6vh; vertical-align: middle; margin: -0.3vh 0.5vw 0 0; }
-  .cfpb .br2 .logo img { width: 100%; height: 100%; }
-  .cfpb .tn { font-size: 2.6vh; font-weight: 700; } .cfpb .tn i { font-style: normal; font-size: 1.8vh; color: #9FA9BD; font-weight: 600; }
+  .cfpb .br2 .logo { display: inline-block; width: 3.6vh; height: 3.6vh; vertical-align: middle; margin: -0.3vh 0.5vw 0 0; background: transparent; border-radius: 0; box-shadow: none; }
+  .cfpb .br2 .logo img { left: 0; top: 0; width: 100%; height: 100%; -webkit-filter: drop-shadow(0 0 0.25vh rgba(255,255,255,0.9)); filter: drop-shadow(0 0 0.25vh rgba(255,255,255,0.9)); }   /* a thin white edge so a logo shows on its own color */
+  .cfpb .tn { font-size: 2.4vh; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06vw; color: #ffffff; text-shadow: 0 0.2vh 0.3vh rgba(0,0,0,0.5); }
+  .cfpb .tn i { font-style: normal; font-size: 1.8vh; color: rgba(255,255,255,0.75); font-weight: 600; }
   .cfpb .tn .st { color: #f5b800; margin-right: 0.3vw; font-size: 2vh; }
-  .cfpb .tbd .tn { font-size: 2vh; color: #6f7a94; letter-spacing: 0.1vw; font-weight: 600; }
-  .cfpb .rc { position: absolute; right: 0.6vw; top: 0; font-size: 2vh; color: #9FA9BD; font-weight: 600; background: #111829; padding-left: 0.4vw; }
-  .cfpb .br2.fav .rc { background: transparent; }
+  .cfpb .tbd .tn { font-size: 2vh; color: #6f7a94; letter-spacing: 0.1vw; font-weight: 600; text-shadow: none; }
+  .cfpb .rc { position: absolute; right: 0.6vw; top: 0; font-size: 2vh; color: rgba(255,255,255,0.85); font-weight: 600; }
   .cfpb .ln { position: absolute; background: #3a4766; } .cfpb .ln.h { height: 0.3vh; margin-top: -0.15vh; } .cfpb .ln.v { width: 0.3vh; margin-left: -0.15vh; }
   .cfpb .bnote { position: absolute; left: 84%; right: 0; font-size: 1.6vh; line-height: 2.3vh; color: #9FA9BD; } .cfpb .bnote b { color: #f5b800; margin-right: 0.4vw; }
   .cfpb .bnote span { color: #6f7a94; }
@@ -3920,7 +3924,7 @@ function loadRankings(cb) {
           var x = ranks[n], t = x.team || {};
           list.push({ rank: x.current, prev: x.previous, trend: x.trend, rec: x.recordSummary || '',
                       team: { abbreviation: t.abbreviation || '', name: t.location || t.name || '', tid: t.id || '',
-                              logo: t.logo || (t.logos && t.logos[0] && t.logos[0].href) || '' },
+                              logo: t.logo || (t.logos && t.logos[0] && t.logos[0].href) || '', color: t.color || '', alt: t.alternateColor || '' },
                       cp: t.id ? cp[t.id] : undefined });
         }
         var oth = ((ap && ap.others) || []).slice(0), votes = [], anyPrev = false;
@@ -4006,6 +4010,13 @@ function cfpField() {
   for (i = 0; i < field.length && i < 12; i++) seeds.push({ seed: i + 1, e: field[i], auto: auto[field[i].team.tid] || '' });
   return seeds.length === 12 ? { seeds: seeds, bumped: bumped, g5: g5 } : null;
 }
+function cfpColor(t) {                                    // the team's color, from the rankings feed or today's games; light ones darkened
+  if (!t.color) {
+    var d = state.data.ncaaf, g = d ? d.games : [];
+    for (var i = 0; i < g.length && !t.color; i++) { var x = g[i].teams; if (String(x.away.tid) === String(t.tid)) t.color = x.away.color, t.alt = x.away.alt; else if (String(x.home.tid) === String(t.tid)) t.color = x.home.color, t.alt = x.home.alt; }
+  }
+  return t.color ? panelColor(t, 'ncaaf') : '33405c';
+}
 function cfpBracketHTML() {
   var f = cfpField();
   if (!f) return '';
@@ -4013,7 +4024,7 @@ function cfpBracketHTML() {
   function row(x, dim) {
     if (!x) return '<div class="br2 tbd"><span class="sd"></span><span class="tn">' + esc(dim || 'TBD') + '</span></div>';
     var e = x.e, star = x.auto && x.auto !== 'ND' ? '<b class="st">★</b>' : '';
-    return '<div class="br2' + (isFav({ teams: { away: e.team, home: e.team } }, 'ncaaf') ? ' fav' : '') + '"><span class="sd">' + x.seed + '</span>' + logoHTML(e.team, 'ncaaf') +
+    return '<div class="br2' + (isFav({ teams: { away: e.team, home: e.team } }, 'ncaaf') ? ' fav' : '') + '" style="background-color:#' + cfpColor(e.team) + '"><span class="sd">' + x.seed + '</span>' + logoHTML(e.team, 'ncaaf') +
       '<span class="tn">' + star + esc(e.team.name || e.team.abbreviation) + (e.rank !== x.seed ? ' <i>#' + e.rank + '</i>' : '') + '</span><span class="rc">' + esc(e.rec || '') + '</span></div>';
   }
   function box(cls, x, y, top, bottom) { return '<div class="bx ' + cls + '" style="top:' + y.toFixed(2) + 'vh">' + top + bottom + '</div>'; }
