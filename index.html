@@ -1338,8 +1338,54 @@ function checkChampion(lg) {
     }
   }
 }
+/* =================== SEASON CALENDAR (ESPN) ===================
+   When each pro league's regular season starts and its playoffs end, so standings only show during the
+   season: from the day before opening day until the season is over. */
+var CAL_PATHS = { nfl: 'football/leagues/nfl', nba: 'basketball/leagues/nba', nhl: 'hockey/leagues/nhl', mlb: 'baseball/leagues/mlb', wnba: 'basketball/leagues/wnba' };
+var seasonCal = {}, CAL_KEY = 'fcw_seasonCal';
+try { var sc0 = JSON.parse(window.localStorage.getItem(CAL_KEY)); if (sc0) seasonCal = sc0; } catch (e) {}
+function loadSeasonCal(cb) {
+  var todo = [], now = new Date().getTime(), k;
+  for (k = 0; k < CONFIG.leagues.length; k++) { var lg = CONFIG.leagues[k], c = seasonCal[lg]; if (CAL_PATHS[lg] && !DEMO && !(c && now - c.at < 12 * 3600000)) todo.push(lg); }
+  var i = 0;
+  function t(x) { var v = x && x.startDate ? parseDate(x.startDate).getTime() : 0; return isNaN(v) ? 0 : v; }
+  function e(x) { var v = x && x.endDate ? parseDate(x.endDate).getTime() : 0; return isNaN(v) ? 0 : v; }
+  function step() {
+    if (i >= todo.length) { try { window.localStorage.setItem(CAL_KEY, JSON.stringify(seasonCal)); } catch (er) {} return cb(); }
+    var lg = todo[i++], base = 'https://sports.core.api.espn.com/v2/sports/' + CAL_PATHS[lg];
+    getJSON(base + '/season', function (err, s) {
+      if (err || !s || !s.year) { if (seasonCal[lg]) seasonCal[lg].at = now - 11 * 3600000; return step(); }
+      var y = +s.year, out = { at: now, year: y, phase: +(s.type && s.type.type) || 0 };
+      getJSON(base + '/seasons/' + y + '/types/2', function (e2, reg) {
+        getJSON(base + '/seasons/' + y + '/types/3', function (e3, post) {
+          out.regStart = e2 ? 0 : t(reg); out.regEnd = e2 ? 0 : e(reg); out.postEnd = e3 ? 0 : e(post);
+          if (out.phase === 2 || out.phase === 3 || (out.regStart && now < out.regStart)) { seasonCal[lg] = out; return step(); }
+          getJSON(base + '/seasons/' + (y + 1) + '/types/2', function (e4, nxt) {     // season over: when the next one starts
+            if (!e4) out.nextStart = t(nxt);
+            seasonCal[lg] = out; step();
+          });
+        });
+      });
+    });
+  }
+  step();
+}
+/* standings belong to the season: from the day before opening day until the champion is crowned */
+function standingsSeason(lg) {
+  var c = seasonCal[lg], now = new Date().getTime(), DAY = 86400000;
+  if (!c || !c.at) return !seasonOver(lg);                    // no calendar yet: the old rule
+  var champ = champAt[lg];
+  if (c.nextStart && now >= c.nextStart - DAY) return true;  // the new season starts tomorrow (or has)
+  if (c.regStart && now < c.regStart - DAY) return false;    // before opening day
+  if (champ && c.regStart && champ > c.regStart) return false;   // this season's champion is crowned
+  if (c.phase === 4) return false;                           // off-season
+  if (c.postEnd && now > c.postEnd + DAY) return false;      // past the end of the playoffs
+  return true;
+}
 function seasonOver(lg) {
   if (!CONFIG.hideEnded || lg === 'ufc') return false;
+  var sc = seasonCal[lg], nowT = new Date().getTime(), soon = sc && sc.nextStart && nowT >= sc.nextStart - 86400000;
+  if (sc && sc.at && !soon && !windowGames(lg).length && (sc.phase === 4 || (sc.phase === 1 && sc.regStart && nowT < sc.regStart - 86400000) || (sc.postEnd && nowT > sc.postEnd + 86400000))) return true;   // ESPN's calendar says the season is done
   var now = new Date().getTime(), c = champAt[lg], wg = windowGames(lg);
   if (c && now - c > 150 * 86400000) c = 0;               // a title from a past year doesn't count
   for (var i = 0; i < wg.length; i++) {
@@ -4362,7 +4408,7 @@ function parseStandings(lg, data) {
 }
 function standingsPages(lg) {
   var c = standCache[lg], out = [];
-  if (!c || !standingsDay() || !standingsOpen(lg) || seasonOver(lg) || lg === 'ncaab' || lg === 'ufc') return out;
+  if (!c || !standingsDay() || !standingsOpen(lg) || seasonOver(lg) || !standingsSeason(lg) || lg === 'ncaab' || lg === 'ufc') return out;
   for (var i = 0; i < c.screens.length; i++)
     out.push({ lg: lg, stand: c.screens[i], hold: CONFIG.standingsHoldSec, num: 'st' + i, of: 1, games: [] });
   if (playoffPictureOpen(lg) && playoffPicture(lg).length) out.push({ lg: lg, pic: true, hold: CONFIG.standingsHoldSec + 5, num: 'pic', of: 1, games: [] });
@@ -5087,14 +5133,14 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
