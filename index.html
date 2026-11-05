@@ -994,6 +994,68 @@
   .t-usc #crawl .hl { background: #FFC72C; color: #990000; }
   .t-usc #crawl .nl { color: #FFC72C; }
   .t-usc #foot { color: #7a4a46; }
+
+  /* Wisconsin game days: cardinal red and white (same layout as the USC colors) */
+  .t-wis #brand small { color: #FFD9DB; }
+  .t-wis .name .rec.ser { color: #FFFFFF; }
+  .t-wis .name .rec { color: #b8958f; }
+  .t-wis .status .tag { color: #FFFFFF; }
+  .t-wis .status .lvb { background: #ffffff; color: #C5050C; }
+  .t-wis .card.live { box-shadow: 0 0 0 0.3vh #ffffff, 0 0 2.4vh rgba(255,255,255,0.35); }
+  .t-wis .fight .score { color: #FFFFFF; }
+  .t-wis table.idle .cd { color: #FFFFFF; }
+  .t-wis .cfpb .cl { color: #FFFFFF; }
+  .t-wis .rkvotes b { color: #FFFFFF; }
+  .t-wis .rkrow { border-color: #451519; }
+  .t-wis .rkrow.fav { background: rgba(255,255,255,0.16); }
+  .t-wis .strow { border-color: #451519; }
+  .t-wis .strow.sth { color: #FFFFFF; }
+  .t-wis .strow.fav { background: rgba(255,255,255,0.16); }
+  .t-wis .inx .tlist .lh2 { color: #FFFFFF; }
+  .t-wis .lead .lh { color: #FFFFFF; }
+  .t-wis .brk .bs { background: #2a0a0c; border-color: #451519; }
+  .t-wis .brk .champ { color: #FFFFFF; }
+  .t-wis .tab.pt { border-color: #FFFFFF; }
+  .t-wis .tab.pt.on { background: #FFFFFF; color: #C5050C; }
+  .t-wis .ptv .band, .t-wis .ptv .panel { background: #2a0a0d; border-color: #451519; }
+  .t-wis .ptv.is-live .band { border-color: #ffffff; }
+  .t-wis .ptv .ph, .t-wis .ptv .note b, .t-wis .ptv .ln b, .t-wis .ptv .pthead b { color: #FFFFFF; }
+  .t-wis .ptv .bar i { background: #FFFFFF; }
+  .t-wis .ptv .sub, .t-wis .ptv .ts .k, .t-wis .ptv .dd small { color: #e2c7c0; }
+  .t-wis .ws .base.on { background: #FFFFFF; border-color: #FFFFFF; }
+  /* USC Trojans: cardinal + gold (Saturday) */
+  body.t-wis { background: #120304; }
+  .t-wis #top, .t-wis #crawlbar { background: #C5050C; border-color: #FFFFFF; }
+  .t-wis #brand, .t-wis #clock { color: #ffffff; }
+  .t-wis #brand span, .t-wis #crawl .lg, .t-wis .rk { color: #FFFFFF; }
+  .t-wis #clock small { color: #FFD9DB; }
+  .t-wis .tab { color: #F9E2DE; }
+  .t-wis .tab.on { background: #FFFFFF; color: #C5050C; }
+  .t-wis .tab.empty { color: #6b1a1a; }
+  .t-wis #heading .sub, .t-wis #heading .page { color: #c9a9a3; }
+  .t-wis .card { background: #2a0a0d; border-color: #451519; }
+  .t-wis .row + .row { border-color: #451519; }
+  .t-wis .abbr { background: #4d171c; }
+  .t-wis .name { color: #e2c7c0; }
+  .t-wis .lose .score, .t-wis .lose .abbr { color: #8c6a66; }
+  .t-wis .status { background: #1c0507; color: #e2c7c0; }
+  .t-wis .lines { border-color: #451519; color: #f0dcd6; }
+  .t-wis .lines .lbl { color: #FFFFFF; }
+  .t-wis .card.fav { border-color: #FFFFFF; }
+  .t-wis .card.live { border-color: #ffffff; }
+  .t-wis .card.live.fav { border-color: #FFFFFF; }
+  .t-wis .live .status { background: #C5050C; color: #ffffff; }
+  .t-wis .dot { background: #FFFFFF; }
+  .t-wis #crawllabel { background: #FFFFFF; color: #C5050C; }
+  .t-wis #crawl { color: #ffffff; }
+  .t-wis #crawl .st { color: #FFD9DB; }
+  .t-wis #crawl .lv { color: #FFFFFF; }
+  .t-wis #crawl .sx { color: #f0dcd6; }
+  .t-wis #crawl .hl { background: #FFFFFF; color: #C5050C; }
+  .t-wis #crawl .nl { color: #FFFFFF; }
+  .t-wis #foot { color: #7a4a46; }
+  /* everyday house colors: navy + gold, with the Bears orange lines under the header and above the bottom bar */
+  .t-house #top, .t-house #crawlbar { border-color: #C83803; }
 </style>
 </head>
 <body>
@@ -1038,10 +1100,10 @@ var CONFIG = {
   cfb: 'top25',
   cfbFavGroups: '5',     // ESPN conference id of your college teams (5 = Big Ten: USC, Wisconsin); '80' = all FBS
 
-  // Colors: 'auto' = USC on Saturdays when USC plays, Bears every other day.
-  // After the Super Bowl (until the next NFL season), the Bears days go to the White Sox or the
-  // Bulls, whichever of the two plays next.
-  // Or force one: 'bears', 'usc', 'sox', 'bulls', 'classic' (the original navy + gold)
+  // Colors: 'auto' = by game day: Bears / USC / Wisconsin colors on the days they play (morning until an
+  // hour after the final); after the Super Bowl, Bulls / White Sox on their game days; otherwise 'house'
+  // (navy + gold with the Bears orange lines).
+  // Or force one: 'house', 'bears', 'usc', 'wis', 'sox', 'bulls', 'classic' (navy + gold, no orange)
   theme: 'auto',
 
   // Your teams, per league (team abbreviations). They get a highlighted border and go first.
@@ -4801,11 +4863,33 @@ function playSegment(i) {
   state.crawlTimer = setTimeout(function () { playSegment(state.crawlIdx + 1); }, secs * 1000 + 300);
 }
 
-/* Saturday with a USC game = USC colors; every other day = Bears; once the Super Bowl is played
-   (until the NFL is back) the Bears days go to the White Sox or the Bulls, whichever plays next */
+/* Colors by game day: the Bears, USC or Wisconsin colors on the days they play (from the morning
+   until an hour after the final); after the Super Bowl, the Bulls or White Sox colors on their game days.
+   Every other day: the house colors (navy + gold with the Bears orange lines). Two of them on the same
+   day: the game that's on now wins, then the next one to start, then the one that just ended. */
+var THEME_TEAMS = [['bears', 'nfl', ['CHI']], ['usc', 'ncaaf', ['USC']], ['wis', 'ncaaf', ['WIS']]];
+var THEME_OFFSEASON = [['bulls', 'nba', ['CHI']], ['sox', 'mlb', ['CHW', 'CWS']]];
+function gameDayTheme() {
+  var now = new Date().getTime(), today = ymd(new Date()), list = THEME_TEAMS.concat(nflOffseason() ? THEME_OFFSEASON : []), best = null, bestScore = 0;
+  for (var k = 0; k < list.length; k++) {
+    var d = state.data[list[k][1]];
+    if (!d) continue;
+    for (var i = 0; i < d.games.length; i++) {
+      var g = d.games[i];
+      if (!inList(list[k][2], g.teams.away.abbreviation) && !inList(list[k][2], g.teams.home.abbreviation)) continue;
+      if (/postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+      var t = parseDate(g.date).getTime(), score = 0;
+      if (g.live) score = 3e13;                                        // on right now
+      else if (isFinal(g)) { var fs = seenFinal(g.id, now); if (now - fs <= 60 * 60000 && now - t < 4.5 * 3600000) score = 1e13 - (now - fs); }   // ended within the hour
+      else if (ymd(new Date(t)) === today) score = 2e13 - t / 1000;     // later today: the soonest wins
+      if (score > bestScore) { bestScore = score; best = list[k][0]; }
+    }
+  }
+  return best;
+}
 function applyTheme(d) {
   var t = CONFIG.theme;
-  if (t === 'auto') t = d.getDay() === 6 && uscPlaysToday() ? 'usc' : (nflOffseason() ? chiTeamNext(d) : 'bears');
+  if (t === 'auto') t = gameDayTheme() || 'house';
   var cls = t === 'classic' ? '' : 't-' + t;
   var vw = window.innerWidth || document.documentElement.clientWidth, vh = window.innerHeight || document.documentElement.clientHeight;
   if (vh && vw / vh < 1.7) cls += (cls ? ' ' : '') + 'narrow';     // 16:10 and squarer
@@ -5105,6 +5189,7 @@ function nextFromSchedule(data, now) {
 }
 function loadChiNext(cb) {
   var now = new Date().getTime();
+  if (true) return cb();                               // no longer needed: colors now follow each team's game days (gameDayTheme)
   if (DEMO || CONFIG.theme !== 'auto' || !nflOffseason() || now - chiNext.at < 60 * 60000) return cb();
   var got = { at: now, bulls: 0, sox: 0 }, keys = ['bulls', 'sox'], i = 0;
   function step() {
