@@ -211,6 +211,27 @@
   .t-bears table.idle .cd { color: #FF8C3A; } .t-usc table.idle .cd { color: #FFC72C; } .t-bulls table.idle .cd { color: #FF7A92; } .t-sox table.idle .cd { color: #C4CED4; }
   .narrow table.idle td.in b { font-size: 3.4vh; } .narrow table.idle td.ia b, .narrow table.idle td.ix b { font-size: 2.8vh; } .narrow table.idle .cd { font-size: 4vh; }
   .narrow table.idle small { font-size: 1.8vh; } .narrow table.idle td.il { width: 9vh; } .narrow table.idle td.il .logo { width: 7.6vh; height: 7.6vh; }
+  /* LINES screens (sportsbook style) */
+  .odds { padding: 0 0.6vw; }
+  .odds .colh { position: relative; height: 3vh; line-height: 3vh; font-size: 1.9vh; font-weight: 800; letter-spacing: 0.18vw; color: #9FA9BD; }
+  .odds .colh span { position: absolute; top: 0; width: 15.5%; text-align: center; }
+  .odds .gm { position: relative; background: #111829; border-left: 0.6vh solid #1493ff; margin-bottom: 1vh; padding: 0.3vh 0 0.5vh 0; }
+  .odds .gh { height: 2.7vh; line-height: 2.7vh; padding-left: 1vw; font-size: 1.9vh; font-weight: 700; color: #9FA9BD; letter-spacing: 0.08vw; white-space: nowrap; overflow: hidden; margin-right: 50%; }
+  .odds .gh b { color: #ffffff; margin-right: 0.8vw; }
+  .odds .tr { position: relative; height: 5vh; line-height: 5vh; padding-left: 1vw; white-space: nowrap; }
+  .odds .tr .logo { width: 4vh; height: 4vh; margin: -0.4vh 0.8vw 0 0; }
+  .odds .tr .logo img { left: 0.3vh; top: 0.3vh; width: 3.4vh; height: 3.4vh; }
+  .odds .tr .rk { font-size: 2.2vh; font-weight: 800; color: #9FA9BD; margin-right: 0.4vw; }
+  .odds .tr .nm { font-size: 2.9vh; font-weight: 800; color: #ffffff; }
+  .odds .tr .rec { font-size: 2vh; color: #8a94ab; margin-left: 0.6vw; font-weight: 600; }
+  .odds .tr.fav .nm { color: #ffd34d; }
+  .odds .ob { position: absolute; top: 0.3vh; width: 15.5%; height: 4.5vh; background: #1b2540; border: 0.2vh solid #2c3a5e; border-radius: 0.5vh;
+    -webkit-box-sizing: border-box; box-sizing: border-box; text-align: center; padding-top: 0.1vh; }
+  .odds .ob b { display: block; font-size: 2.3vh; line-height: 2.4vh; font-weight: 800; color: #ffffff; }
+  .odds .ob i { display: block; font-style: normal; font-size: 1.65vh; line-height: 1.8vh; font-weight: 600; color: #6fb6ff; }
+  .odds .ob.one { line-height: 4.1vh; } .odds .ob.one b { line-height: 4.1vh; } .odds .ob.na b { color: #4a5675; }
+  .odds .c1 { right: 34.5%; } .odds .c2 { right: 17.5%; } .odds .c3 { right: 0.5%; }
+  .narrow .odds .tr .nm { font-size: 2.5vh; } .narrow .odds .ob b { font-size: 2.1vh; } .narrow .odds .ob i { font-size: 1.5vh; }
   /* CFP bracket */
   .cfpb { position: relative; height: 68vh; }
   .cfpb .cl { position: relative; height: 3.4vh; font-size: 2vh; line-height: 3.4vh; font-weight: 700; letter-spacing: 0.2vw; color: #f5b800; }
@@ -994,7 +1015,7 @@
     <div id="crawllabel">SCORES</div>
   </div>
 
-  <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Opening lines: DraftKings</span></div>
+  <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Lines: DraftKings</span></div>
 </div>
 
 <script>
@@ -1047,6 +1068,8 @@ var CONFIG = {
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   headshots: true,       // player photos on the leaders, inactives and bottom-bar injuries (?headshots=0 off)
+  linesScreen: true,     // college games before kickoff: sportsbook-style LINES screens (spread, moneyline, total) (?lines=0 off)
+  linesPerPage: 4,
   cfpBracket: true,      // once the CFP rankings are out: a 12-team CFP bracket screen before the Top 25 (?cfpbracket=0 off)
   cbbUpset: true,        // college hoops: unranked team leading a ranked one in the 2nd half gets a CLOSE screen (?cbbupset=0 off)
   upsetAlert: true,      // ranked college team losing in the 4th: UPSET ALERT screen, banner and jump (?upset=0 off)
@@ -1168,6 +1191,7 @@ function readParams() {
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
+    if (k === 'lines') CONFIG.linesScreen = v !== '0';
     if (k === 'headshots') CONFIG.headshots = v !== '0';
     if (k === 'celebrate' || k === 'bearswin') CONFIG.celebrate = v !== '0';
     if (k === 'celebratesec' && +v >= 5) CONFIG.celebrateSec = Math.min(+v, 60);
@@ -1363,7 +1387,7 @@ function fromEspn(ev, lg) {
     var cp = comps[i], t = cp.team || {}, side = cp.homeAway === 'home' ? 'home' : 'away';
     var rk = cp.curatedRank && cp.curatedRank.current;
     teams[side] = { abbreviation: t.abbreviation || '', name: t.displayName || '',
-                    short: t.shortDisplayName || t.location || '', loc: t.location || '', rank: rk && rk <= 25 ? rk : 0,
+                    short: t.shortDisplayName || t.location || '', loc: t.location || '', rank: rk && rk <= 25 ? rk : 0, rec: recOf(cp, 'total'),
                     logo: t.logo || '', color: t.color || '', alt: t.alternateColor || '', tid: t.id || '' };
     total[side] = cp.score != null ? cp.score : '';
   }
@@ -1394,6 +1418,7 @@ function fromEspn(ev, lg) {
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
     detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in')) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '',
+    tv: (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || '', venue: (c.venue && c.venue.fullName) || '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
   };
@@ -1454,6 +1479,12 @@ function recordLine(ev, c) {
   } else if (o.homeTeamOdds && o.awayTeamOdds) {
     cur.mlH = sg(o.homeTeamOdds.moneyLine); cur.mlA = sg(o.awayTeamOdds.moneyLine);
   }
+  // both sides of the spread with their prices, and the over / under prices (for the LINES screens)
+  var cl = function (x) { return x && (x.close || x.open) || {}; };
+  if (ps.home || ps.away) { cur.hl = cl(ps.home).line || ''; cur.al = cl(ps.away).line || ''; cur.hp = sg(cl(ps.home).odds); cur.ap = sg(cl(ps.away).odds); }
+  else if (o.homeTeamOdds && o.spread !== undefined) { var hs = +o.spread; cur.hl = sg(hs); cur.al = sg(-hs); cur.hp = sg(o.homeTeamOdds.spreadOdds); cur.ap = sg(o.awayTeamOdds && o.awayTeamOdds.spreadOdds); }
+  if (o.total && (o.total.over || o.total.under)) { cur.op = sg(cl(o.total.over).odds); cur.up = sg(cl(o.total.under).odds); }
+  else { cur.op = sg(o.overOdds); cur.up = sg(o.underOdds); }
   if (cur.line || cur.total || cur.mlH) rec.cur = cur;
   if (rec.line || rec.total || rec.cur) lines[key] = rec;
 }
@@ -2002,11 +2033,50 @@ function isFav(e, lg) {
   var a = e.teams && e.teams.away, h = e.teams && e.teams.home, list = favList(lg);
   return (a && inList(list, a.abbreviation)) || (h && inList(list, h.abbreviation));
 }
+/* your team's game stays first / on every screen only on game day, and only until it's final */
+/* =================== LINES (college, before kickoff): spread / moneyline / total, sportsbook style =================== */
+function hasLines(e) { var c = e.open && e.open.cur; return !!(c && (c.hl || c.al || c.mlH || c.total || c.line)) || !!(e.open && (e.open.line || e.open.total)); }
+function linesDay(games) {
+  var today = ymd(new Date()), tm = ymd(addDays(new Date(), 1)), days = {};
+  for (var i = 0; i < games.length; i++) { var d = ymd(parseDate(games[i].date)); days[d === today ? 'Today' : (d === tm ? 'Tomorrow' : DAYS[parseDate(games[i].date).getDay()])] = 1; }
+  var k = []; for (var x in days) k.push(x);
+  return k.join(' & ');
+}
+function linesHTML(pg) {
+  var html = '<div class="odds"><div class="colh"><span class="c1">SPREAD</span><span class="c2">MONEY</span><span class="c3">TOTAL</span></div>';
+  for (var i = 0; i < pg.games.length; i++) {
+    var e = pg.games[i], o = e.open || {}, c = o.cur || {}, d = parseDate(e.date), raw = e.raw && e.raw.competitions && e.raw.competitions[0];
+    var hl = c.hl, al = c.al;
+    if (!hl && !al) {                                   // only the favorite's number: the other side is the opposite
+      var ln = c.line || o.line, side = c.line ? c.side : o.side;
+      if (ln === 'PK') { hl = 'PK'; al = 'PK'; }
+      else if (ln) { var nn = String(ln).replace(/^-/, ''); hl = side === 'home' ? '-' + nn : '+' + nn; al = side === 'home' ? '+' + nn : '-' + nn; }
+    }
+    var tot = c.total || o.total || '', when = (ymd(d) === ymd(new Date()) ? '' : DAYS[d.getDay()] + ' ') + timeStr(d);
+    var tv = e.tv || (raw && raw.broadcasts && raw.broadcasts[0] && raw.broadcasts[0].names && raw.broadcasts[0].names[0]) || '';
+    var ven = (raw && raw.venue && raw.venue.fullName) || e.venue || '';
+    function team(t, side) {
+      var line = side === 'home' ? hl : al, lp = side === 'home' ? c.hp : c.ap, ml = side === 'home' ? c.mlH : c.mlA;
+      var ou = side === 'away' ? (tot ? 'O ' + tot : '') : (tot ? 'U ' + tot : ''), op = side === 'away' ? c.op : c.up, rk = apRank(t, pg.lg);
+      var ob = function (cls, big, small) { return '<div class="ob ' + cls + (small ? '' : ' one') + (big ? '' : ' na') + '"><b>' + esc(big || '–') + '</b>' + (small ? '<i>' + esc(small) + '</i>' : '') + '</div>'; };
+      return '<div class="tr' + (isFav({ teams: { away: t, home: t } }, pg.lg) ? ' fav' : '') + '">' + logoHTML(t, pg.lg) + (rk ? '<span class="rk">#' + rk + '</span>' : '') +
+        '<span class="nm">' + esc(t.short || nickname(t.name) || t.abbreviation) + '</span><span class="rec">' + esc(t.rec || recordOf(e, side) || '') + '</span>' +
+        ob('c1', line, line ? lp : '') + ob('c2', ml, '') + ob('c3', ou, ou ? op : '') + '</div>';
+    }
+    html += '<div class="gm"><div class="gh"><b>' + esc(when) + '</b>' + esc([tv, ven].join(' · ').replace(/^ · | · $/g, '')) + '</div>' + team(e.teams.away, 'away') + team(e.teams.home, 'home') + '</div>';
+  }
+  return html + '</div>';
+}
+function recordOf(e, side) { var c = e.raw && e.raw.competitions && e.raw.competitions[0]; return c ? recOf(sideComp(c, side), 'total') : ''; }
+function favLocked(e, lg) {
+  if (!isFav(e, lg) || isFinal(e)) return false;
+  return e.live || ymd(parseDate(e.date)) === ymd(new Date());
+}
 function rank(e) { return e.live ? 0 : (isFinal(e) ? 2 : 1); }
 function sortGames(list, lg) {
   if (lg === 'ufc') return list.sort(function (a, b) { return ((a.evIdx || 0) - (b.evIdx || 0)) || (a.order - b.order); });
   return list.sort(function (a, b) {
-    var fa = isFav(a, lg) ? 0 : 1, fb = isFav(b, lg) ? 0 : 1;
+    var fa = favLocked(a, lg) ? 0 : 1, fb = favLocked(b, lg) ? 0 : 1;
     if (fa !== fb) return fa - fb;
     if (RANK_PATHS[lg]) {                              // college: ranked games first, best-ranked team first
       var ra = bestRank(a, lg), rb = bestRank(b, lg);
@@ -2418,19 +2488,26 @@ function buildPages() {
       continue;
     }
     var label = windowLabel(lg, wg);
-    var games = sortGames(wg, lg), per = CONFIG.cardsPerPage;
+    var games = sortGames(wg, lg), per = CONFIG.cardsPerPage, linePg = [];
+    if (CONFIG.linesScreen && (lg === 'ncaaf' || lg === 'ncaab')) {     // college games not started yet: sportsbook-style LINES screens
+      var rest = [];
+      for (var lgm = 0; lgm < games.length; lgm++) (!games[lgm].live && !isFinal(games[lgm]) && hasLines(games[lgm]) ? linePg : rest).push(games[lgm]);
+      games = rest;
+    }
     // Favorite teams' games are pinned: they appear on every screen of their league,
     // and the other games rotate through the remaining spots.
     var pinned = [], others = [];
     for (var g = 0; g < games.length; g++) {
-      if (isFav(games[g], lg) && pinned.length < per - 2) pinned.push(games[g]); else others.push(games[g]);
+      if (favLocked(games[g], lg) && pinned.length < per - 2) pinned.push(games[g]); else others.push(games[g]);
     }
     var slots = per - pinned.length;
-    var total = Math.max(1, Math.ceil(others.length / slots));
+    var total = linePg.length && !games.length ? 0 : Math.max(1, Math.ceil(others.length / slots));
     for (var p = 0; p < total; p++) {
       pages.push({ lg: lg, label: label, games: pinned.concat(others.slice(p * slots, (p + 1) * slots)),
                    num: p + 1, of: total });
     }
+    var lpp = CONFIG.linesPerPage, lnp = Math.ceil(linePg.length / lpp);
+    for (var lp = 0; lp < lnp; lp++) pages.push({ lg: lg, lines: true, games: linePg.slice(lp * lpp, (lp + 1) * lpp), num: 'lines' + (lp + 1), of: lnp, idx: lp + 1 });
     if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
     else if (rankingsFor(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
       pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
@@ -4530,6 +4607,13 @@ function renderPage() {
   $('msg').style.display = 'none';
   $('heading').style.display = pg.pt ? 'none' : '';
   if (!pg.pt) ptLastKey = '';                          // next big screen gets its entrance
+  if (pg.lines) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Lines · ' + esc(linesDay(pg.games)) + '</span>' +
+      (pg.of > 1 ? '<span class="page">' + pg.idx + ' / ' + pg.of + '</span>' : '');
+    $('cards').innerHTML = linesHTML(pg);
+    return;
+  }
   if (pg.cfpb) {
     var rkb = rankingsFor('ncaaf');
     renderTabs(pg.lg);
