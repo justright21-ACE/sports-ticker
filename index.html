@@ -1370,10 +1370,17 @@ function loadSeasonCal(cb) {
   }
   step();
 }
-/* standings belong to the season: from the day before opening day until the champion is crowned */
+/* MLB spring training: ESPN says preseason and opening day is still ahead (Cactus / Grapefruit League standings) */
+function springTraining(lg) {
+  var c = seasonCal[lg], now = new Date().getTime();
+  return lg === 'mlb' && !!c && c.phase === 1 && !!c.regStart && now < c.regStart - 86400000 && c.regStart - now < 40 * 86400000;   // games start about 5 weeks before opening day
+}
+/* standings belong to the season: from the day before opening day until the champion is crowned
+   (MLB: spring training standings too) */
 function standingsSeason(lg) {
   var c = seasonCal[lg], now = new Date().getTime(), DAY = 86400000;
   if (!c || !c.at) return !seasonOver(lg);                    // no calendar yet: the old rule
+  if (springTraining(lg)) return true;
   var champ = champAt[lg];
   if (c.nextStart && now >= c.nextStart - DAY) return true;  // the new season starts tomorrow (or has)
   if (c.regStart && now < c.regStart - DAY) return false;    // before opening day
@@ -1385,7 +1392,7 @@ function standingsSeason(lg) {
 function seasonOver(lg) {
   if (!CONFIG.hideEnded || lg === 'ufc') return false;
   var sc = seasonCal[lg], nowT = new Date().getTime(), soon = sc && sc.nextStart && nowT >= sc.nextStart - 86400000;
-  if (sc && sc.at && !soon && !windowGames(lg).length && (sc.phase === 4 || (sc.phase === 1 && sc.regStart && nowT < sc.regStart - 86400000) || (sc.postEnd && nowT > sc.postEnd + 86400000))) return true;   // ESPN's calendar says the season is done
+  if (sc && sc.at && !soon && !windowGames(lg).length && (sc.phase === 4 || (sc.phase === 1 && sc.regStart && nowT < sc.regStart - 86400000 && !springTraining(lg)) || (sc.postEnd && nowT > sc.postEnd + 86400000))) return true;   // ESPN's calendar says the season is done
   var now = new Date().getTime(), c = champAt[lg], wg = windowGames(lg);
   if (c && now - c > 150 * 86400000) c = 0;               // a title from a past year doesn't count
   for (var i = 0; i < wg.length; i++) {
@@ -4276,7 +4283,8 @@ function trackStandWindows() {
     standWasOpen[lg] = open;
   }
 }
-function loadStandings(cb) {
+function loadStandings(cb) { loadSeasonCal(function () { loadStandingsNow(cb); }); }   // the season calendar first: it decides which standings
+function loadStandingsNow(cb) {
   if (!standingsDay() || DEMO) return cb();
   trackStandWindows();
   var todo = [], now = new Date().getTime(), i = 0;
@@ -4285,12 +4293,13 @@ function loadStandings(cb) {
     // college feed is big and only changes on game days; for 20 minutes after a league's last final,
     // re-read every 5 minutes so the standings shown include tonight's results
     var ttl = done && now - done < 20 * 60000 ? 5 : (lg === 'ncaaf' ? 180 : 30);
-    if (STAND_PATHS[lg] && !seasonOver(lg) && standingsOpen(lg) && !(c && now - c.at < ttl * 60000)) todo.push(lg);
+    if (STAND_PATHS[lg] && !seasonOver(lg) && standingsOpen(lg) && !(c && now - c.at < ttl * 60000 && !!c.spring === springTraining(lg))) todo.push(lg);
   }
   function step() {
     if (i >= todo.length) return cb();
     var lg = todo[i++];
-    var url = 'https://site.api.espn.com/apis/v2/sports/' + STAND_PATHS[lg] + '/standings' + (lg === 'ncaaf' ? '?group=80' : '?level=3');
+    var spring = springTraining(lg);
+    var url = 'https://site.api.espn.com/apis/v2/sports/' + STAND_PATHS[lg] + '/standings' + (lg === 'ncaaf' ? '?group=80' : (spring ? '?seasontype=1' : '?level=3'));
     getJSON(url, function (err, data) {
       var screens = null;
       try { if (!err && data) screens = parseStandings(lg, data); } catch (e) { screens = null; }
@@ -4303,7 +4312,7 @@ function loadStandings(cb) {
           step();
         });
       }
-      if (screens && screens.length) standCache[lg] = { at: now, screens: screens };
+      if (screens && screens.length) standCache[lg] = { at: now, screens: screens, spring: spring };
       else if (standCache[lg]) standCache[lg].at = now;          // keep the last good copy
       step();
     });
@@ -4886,7 +4895,7 @@ function renderPage() {
   }
   if (pg.stand) {
     renderTabs(pg.lg);
-    $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Standings · ' + esc(pg.stand.title) + '</span>';
+    $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">' + (standCache[pg.lg] && standCache[pg.lg].spring ? 'Spring Training' : 'Standings') + ' · ' + esc(pg.stand.title) + '</span>';
     try { $('cards').innerHTML = standHTML(pg.lg, pg.stand); fitStand(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
