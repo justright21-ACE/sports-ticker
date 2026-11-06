@@ -354,6 +354,28 @@
   .stand { padding: 0 0.6vw; }
   .stcol { float: left; }
   .stbox { margin-bottom: 1.2vh; }
+  /* NBA Cup */
+  .cup { position: relative; }
+  .cup .cg { float: left; width: 32%; margin: 0 2% 1.6vh 0; } .cup .cg:nth-child(3n) { margin-right: 0; }
+  .cup .cgh { position: relative; height: 4vh; line-height: 4vh; font-size: 2.3vh; font-weight: 800; color: #f5b800; letter-spacing: 0.15vw; border-bottom: 0.25vh solid #26324a; }
+  .cup .cgh span.cw, .cup .cgh span.cp { font-size: 1.8vh; color: #9FA9BD; font-weight: 800; }
+  .cup .cr { position: relative; height: 5.2vh; line-height: 5.2vh; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; overflow: hidden; }
+  .cup .cr.fav { background: rgba(245,184,0,0.14); }
+  .cup .cr.win { box-shadow: inset 0.6vh 0 0 #f5b800; } .cup .cr.wc { box-shadow: inset 0.6vh 0 0 #6fb6ff; }
+  .cup .cn { display: inline-block; width: 3vh; text-align: center; font-size: 2.2vh; color: #9FA9BD; font-weight: 700; margin-left: 0.6vh; }
+  .cup .cr .logo { width: 3.8vh; height: 3.8vh; margin: -0.4vh 0.5vw 0 0.2vw; }
+  .cup .cr .logo img { left: 0.3vh; top: 0.3vh; width: 3.2vh; height: 3.2vh; }
+  .cup .ct { font-size: 2.6vh; font-weight: 700; } .cup .ct.tbd { color: #6f7a94; font-size: 2.2vh; font-weight: 600; }
+  .cup .cw, .cup .cp { position: absolute; top: 0; text-align: right; font-size: 2.5vh; font-weight: 700; }
+  .cup .cw { right: 4.6em; width: 3em; } .cup .cp { right: 0.4vw; width: 3.6em; color: #9FA9BD; font-size: 2.2vh; }
+  .cup .cupkey { clear: both; font-size: 1.8vh; color: #9FA9BD; padding-top: 0.4vh; }
+  .cup .cupkey b { display: inline-block; width: 0.6vh; height: 2vh; vertical-align: -0.3vh; margin: 0 0.5vw 0 1vw; } .cup .cupkey b.k1 { background: #f5b800; margin-left: 0; } .cup .cupkey b.k2 { background: #6fb6ff; }
+  .cup.ko .kc { float: left; width: 32%; margin-right: 2%; } .cup.ko .kc.fin { margin-right: 0; }
+  .cup.ko .kb { background: #111829; margin: 1.2vh 0 2vh; } .cup.ko .kl { font-size: 1.8vh; letter-spacing: 0.2vw; color: #9FA9BD; font-weight: 800; padding: 0.6vh 0.8vw 0; }
+  .cup.ko .cw { right: 0.8vw; font-size: 2.8vh; } .cup.ko .cr.won .ct, .cup.ko .cr.won .cw { color: #ffffff; } .cup.ko .cr.lost { opacity: 0.5; }
+  .cup.ko .fin .kb { margin-top: 18vh; border-top: 0.4vh solid #f5b800; }
+  .cup.ko .cr.champ .ct { color: #f5b800; } .cup.ko .chp { margin-left: 0.6vw; font-size: 1.5vh; font-weight: 800; letter-spacing: 0.15vw; color: #0b1220; background: #f5b800; padding: 0.2vh 0.4vw; vertical-align: 0.3vh; }
+  .narrow .cup .ct { font-size: 2.2vh; } .narrow .cup .cw { font-size: 2.2vh; } .narrow .cup .cp { font-size: 1.9vh; } .narrow .cup .cgh { font-size: 2vh; }
   .pic .psec { font-size: 0.62em; font-weight: 800; letter-spacing: 0.2vw; color: #9FA9BD; border-bottom-color: transparent; padding-top: 0.4em; }
   .pic .psec.wc, .pic .psec.playin { color: #6fb6ff; } .pic .psec.hunt { color: #6f7a94; }
   .pic .strow.out { opacity: 0.62; }
@@ -1138,6 +1160,14 @@ var CONFIG = {
   headshots: true,       // player photos on the leaders, inactives and bottom-bar injuries (?headshots=0 off)
   linesScreen: true,     // college games before kickoff: sportsbook-style LINES screens (spread, moneyline, total) (?lines=0 off)
   linesPerPage: 4,
+  nbaCupOn: true,        // NBA Cup screen while the Cup is on, gone the day after the final (?nbacup=0 off)
+  nbaCup: {              // 2026-27 (update each season)
+    nights: ['2026-10-30', '2026-11-06', '2026-11-13', '2026-11-20', '2026-11-24', '2026-11-25', '2026-11-27'],
+    qf: ['2026-12-04', '2026-12-05'], sf: ['2026-12-08', '2026-12-09'], final: '2026-12-11',
+    groupLabel: 'Cup nights through Nov 27', qfLabel: 'Dec 4-5', finalLabel: 'DEC 11 · INDIANAPOLIS',
+    groups: { 'East A': ['DET', 'TOR', 'ORL', 'MIL', 'BKN'], 'East B': ['NY', 'CLE', 'PHI', 'MIA', 'IND'], 'East C': ['BOS', 'ATL', 'CHA', 'CHI', 'WSH'],
+              'West A': ['DEN', 'HOU', 'PHX', 'DAL', 'UTAH'], 'West B': ['OKC', 'MIN', 'LAC', 'NO', 'MEM'], 'West C': ['SA', 'LAL', 'POR', 'GS', 'SAC'] }
+  },
   playoffPicture: true,  // a PLAYOFF PICTURE screen after the standings: NFL from week 9, others after the All-Star break (?picture=0 off)
   playoffPictureFrom: { nba: '02-16', nhl: '02-09', mlb: '07-16', wnba: '07-21' },   // month-day each season, about when the All-Star break ends
   cfpBracket: true,      // once the CFP rankings are out: a 12-team CFP bracket screen before the Top 25 (?cfpbracket=0 off)
@@ -1262,6 +1292,7 @@ function readParams() {
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
     if (k === 'picture') CONFIG.playoffPicture = v !== '0';
+    if (k === 'nbacup') CONFIG.nbaCupOn = v !== '0';
     if (k === 'lines') CONFIG.linesScreen = v !== '0';
     if (k === 'headshots') CONFIG.headshots = v !== '0';
     if (k === 'celebrate' || k === 'bearswin') CONFIG.celebrate = v !== '0';
@@ -4421,7 +4452,164 @@ function standingsPages(lg) {
   for (var i = 0; i < c.screens.length; i++)
     out.push({ lg: lg, stand: c.screens[i], hold: CONFIG.standingsHoldSec, num: 'st' + i, of: 1, games: [] });
   if (playoffPictureOpen(lg) && playoffPicture(lg).length) out.push({ lg: lg, pic: true, hold: CONFIG.standingsHoldSec + 5, num: 'pic', of: 1, games: [] });
+  if (lg === 'nba' && cupStage()) out.push({ lg: lg, cup: true, hold: CONFIG.standingsHoldSec + 5, num: 'cup', of: 1, games: [] });
   return out;
+}
+/* =================== NBA CUP ===================
+   From the first Cup night until the day after the championship. Group stage: the six groups (W-L and
+   point differential, from the Cup games themselves: same-group matchups on Cup nights); the group
+   winners and each conference's wild card advance. Knockout: the bracket (quarterfinals, semifinals,
+   final). Tiebreakers: head-to-head, then point differential, then points scored.
+   The dates and groups change every season: CONFIG.nbaCup. */
+var cupGames = {}, CUP_KEY = 'fcw_cup';
+try { var cg0 = JSON.parse(window.localStorage.getItem(CUP_KEY)); if (cg0) cupGames = cg0; } catch (e) {}
+var CUP_ALIAS = { NYK: 'NY', GSW: 'GS', NOP: 'NO', SAS: 'SA', UTA: 'UTAH', WAS: 'WSH', PHO: 'PHX', BRK: 'BKN', CHO: 'CHA' };
+function cupAb(a) { a = String(a || '').toUpperCase(); return CUP_ALIAS[a] || a; }
+function cupDay(d) { return ymd(d); }
+function cupStage() {
+  var C = CONFIG.nbaCup, today = cupDay(new Date());
+  if (!CONFIG.nbaCupOn || !C || !C.nights || !C.nights.length || seasonOver('nba')) return '';
+  if (today < C.nights[0]) return '';
+  if (today > ymd(addDays(parseDate(C.final + 'T12:00:00'), 1))) return '';   // the day after the title game: gone
+  return today < C.qf[0] ? 'groups' : 'knockout';
+}
+function cupGroupOf(ab) { var G = CONFIG.nbaCup.groups; for (var g in G) if (inList(G[g], ab)) return g; return ''; }
+function loadCup(cb) {                                       // results of every Cup date so far (finals are kept)
+  var C = CONFIG.nbaCup, stage = cupStage(), today = ymd(new Date()), need = [], i;
+  if (!stage || DEMO) return cb();
+  var dates = C.nights.concat(C.qf, C.sf, [C.final]);
+  for (i = 0; i < dates.length; i++) if (dates[i] <= today && (!cupGames[dates[i]] || !cupGames[dates[i]].done || dates[i] === today)) need.push(dates[i]);
+  var k = 0, now = new Date().getTime();
+  (function next() {
+    if (k >= need.length) { try { window.localStorage.setItem(CUP_KEY, JSON.stringify(cupGames)); } catch (e) {} return cb(); }
+    var d = need[k++], have = cupGames[d];
+    if (have && now - (have.at || 0) < (d === today ? 5 : 30) * 60000) return next();
+    espnDay('nba', d, function (err, games) {
+      if (!err && games) {
+        var list = [], done = true;
+        for (var j = 0; j < games.length; j++) {
+          var g = games[j], a = cupAb(g.teams.away.abbreviation), h = cupAb(g.teams.home.abbreviation);
+          if (!isFinal(g)) done = false;
+          list.push({ a: a, h: h, as: num(scoreOf(g, 'away')), hs: num(scoreOf(g, 'home')), fin: isFinal(g), live: !!g.live });
+        }
+        cupGames[d] = { at: now, done: done && d !== today, games: list };
+      }
+      next();
+    });
+  })();
+}
+function cupTable() {                                        // group standings from the group games
+  var C = CONFIG.nbaCup, rows = {}, g, i, j, d;
+  for (g in C.groups) for (i = 0; i < C.groups[g].length; i++) rows[C.groups[g][i]] = { ab: C.groups[g][i], grp: g, w: 0, l: 0, pf: 0, pa: 0, beat: {} };
+  for (i = 0; i < C.nights.length; i++) {
+    d = cupGames[C.nights[i]];
+    if (!d) continue;
+    for (j = 0; j < d.games.length; j++) {
+      var x = d.games[j], A = rows[x.a], H = rows[x.h];
+      if (!x.fin || !A || !H || A.grp !== H.grp) continue;   // a Cup game: both teams from the same group
+      A.pf += x.as; A.pa += x.hs; H.pf += x.hs; H.pa += x.as;
+      if (x.as > x.hs) { A.w++; H.l++; A.beat[x.h] = 1; } else { H.w++; A.l++; H.beat[x.a] = 1; }
+    }
+  }
+  // ties: head-to-head among the tied teams (their games against each other), then point differential, then points
+  function rankTied(tied) {
+    var ids = {}, k;
+    for (k = 0; k < tied.length; k++) ids[tied[k].ab] = 1;
+    for (k = 0; k < tied.length; k++) { var hw = 0; for (var o in tied[k].beat) if (ids[o]) hw++; tied[k].h2h = hw; }
+    tied.sort(function (p, q) { return (q.h2h - p.h2h) || ((q.pf - q.pa) - (p.pf - p.pa)) || (q.pf - p.pf); });
+    return tied;
+  }
+  var out = {};
+  for (g in C.groups) {
+    var list = [];
+    for (i = 0; i < C.groups[g].length; i++) list.push(rows[C.groups[g][i]]);
+    list.sort(function (p, q) { return q.w - p.w; });
+    var res = [];
+    for (i = 0; i < list.length;) { var jj = i; while (jj < list.length && list[jj].w === list[i].w) jj++; res = res.concat(rankTied(list.slice(i, jj))); i = jj; }
+    out[g] = res;
+  }
+  // each conference: the best team that didn't win its group is the wild card
+  var conf = { East: [], West: [] };
+  for (g in out) conf[/^East/.test(g) ? 'East' : 'West'].push(g);
+  var cmp2 = function (p, q) { if (q.w !== p.w) return q.w - p.w; var pd = (q.pf - q.pa) - (p.pf - p.pa); return pd || (q.pf - p.pf); };
+  var seeds = {};
+  for (var cf in conf) {
+    var winners = [], rest = [];
+    for (i = 0; i < conf[cf].length; i++) { winners.push(out[conf[cf][i]][0]); rest = rest.concat(out[conf[cf][i]].slice(1)); }
+    winners.sort(cmp2); rest.sort(cmp2);
+    for (i = 0; i < winners.length; i++) { winners[i].tag = 'win'; winners[i].seed = i + 1; }
+    if (rest.length) { rest[0].tag = 'wc'; rest[0].seed = 4; }
+    seeds[cf] = winners.concat(rest.slice(0, 1));
+  }
+  return { groups: out, seeds: seeds };
+}
+function cupResult(dates, a, b) {                            // the knockout game between two teams on these dates
+  for (var i = 0; i < dates.length; i++) {
+    var d = cupGames[dates[i]];
+    if (!d) continue;
+    for (var j = 0; j < d.games.length; j++) {
+      var x = d.games[j];
+      if ((x.a === a && x.h === b) || (x.a === b && x.h === a)) return x;
+    }
+  }
+  return null;
+}
+function cupHTML() {
+  var t = cupTable(), favs = favList('nba'), stage = cupStage(), C = CONFIG.nbaCup, html = '', g, i;
+  function nm(ab) { var tm = teamLook({ abbreviation: ab }, 'nba'); return (tm && (tm.short || nickname(tm.name || ''))) || ab; }
+  if (stage === 'groups') {
+    html = '<div class="cup">';
+    var order = ['East A', 'East B', 'East C', 'West A', 'West B', 'West C'];
+    for (i = 0; i < order.length; i++) {
+      g = order[i];
+      var rows = t.groups[g] || [];
+      html += '<div class="cg"><div class="cgh">' + esc(g.toUpperCase()) + '<span class="cw">W-L</span><span class="cp">PD</span></div>';
+      for (var r = 0; r < rows.length; r++) {
+        var x = rows[r], pd = x.pf - x.pa;
+        html += '<div class="cr' + (x.tag ? ' ' + x.tag : '') + (inList(favs, x.ab) ? ' fav' : '') + '"><span class="cn">' + (r + 1) + '</span>' + logoHTML({ abbreviation: x.ab }, 'nba') +
+          '<span class="ct">' + esc(nm(x.ab)) + '</span><span class="cw">' + x.w + '-' + x.l + '</span><span class="cp">' + (x.w + x.l ? (pd > 0 ? '+' : '') + pd : '–') + '</span></div>';
+      }
+      html += '</div>';
+    }
+    return html + '<div class="cupkey"><b class="k1"></b>leads group <b class="k2"></b>wild card · top of each group + 1 wild card per conference go to the quarterfinals (' + esc(C.qfLabel) + ')</div></div>';
+  }
+  // knockout bracket, per conference: 1 v 4, 2 v 3; then the conference final; then the title game
+  html = '<div class="cup ko">';
+  var finals = [];
+  for (var cf in t.seeds) {
+    var S = t.seeds[cf];
+    if (S.length < 4) continue;
+    // the actual quarterfinal pairings when they're on the schedule (the NBA's tiebreakers decide the seeds)
+    var inQ = {}, pairs = [], sd = {}, q;
+    for (q = 0; q < S.length; q++) { inQ[S[q].ab] = 1; sd[S[q].ab] = S[q].seed; }
+    for (q = 0; q < C.qf.length; q++) { var dq = cupGames[C.qf[q]]; if (dq) for (var z = 0; z < dq.games.length; z++) if (inQ[dq.games[z].a] && inQ[dq.games[z].h]) pairs.push([dq.games[z].a, dq.games[z].h]); }
+    if (pairs.length === 2) {
+      for (q = 0; q < 2; q++) if (sd[pairs[q][0]] > sd[pairs[q][1]]) pairs[q].reverse();
+      if (sd[pairs[0][0]] > sd[pairs[1][0]]) pairs.reverse();
+      S = [{ ab: pairs[0][0], seed: sd[pairs[0][0]] }, { ab: pairs[1][0], seed: sd[pairs[1][0]] }, { ab: pairs[1][1], seed: sd[pairs[1][1]] }, { ab: pairs[0][1], seed: sd[pairs[0][1]] }];
+    }
+    var qf1 = cupResult(C.qf, S[0].ab, S[3].ab), qf2 = cupResult(C.qf, S[1].ab, S[2].ab);
+    var w1 = qf1 && qf1.fin ? (qf1.as > qf1.hs ? qf1.a : qf1.h) : '', w2 = qf2 && qf2.fin ? (qf2.as > qf2.hs ? qf2.a : qf2.h) : '';
+    var sf = w1 && w2 ? cupResult(C.sf, w1, w2) : null, ws = sf && sf.fin ? (sf.as > sf.hs ? sf.a : sf.h) : '';
+    finals.push(ws);
+    html += '<div class="kc"><div class="cgh">' + cf.toUpperCase() + '</div>' +
+      koBox('QUARTERFINAL', [[S[0].seed, S[0].ab], [S[3].seed, S[3].ab]], qf1, favs, nm) + koBox('QUARTERFINAL', [[S[1].seed, S[1].ab], [S[2].seed, S[2].ab]], qf2, favs, nm) +
+      koBox('SEMIFINAL', [[0, w1], [0, w2]], sf, favs, nm) + '</div>';
+  }
+  var fg = finals[0] && finals[1] ? cupResult([C.final], finals[0], finals[1]) : null;
+  html += '<div class="kc fin"><div class="cgh">CHAMPIONSHIP</div>' + koBox(esc(C.finalLabel), [[0, finals[0] || ''], [0, finals[1] || '']], fg, favs, nm) + '</div>';
+  return html + '</div>';
+}
+function koBox(label, teams, res, favs, nm) {
+  var h = '<div class="kb"><div class="kl">' + label + '</div>';
+  for (var i = 0; i < 2; i++) {
+    var ab = teams[i][1], sc = '', won = false;
+    if (res && ab) { sc = String(res.a === ab ? res.as : res.hs); if (res.fin) won = (res.a === ab ? res.as > res.hs : res.hs > res.as); if (!res.fin && !res.live) sc = ''; }
+    h += '<div class="cr' + (won ? ' won' : '') + (won && /CHAMP|INDIANAPOLIS|DEC/.test(label) ? ' champ' : '') + (res && res.fin && !won && ab ? ' lost' : '') + (ab && inList(favs, ab) ? ' fav' : '') + '">' +
+      '<span class="cn">' + (teams[i][0] || '') + '</span>' + (ab ? logoHTML({ abbreviation: ab }, 'nba') + '<span class="ct">' + esc(nm(ab)) + '</span>' : '<span class="ct tbd">TBD</span>') +
+      (won && /CHAMP|INDIANAPOLIS|DEC/.test(label) ? '<span class="chp">CUP CHAMPIONS</span>' : '') + '<span class="cw">' + esc(sc) + '</span></div>';
+  }
+  return h + '</div>';
 }
 /* =================== PLAYOFF PICTURE ("if the season ended today") ===================
    NFL from week 9; NBA, NHL, MLB and WNBA after their All-Star break (dates in CONFIG.playoffPictureFrom).
@@ -4887,6 +5075,12 @@ function renderPage() {
     try { $('cards').innerHTML = leadersHTML(pg.grp); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
+  if (pg.cup) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">NBA CUP</span><span class="sub">' + (cupStage() === 'groups' ? 'Group stage · ' + esc(CONFIG.nbaCup.groupLabel) : 'Knockout rounds') + '</span>';
+    try { $('cards').innerHTML = cupHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.pic) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Playoff Picture · if the season ended today</span>';
@@ -5142,14 +5336,14 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () {
+    loadTeams(function () { loadNews(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
