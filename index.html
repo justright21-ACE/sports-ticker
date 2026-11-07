@@ -232,6 +232,11 @@
   .odds .ob.one { line-height: 4.1vh; } .odds .ob.one b { line-height: 4.1vh; } .odds .ob.na b { color: #4a5675; }
   .odds .c1 { right: 34.5%; } .odds .c2 { right: 17.5%; } .odds .c3 { right: 0.5%; }
   .narrow .odds .tr .nm { font-size: 2.5vh; } .narrow .odds .ob b { font-size: 2.1vh; } .narrow .odds .ob i { font-size: 1.5vh; }
+  /* CFP bracket: logo in the heading, the trophy faded behind the title game with a soft gold glow */
+  #heading .cfplogo { height: 6vh; vertical-align: middle; margin: -1.4vh 0.8vw 0 0; }
+  .cfpb { background: -webkit-radial-gradient(92% 45%, ellipse, rgba(245,184,0,0.13), rgba(0,0,0,0) 45%); background: radial-gradient(ellipse at 92% 45%, rgba(245,184,0,0.13), rgba(0,0,0,0) 45%); }
+  .cfpb .cfptro { position: absolute; right: -1%; top: 0; width: 20%; height: 100%; opacity: 0.2; text-align: center; pointer-events: none; }
+  .cfpb .cfptro img { height: 100%; }
   /* CFP bracket */
   .cfpb { position: relative; height: 68vh; }
   .cfpb .cl { position: relative; height: 3.4vh; font-size: 2vh; line-height: 3.4vh; font-weight: 700; letter-spacing: 0.2vw; color: #f5b800; }
@@ -4293,7 +4298,7 @@ function cfpBracketHTML() {
   function box(cls, x, y, top, bottom) { return '<div class="bx ' + cls + '" style="top:' + y.toFixed(2) + 'vh">' + top + bottom + '</div>'; }
   function line(cls, st) { return '<div class="ln ' + cls + '" style="' + st + '"></div>'; }
   // quarterfinal pods top to bottom so the lines meet: 1 v 8/9, 4 v 5/12, 2 v 7/10, 3 v 6/11
-  var pods = [[1, 8, 9], [4, 5, 12], [2, 7, 10], [3, 6, 11]], html = '<div class="cfpb"><div class="cl"><span style="left:0">FIRST ROUND</span><span style="left:30%">QUARTERFINALS</span>' +
+  var pods = [[1, 8, 9], [4, 5, 12], [2, 7, 10], [3, 6, 11]], html = '<div class="cfpb"><div class="cfptro"><img src="img/cfp-trophy.png" onerror="this.style.display=\'none\'" alt=""></div><div class="cl"><span style="left:0">FIRST ROUND</span><span style="left:30%">QUARTERFINALS</span>' +
     '<span style="left:60.5%">SEMIFINALS</span><span style="left:84%">TITLE GAME</span></div>';
   for (var k = 0; k < 4; k++) {
     var c = TOP + 6 + k * GAP, top = S[pods[k][0] - 1], hi = S[pods[k][1] - 1], lo = S[pods[k][2] - 1];
@@ -5074,7 +5079,7 @@ function renderPage() {
   if (pg.cfpb) {
     var rkb = rankingsFor('ncaaf');
     renderTabs(pg.lg);
-    $('heading').innerHTML = '<span class="lg">CFP BRACKET</span><span class="sub">If the season ended today' + (rkb && rkb.week ? ' · ' + esc(rkb.week) + ' rankings' : '') + '</span>';
+    $('heading').innerHTML = '<img class="cfplogo" src="img/cfp-logo.png" onerror="this.style.display=\'none\'" alt=""><span class="lg">CFP BRACKET</span><span class="sub">If the season ended today' + (rkb && rkb.week ? ' · ' + esc(rkb.week) + ' rankings' : '') + '</span>';
     try { $('cards').innerHTML = cfpBracketHTML(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
