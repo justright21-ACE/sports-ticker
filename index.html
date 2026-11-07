@@ -2761,21 +2761,28 @@ function ptKind(g) {
   return (k && d.getHours() >= 18) ? k : null;
 }
 /* Featured games with their own tab + detailed screen: NFL primetime and World Series games */
-function wsGames() {
-  var d = state.data.mlb, out = [], now = new Date().getTime(), today = ymd(new Date());
-  if (!d) return out;
-  for (var i = 0; i < d.games.length; i++) {
-    var g = d.games[i];
-    if (!/WORLD SERIES/.test(g.tag || '')) continue;
-    if (isFinal(g)) {
-      seenFinal(g.id, now);
-      if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
-    } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
-    else if (!g.live && parseDate(g.date).getTime() - now > CONFIG.bigScreenLeadHrs * 3600000) continue;   // big screen from 4 hours before first pitch
-    out.push(g);
+/* Championship series (World Series, NBA Finals, Stanley Cup Final, WNBA Finals): every game gets the
+   big screen all game day, like football, not just the last 4 hours */
+var TITLE_SERIES = [['mlb', /WORLD SERIES/, 'WS', 'World Series'], ['nba', /NBA FINALS|^FINALS/, 'FINALS', 'NBA Finals'],
+                    ['nhl', /STANLEY CUP FINAL/, 'CUP FINAL', 'Stanley Cup Final'], ['wnba', /WNBA FINALS|^FINALS/, 'FINALS', 'WNBA Finals']];
+function titleGames() {
+  var out = [], now = new Date().getTime(), today = ymd(new Date());
+  for (var k = 0; k < TITLE_SERIES.length; k++) {
+    var T = TITLE_SERIES[k], d = state.data[T[0]];
+    if (!d || !inList(CONFIG.leagues, T[0])) continue;
+    for (var i = 0; i < d.games.length; i++) {
+      var g = d.games[i];
+      if (!T[1].test(g.tag || '')) continue;
+      if (isFinal(g)) {
+        seenFinal(g.id, now);
+        if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
+      } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+      out.push({ g: g, lg: T[0], kind: [T[2], T[3] + (g.series ? ' · ' + g.series : '')] });
+    }
   }
   return out;
 }
+function wsGames() { return titleGames(); }
 /* Favorite college football teams (USC, Wisconsin) get the primetime treatment every game */
 var CFB_NAMES = { USC: 'USC Game Day', WIS: 'Wisconsin Game Day' };
 function cfbKind(g) {
@@ -2886,6 +2893,7 @@ function favScreenGames() {
       var g = d.games[i];
       if (!isFav(g, lg) || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
       if (lg === 'nfl' && ptKind(g)) continue;                          // already has its primetime screen
+      if (/WORLD SERIES|NBA FINALS|WNBA FINALS|^FINALS|STANLEY CUP FINAL/.test(g.tag || '')) continue;   // a title series has its own screen
       if (ptDay && !isMustWatch(g, lg)) continue;
       if (isFinal(g)) {
         if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
@@ -2914,7 +2922,7 @@ function featuredGames() {
   for (i = 0; i < cl.length; i++) out.push({ g: cl[i], lg: 'ncaaf', kind: closeKind(cl[i], 'ncaaf'), hold: CONFIG.closeHoldSec });
   var cb2 = closeGames('ncaab');
   for (i = 0; i < cb2.length; i++) out.push({ g: cb2[i], lg: 'ncaab', kind: closeKind(cb2[i], 'ncaab'), hold: CONFIG.closeHoldSec, upset: true });
-  for (i = 0; i < ws.length; i++) out.push({ g: ws[i], lg: 'mlb', kind: ['WS', 'World Series'] });
+  for (i = 0; i < ws.length; i++) out.push({ g: ws[i].g, lg: ws[i].lg, kind: ws[i].kind });
   return out;
 }
 function primetimeGames() {
