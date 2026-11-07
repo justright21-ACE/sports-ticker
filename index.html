@@ -3125,17 +3125,25 @@ function timeoutPlays(data, g) {
   }
   return { list: out };
 }
-/* timeouts left for one side: the plays this half and the scoreboard, whichever has seen more used
-   (the scoreboard alone when there are no plays) */
+/* timeouts left for one side. ESPN's scoreboard has been sending 0 (or blank) for both college
+   teams mid-game, so: the play-by-play count for this half when we have it; otherwise the
+   scoreboard, unless it says neither team has a timeout left (then show nothing rather than
+   something wrong). null = don't show the bars. */
+function sbTimeout(v) { return v === undefined || v === null || v === '' || isNaN(+v) ? NaN : +v; }
 function timeoutsLeft(g, det, s, which) {
-  var q = quarterOf(g), sb = which === 'home' ? s.homeTimeouts : s.awayTimeouts;
+  var q = quarterOf(g);
   if (det && det.tos && q >= 1 && q <= 4) {
     var used = 0, lo = q <= 2 ? 1 : 3, hi = q <= 2 ? 2 : 4;
     for (var i = 0; i < det.tos.list.length; i++) { var t = det.tos.list[i]; if (t.side === which && t.per >= lo && t.per <= hi) used++; }
-    var left = Math.max(0, 3 - used), sv = sb === undefined || sb === null || sb === '' ? NaN : +sb;
-    return isNaN(sv) ? left : Math.min(left, sv);                     // a timeout either source has seen counts
+    return Math.max(0, 3 - used);
   }
-  return sb === undefined || sb === null || sb === '' ? null : +sb;
+  var h = sbTimeout(s.homeTimeouts), a = sbTimeout(s.awayTimeouts), v = which === 'home' ? h : a;
+  if (isNaN(v) || v < 0 || v > 3) return null;
+  if (h === 0 && a === 0) {                                          // both out of timeouts: only believable in the last 3 minutes of a half
+    var ck = String((g.raw && g.raw.status && g.raw.status.displayClock) || ''), mm = ck.match(/^(\d+):/);
+    if (!((q === 2 || q === 4) && mm && +mm[1] < 3)) return null;
+  }
+  return v;
 }
 function compOf(g) { return g.raw && g.raw.competitions && g.raw.competitions[0]; }
 function sideComp(c, side) {
