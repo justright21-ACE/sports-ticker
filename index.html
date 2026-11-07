@@ -2607,9 +2607,9 @@ function windowLabel(lg, games) {
 }
 
 function buildPages() {
-  var pages = [];
-  for (var i = 0; i < CONFIG.leagues.length; i++) {
-    var lg = CONFIG.leagues[i], wg = windowGames(lg);
+  var pages = [], order = leagueOrder();
+  for (var i = 0; i < order.length; i++) {
+    var lg = order[i], wg = windowGames(lg);
     if (lg === 'nfl' && singleNflNight()) {          // one primetime game: it has its own screen; this tab = standings + leaders
       pages = pages.concat(standingsPages(lg));
       var lgrp = ['off', 'def'];
@@ -2696,6 +2696,25 @@ function buildPages() {
   for (var y = 0; y < pages.length; y++) if (pages[y].key === curKey) { state.pageIndex = y; break; }
 }
 
+/* league tabs (and their screens) in the order their games are on: a league with a game on now first
+   (earliest start first), then by the next start time; leagues with nothing left today keep their usual order */
+function leagueOrder() {
+  var arr = [], i, k;
+  for (i = 0; i < CONFIG.leagues.length; i++) {
+    var lg = CONFIG.leagues[i], wg = windowGames(lg), key = Infinity;
+    for (k = 0; k < wg.length; k++) {
+      var g = wg[k];
+      if (isFinal(g) || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+      var t = parseDate(g.date).getTime();
+      if (!isNaN(t) && t < key) key = t;
+    }
+    arr.push({ lg: lg, key: key, idx: i });
+  }
+  arr.sort(function (a, b) { return a.key === b.key ? a.idx - b.idx : (a.key < b.key ? -1 : 1); });
+  var out = [];
+  for (i = 0; i < arr.length; i++) out.push(arr[i].lg);
+  return out;
+}
 function renderTabs(activeLg) {
   var html = '', ftg = featuredGames(), codes = [], liveBy = {};
   for (var p = 0; p < ftg.length; p++) {                // one tab per kind: SNF / MNF / TNF / WS
@@ -2706,8 +2725,9 @@ function renderTabs(activeLg) {
   for (var c2 = 0; c2 < codes.length; c2++) {
     html += '<span class="tab pt' + (activeLg === 'pt:' + codes[c2] ? ' on' : '') + '">' + (liveBy[codes[c2]] ? '<i></i>' : '') + codes[c2] + '</span>';
   }
-  for (var i = 0; i < CONFIG.leagues.length; i++) {
-    var lg = CONFIG.leagues[i];
+  var order = leagueOrder();
+  for (var i = 0; i < order.length; i++) {
+    var lg = order[i];
     if (seasonOver(lg)) continue;
     var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length && !(lg === 'ncaab' && bracketPages().length) ? ' empty' : '');
     var tnm = LEAGUE_NAMES[lg] || lg.toUpperCase();
