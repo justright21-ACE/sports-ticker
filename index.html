@@ -765,8 +765,17 @@
   .ptv .sub { font-size: 2.6vh; color: #a5aec4; line-height: 3.6vh; }
   .ptv .to { display: inline-block; width: 2.2vw; height: 0.8vh; background: #f2f4f8; margin: 0 0.15vw; border-radius: 0.4vh; vertical-align: middle; }
   .ptv .to.used { background: #33405c; }
-  .ptv .ball { display: inline-block; width: 2.4vh; height: 1.5vh; border-radius: 50%; background: #8b4a22; border: 0.2vh solid #f2f4f8;
-               vertical-align: middle; margin: 0 0.6vw; position: relative; top: -0.3vh; }
+  .ptv .ball { display: inline-block; width: 3.2vh; height: 1.9vh; vertical-align: middle; margin: 0 0.6vw; position: relative; top: -0.3vh; }
+  /* the football: a pointed leather body (a lens shape turned flat), two white stripes, white laces */
+  .ptv .ball b, .ptv .field .fb b { position: absolute; left: 50%; top: 50%; width: 2.26vh; height: 2.26vh; margin: -1.13vh 0 0 -1.13vh;
+               -webkit-border-radius: 100% 0; border-radius: 100% 0; border: 0.15vh solid #f2f4f8; background-color: #8b4a22;
+               background-image: -webkit-linear-gradient(45deg, #5e2d12 0%, #8b4a22 14%, #8b4a22 21%, #fff 21%, #fff 26%, #8b4a22 26%, #a35a2c 50%, #8b4a22 74%, #fff 74%, #fff 79%, #8b4a22 79%, #8b4a22 86%, #5e2d12 100%);
+               background-image: linear-gradient(45deg, #5e2d12 0%, #8b4a22 14%, #8b4a22 21%, #fff 21%, #fff 26%, #8b4a22 26%, #a35a2c 50%, #8b4a22 74%, #fff 74%, #fff 79%, #8b4a22 79%, #8b4a22 86%, #5e2d12 100%);
+               -webkit-transform: scaleY(1.4) rotate(45deg); transform: scaleY(1.4) rotate(45deg); }
+  .ptv .ball i, .ptv .field .fb i { position: absolute; left: 50%; top: 50%; width: 1.1vh; height: 0.2vh; margin: -0.1vh 0 0 -0.55vh; background: #fff; }
+  .ptv .ball i:before, .ptv .field .fb i:before { content: ''; position: absolute; left: 0.05vh; right: 0.05vh; top: -0.3vh; height: 0.8vh;
+               background-image: -webkit-repeating-linear-gradient(0deg, #fff 0, #fff 0.17vh, rgba(255,255,255,0) 0.17vh, rgba(255,255,255,0) 0.33vh);
+               background-image: repeating-linear-gradient(90deg, #fff 0, #fff 0.17vh, rgba(255,255,255,0) 0.17vh, rgba(255,255,255,0) 0.33vh); }
   .ptv .center { position: absolute; left: 34%; right: 34%; top: 1vh; bottom: 0; text-align: center; }
   .ptv .bigsc { font-size: 13vh; font-weight: 700; line-height: 14vh; margin-top: 0.6vh; letter-spacing: 0.2vw; }
   .ptv .bigsc span { color: #6f7a94; font-weight: 500; margin: 0 1.2vw; }
@@ -796,7 +805,7 @@
   .ptv .field .yl { position: absolute; top: 0; bottom: 0; width: 0.1vw; background: rgba(255,255,255,0.35); }
   .ptv .field .los { position: absolute; top: 0; bottom: 0; width: 0.35vw; background: #4da3ff; }
   .ptv .field .fd { position: absolute; top: 0; bottom: 0; width: 0.35vw; background: #ffd400; }
-  .ptv .field .fb { position: absolute; top: 2.2vh; width: 2.6vh; height: 1.8vh; margin-left: -1.3vh; border-radius: 50%; background: #8b4a22; border: 0.2vh solid #fff; }
+  .ptv .field .fb { position: absolute; top: 2.1vh; width: 3.2vh; height: 1.9vh; margin-left: -1.6vh; }
   .ptv .field .lab { position: absolute; bottom: 0.2vh; font-size: 1.6vh; color: rgba(255,255,255,0.75); }
   .ptv .note { font-size: 2.4vh; line-height: 3.3vh; color: #c9d0e0; margin-top: 1vh; }
   .ptv .note b { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; display: block; }
@@ -3244,8 +3253,8 @@ function ptHTML(g, kind, lg) {
     var rk = apRank(t, lg), rkh = rk ? '<span class="prk">#' + rk + '</span>' : '';
     var wl = fin ? (num(scoreOf(g, which)) > num(scoreOf(g, which === 'home' ? 'away' : 'home')) ? ' win' : (num(scoreOf(g, which)) < num(scoreOf(g, which === 'home' ? 'away' : 'home')) ? ' lose' : '')) : '';
     return '<div class="side ' + which + wl + '"' + tint + '><div class="ptlogo">' + logoHTML(t, lg) + '</div><div class="txt">' +
-      '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"></span>' : '') + (which === 'away' ? rkh : '') + esc(t.abbreviation) + (which === 'home' ? rkh : '') +
-      (which === 'away' && poss ? '<span class="ball"></span>' : '') + '</div>' +
+      '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"><b></b><i></i></span>' : '') + (which === 'away' ? rkh : '') + esc(t.abbreviation) + (which === 'home' ? rkh : '') +
+      (which === 'away' && poss ? '<span class="ball"><b></b><i></i></span>' : '') + '</div>' +
       '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div>' +
       (poss && foot && CONFIG.redZone && redZoneOf(g, lg) ? '<div class="rzp">RED ZONE</div>' : '') + '</div></div>';
   }
@@ -3346,7 +3355,7 @@ function ptHTML(g, kind, lg) {
       field = '<div class="field' + (s.isRedZone ? ' rz' : '') + '"><div class="ez' + (offAway ? '' : ' tgt') + '" style="left:0;background:#' + (homeColor(a, lg) || '33405c') + '"></div>' +
               '<div class="ez' + (offAway ? ' tgt' : '') + '" style="right:0;background:#' + (hc || '33405c') + '"></div>' + yls +
               '<div class="los" style="left:' + X(fromLeft) + '"></div>' + (toGo && !/goal/i.test(s.downDistanceText || '') ? '<div class="fd" style="left:' + X(fdL) + '"></div>' : '') +
-              '<div class="fb" style="left:' + X(fromLeft) + '"></div><div class="lab" style="left:9%">' + esc(a.abbreviation) +
+              '<div class="fb" style="left:' + X(fromLeft) + '"><b></b><i></i></div><div class="lab" style="left:9%">' + esc(a.abbreviation) +
               '</div><div class="lab" style="right:9%">' + esc(h.abbreviation) + '</div></div>';
     }
     var who = abbrById[s.possession] || '';
