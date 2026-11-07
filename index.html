@@ -1201,6 +1201,7 @@ var CONFIG = {
   primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
   closeGames: true,      // a game within one score (8 pts) in the 4th quarter / OT gets its own screen: any NFL game, college games with a Top 25 team
+  bigScreenLeadHrs: 4,   // games other than football: their big screen (countdown) starts this many hours before the start
   closeHoldSec: 45,      // ...seconds that screen stays up (returns after every other screen while it's close)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
   windowHours: 24,       // screens show live games and games starting within this many hours...
@@ -2770,6 +2771,7 @@ function wsGames() {
       seenFinal(g.id, now);
       if (now - finalSeen[g.id] > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+    else if (!g.live && parseDate(g.date).getTime() - now > CONFIG.bigScreenLeadHrs * 3600000) continue;   // big screen from 4 hours before first pitch
     out.push(g);
   }
   return out;
@@ -2888,6 +2890,7 @@ function favScreenGames() {
       if (isFinal(g)) {
         if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
       } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+      else if (!g.live && lg !== 'nfl' && parseDate(g.date).getTime() - now > CONFIG.bigScreenLeadHrs * 3600000) continue;   // not football: big screen from 4 hours before
       out.push({ g: g, lg: lg, kind: favKind(g, lg) });
     }
   }
