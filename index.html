@@ -1177,7 +1177,9 @@ var CONFIG = {
   playoffPictureFrom: { nba: '02-16', nhl: '02-09', mlb: '07-16', wnba: '07-21' },   // month-day each season, about when the All-Star break ends
   cfpBracket: true,      // once the CFP rankings are out: a 12-team CFP bracket screen before the Top 25 (?cfpbracket=0 off)
   cbbUpset: true,        // college hoops: unranked team leading a ranked one in the 2nd half gets a CLOSE screen (?cbbupset=0 off)
-  upsetAlert: true,      // ranked college team losing in the 4th: UPSET ALERT screen, banner and jump (?upset=0 off)
+  upsetAlert: true,      // ranked college team losing in the 2nd half, by any margin: UPSET screen (primetime-style), banner and jump (?upset=0 off)
+  upsetHoldSec: 90,      // ...seconds the UPSET screen stays up while live (returns after every other screen, like primetime)
+  upsetFinalMin: 15,     // ...minutes it stays in the rotation after an upset goes final
   halftime: true,        // halftime: the big screen shows the first-half stat battle (?halftime=0 off)
   winProb: true,         // win-probability bar along the bottom of the big screens' score band (?winprob=0 off)
   idleScreen: true,      // no games on: UP NEXT screen with your teams' next games (?idle=0 off)
@@ -1297,6 +1299,7 @@ function readParams() {
     if (k === 'winprob') CONFIG.winProb = v !== '0';
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
+    if (k === 'upsetsec') CONFIG.upsetHoldSec = Math.max(10, +v || 90);
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
     if (k === 'picture') CONFIG.playoffPicture = v !== '0';
@@ -2889,12 +2892,13 @@ function closeGames(lg) {
     var g = list[i];
     if (ownIds[g.id]) continue;
     if (closeGrace[g.id] && closeGrace[g.id] > new Date().getTime()) { out.push(g); continue; }   // just scored: stays a moment
-    if (lg === 'ncaab') { if (upsetOf(g, lg)) out.push(g); continue; }   // college hoops: an unranked team leading a ranked one, 2nd half
+    if (upsetOf(g, lg)) { out.push(g); continue; }                       // an upset in the 2nd half, any margin (own UPSET screen)
+    if (lg === 'ncaab') continue;
     if (!g.live || quarterOf(g) < 4) continue;
     if (lg === 'ncaaf') {
       if (!cfbCloseEligible(g)) continue;
     }
-    if (Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8 && !upsetOf(g, lg)) continue;
+    if (Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8) continue;
     out.push(g);
   }
   return out;
@@ -2906,22 +2910,30 @@ function schoolName(t) {                                  // 'Ohio State Buckeye
   var sch = nick && full.length > nick.length && full.slice(-nick.length) === nick ? full.slice(0, full.length - nick.length).replace(/\s+$/, '') : '';
   return sch || t.abbreviation || nick;
 }
-/* UPSET ALERT: a ranked college team losing in the 4th quarter to an unranked or lower-ranked team */
+/* UPSET ALERT: a ranked college team losing in the 2nd half (any margin) to an unranked or lower-ranked
+   team. Once it goes final it stays an upset for upsetFinalMin minutes ("falls to"). */
+function upsetLiveOrJustFinal(g) {
+  if (g.live) return true;
+  if (!isFinal(g) || !CONFIG.upsetFinalMin) return false;
+  var now = new Date().getTime();
+  if (now - parseDate(g.date).getTime() > 6 * 3600000) return false;          // an old final after a reload
+  return now - seenFinal(g.id, now) <= CONFIG.upsetFinalMin * 60000;
+}
 function upsetOf(g, lg) {
   if (lg === 'ncaab') {                                    // 2nd half (or OT): a ranked team trails an UNRANKED team
-    if (!CONFIG.cbbUpset || !g.live || quarterOf(g) < 2 || isHalftime(g)) return null;
+    if (!CONFIG.cbbUpset || !(g.live || isFinal(g)) || quarterOf(g) < 2 || isHalftime(g)) return null;
     var ba = num(scoreOf(g, 'away')), bh = num(scoreOf(g, 'home'));
     if (ba === bh) return null;
     var bl = ba < bh ? 'away' : 'home', bw = bl === 'away' ? 'home' : 'away', rbl = apRank(g.teams[bl], lg), rbw = apRank(g.teams[bw], lg);
-    if (!rbl || rbl > 25 || (rbw && rbw <= 25)) return null;
+    if (!rbl || rbl > 25 || (rbw && rbw <= 25) || !upsetLiveOrJustFinal(g)) return null;
     return { fav: g.teams[bl], favRank: rbl, dog: g.teams[bw], dogRank: 0, by: Math.abs(ba - bh) };
   }
-  if (!CONFIG.upsetAlert || lg !== 'ncaaf' || !g.live || quarterOf(g) < 4) return null;
+  if (!CONFIG.upsetAlert || lg !== 'ncaaf' || !(g.live || isFinal(g)) || quarterOf(g) < 3 || isHalftime(g)) return null;
   var a = num(scoreOf(g, 'away')), h = num(scoreOf(g, 'home'));
   if (a === h) return null;
   var lose = a < h ? 'away' : 'home', win = lose === 'away' ? 'home' : 'away';
   var rl = apRank(g.teams[lose], lg), rw = apRank(g.teams[win], lg);
-  if (!rl || rl > 25 || (rw && rw <= 25 && rw < rl)) return null;
+  if (!rl || rl > 25 || (rw && rw <= 25 && rw < rl) || !upsetLiveOrJustFinal(g)) return null;
   return { fav: g.teams[lose], favRank: rl, dog: g.teams[win], dogRank: rw && rw <= 25 ? rw : 0, by: Math.abs(a - h) };
 }
 /* major conference = SEC, Big Ten, Big 12, ACC (ESPN conference ids 8, 5, 4, 1) plus Notre Dame */
@@ -2946,8 +2958,14 @@ function closeCond(g, lg) {
 }
 function closeKind(g, lg) {
   var up = upsetOf(g, lg);
-  if (lg === 'ncaab') return ['CLOSE', 'College Basketball · Upset Watch · ' + (up ? '#' + up.favRank + ' ' + schoolName(up.fav) + ' trails · ' : '') + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half')];
-  if (up) return ['UPSET', 'Upset Alert · #' + up.favRank + ' ' + schoolName(up.fav) + ' trails' + (isFinal(g) ? '' : ' · ' + (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter'))];
+  var QN = ['', '1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'];
+  if (lg === 'ncaab') {
+    if (!up) return ['CLOSE', 'College Basketball · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half')];
+    return ['UPSET', 'College Basketball · Upset ' + (isFinal(g) ? 'Final · #' + up.favRank + ' ' + schoolName(up.fav) + ' falls' :
+            'Alert · #' + up.favRank + ' ' + schoolName(up.fav) + ' trails · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half'))];
+  }
+  if (up) return ['UPSET', isFinal(g) ? 'Upset Final · #' + up.favRank + ' ' + schoolName(up.fav) + ' falls' :
+                  'Upset Alert · #' + up.favRank + ' ' + schoolName(up.fav) + ' trails · ' + (quarterOf(g) > 4 ? 'Overtime' : QN[quarterOf(g)] || '2nd Half')];
   var open = Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8;      // just broke open (its last few minutes up)
   return ['CLOSE', (lg === 'nfl' ? 'NFL · ' : '') + (isFinal(g) ? 'Final' : (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter')) + ' · ' + (open ? 'Score Update' : 'One-Score Game')];
 }
@@ -2986,15 +3004,21 @@ function favKind(g, lg) {
   var code = nick(t).split(' ').pop().toUpperCase();
   return [code, mine.length > 1 ? nick(mine[0]) + ' vs ' + nick(mine[1]) : nick(t) + ' Game Day'];
 }
+/* an UPSET gets the primetime treatment: 90 s a time while live (back after every other screen), then
+   once per loop for a few minutes after the final; a CLOSE game 45 s */
+function closeHold(g, kind) {
+  if (kind[0] !== 'UPSET') return CONFIG.closeHoldSec;
+  return g.live ? CONFIG.upsetHoldSec : CONFIG.primetimeHoldPre;
+}
 function featuredGames() {
   var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl'), fv = favScreenGames();
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
   for (i = 0; i < fv.length; i++) out.push(fv[i]);
   for (i = 0; i < cn.length; i++) out.push({ g: cn[i], lg: 'nfl', kind: closeKind(cn[i], 'nfl'), hold: CONFIG.closeHoldSec });
-  for (i = 0; i < cl.length; i++) out.push({ g: cl[i], lg: 'ncaaf', kind: closeKind(cl[i], 'ncaaf'), hold: CONFIG.closeHoldSec });
-  var cb2 = closeGames('ncaab');
-  for (i = 0; i < cb2.length; i++) out.push({ g: cb2[i], lg: 'ncaab', kind: closeKind(cb2[i], 'ncaab'), hold: CONFIG.closeHoldSec, upset: true });
+  var cb2 = closeGames('ncaab'), ck;
+  for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck) }); }
+  for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck), upset: true }); }
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i].g, lg: ws[i].lg, kind: ws[i].kind });
   return out;
 }
@@ -4007,7 +4031,7 @@ function ptAnimate(pg) {
     upsetShown[id] = true;
     var dogN = (upz.dogRank ? '#' + upz.dogRank + ' ' : '') + schoolName(upz.dog);
     var upHtml = '<div class="rza up"><div class="rzs"><b>UPSET ALERT</b><i>' + esc(('#' + upz.favRank + ' ' + schoolName(upz.fav) +
-      ' trails ' + dogN + ' by ' + upz.by).toUpperCase()) + '</i></div></div>';
+      (isFinal(g) ? ' falls to ' + dogN : ' trails ' + dogN + ' by ' + upz.by)).toUpperCase()) + '</i></div></div>';
     var upWait = delay ? delay - 0.3 : (entering ? 1.0 : 0);
     if (upWait > 0) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', upHtml); }, upWait * 1000);
     else root.insertAdjacentHTML('beforeend', upHtml);
