@@ -200,6 +200,11 @@
   #hlstat { position: fixed; right: 1vw; top: 12vh; z-index: 80; max-width: 46vw; padding: 0.8vh 1vw; border-radius: 0.6vh;
             background: rgba(10,16,30,0.92); border: 0.15vh solid #f5b800; color: #f2f4f8; font-size: 1.9vh; line-height: 2.6vh; }
   #hlstat b { color: #f5b800; margin-right: 0.5vw; }
+  #hltap { position: fixed; left: 1vw; bottom: 14vh; z-index: 60; display: none; padding: 0.6vh 1vw; border-radius: 0.6vh;
+           background: rgba(10,16,30,0.88); border: 0.15vh solid rgba(245,184,0,0.6); color: #c9d1e3; font-size: 1.8vh; }
+  #hltap b { color: #f5b800; margin-right: 0.5vw; letter-spacing: 0.1vw; }
+  #hl video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
+  #hl video::-webkit-media-controls { display: none !important; }
   #sndnote { position: fixed; left: 1vw; bottom: 9vh; z-index: 60; display: none; padding: 0.6vh 1vw; border-radius: 0.6vh;
              background: rgba(10,16,30,0.85); border: 0.15vh solid rgba(245,184,0,0.6); color: #c9d1e3; font-size: 1.8vh; }
   #sndnote b { color: #f5b800; margin-right: 0.5vw; letter-spacing: 0.1vw; }
@@ -3948,19 +3953,55 @@ function hlNext() {
   if (hl.queue.length > 3) hl.queue = hl.queue.slice(hl.queue.length - 3);   // only the newest few
   if (!hl.playing && hl.queue.length) playHighlight(hl.queue.shift());
 }
-function playHighlight(it) {
+/* One video player, made once and reused for every clip: browsers that block video from starting
+   on its own let it play for the rest of the visit after one tap / click / OK press on the page. */
+function hlBox() {
   var box = $('hl');
-  if (!box) { box = document.createElement('div'); box.id = 'hl'; document.body.appendChild(box); }
+  if (!box) {
+    box = document.createElement('div'); box.id = 'hl';
+    box.innerHTML = '<video muted autoplay playsinline webkit-playsinline preload="auto"></video><div class="hlbar"></div>';
+    document.body.appendChild(box);
+    var v0 = box.getElementsByTagName('video')[0]; v0.muted = true; v0.defaultMuted = true;
+    v0.setAttribute('muted', ''); v0.setAttribute('playsinline', ''); v0.removeAttribute('controls');
+  }
+  return box;
+}
+function hlUnlock() {                                            // any tap / click / key on the page: bless the player
+  if (hl.unlocked || !CONFIG.highlights) return;
+  hl.unlocked = true;
+  var v = hlBox().getElementsByTagName('video')[0];
+  try {
+    if (!hl.playing) { v.load(); var p = v.play(); if (p && p['catch']) p['catch'](function () {}); v.pause(); }
+    else { var p2 = v.play(); if (p2 && p2['catch']) p2['catch'](function () {}); }
+  } catch (e) {}
+  var n = $('hltap'); if (n) n.style.display = 'none';
+  if (hl.blocked) { var it = hl.blocked; hl.blocked = null; playHighlight(it); }   // the clip that was waiting
+}
+function hlTapNote(show) {
+  var n = $('hltap');
+  if (!n && show) { n = document.createElement('div'); n.id = 'hltap'; n.innerHTML = '<b>HIGHLIGHTS</b> tap or click the screen once to let clips play'; document.body.appendChild(n); }
+  if (n) n.style.display = show ? 'block' : 'none';
+}
+function playHighlight(it) {
+  var box = hlBox();
   hl.playing = it;
   if (state.rotTimer) clearTimeout(state.rotTimer);                       // the rotation waits for the clip
   var g = it.g, who = (g.teams.away.short || g.teams.away.abbreviation) + ' vs ' + (g.teams.home.short || g.teams.home.abbreviation);
-  box.innerHTML = '<video muted autoplay playsinline webkit-playsinline preload="auto"></video><div class="hlbar"><b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i></div>';
+  box.getElementsByTagName('div')[0].innerHTML = '<b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i>';
   var vid = box.getElementsByTagName('video')[0];
-  vid.muted = !(CONFIG.sound && snd.on); vid.autoplay = true;
+  vid.muted = !(CONFIG.sound && snd.on); vid.autoplay = true; vid.controls = false;
   hlStatus('playing: ' + it.v.title + ' · ' + String(it.v.src).replace(/^https?:\/\/([^\/]+).*$/, '$1'));
   vid.onended = function () { hlStatus('finished: ' + it.v.title); endHighlight(); };
-  vid.onerror = function () { var c = vid.error && vid.error.code; hlStatus('video would not play (error ' + (c || '?') + ', ' + (['', 'stopped', 'network', 'decode', 'format / blocked'][c] || 'unknown') + '): ' + it.v.title); endHighlight(); };
-  vid.onplaying = function () { box.className = ''; hlStatus('playing now: ' + it.v.title); };   // show it once it's actually moving
+  vid.onerror = function () { if (hl.playing !== it) return; var c = vid.error && vid.error.code; hlStatus('video would not play (error ' + (c || '?') + ', ' + (['', 'stopped', 'network', 'decode', 'format / blocked'][c] || 'unknown') + '): ' + it.v.title); endHighlight(); };
+  vid.onplaying = function () { box.className = ''; hlTapNote(false); hlStatus('playing now: ' + it.v.title); };   // show it once it's actually moving
+  function blocked(er) {                                         // this browser won't start video on its own yet
+    if (hl.playing !== it) return;
+    hlStatus('blocked until the screen is tapped once (' + (er && er.name || '?') + '): ' + it.v.title);
+    hl.unlocked = false; hl.blocked = it;
+    clearTimeout(hl.timer); clearInterval(hl.dog); hl.playing = null;
+    box.style.display = 'none'; hlTapNote(true);
+    scheduleRotate();
+  }
   // watchdog: if the picture stops moving (stuck on a frame, buffering), nudge it; give up after ~10 s
   var lastT = -1, stuck = 0;
   clearInterval(hl.dog);
@@ -3971,12 +4012,13 @@ function playHighlight(it) {
     stuck++;
     if (stuck === 3 || stuck === 6) { try { vid.muted = true; var pp = vid.play(); if (pp && pp['catch']) pp['catch'](function () {}); } catch (e) {} }
     if (stuck >= 10) {
+      if (vid.paused && t < 0.5 && !hl.unlocked) return blocked({ name: 'never started' });
       hlStatus('the clip froze at ' + mm(t) + ' (ready state ' + vid.readyState + ', network ' + vid.networkState + (vid.paused ? ', paused' : '') + '): ' + it.v.title);
       clearInterval(hl.dog); endHighlight();
     }
   }, 1000);
   vid.src = it.v.src;
-  try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](function (er) { hlStatus('the browser would not start the video: ' + (er && er.name || '?')); endHighlight(); }); }); } catch (e) {}
+  try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](blocked); }); } catch (e) {}
   box.className = 'loading'; box.style.display = 'block';           // invisible while the video starts up (hides the first-second stutter)
   var cap = Math.min(it.v.dur || CONFIG.highlightMaxSec, CONFIG.highlightMaxSec) + 8;   // never longer than this, even if it stalls
   hl.timer = setTimeout(endHighlight, cap * 1000);
@@ -3985,7 +4027,7 @@ function endHighlight() {
   if (!hl.playing) return;
   clearTimeout(hl.timer); clearInterval(hl.dog); hl.playing = null;
   var box = $('hl');
-  if (box) { var v = box.getElementsByTagName('video')[0]; if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } box.innerHTML = ''; box.style.display = 'none'; }
+  if (box) { var v = box.getElementsByTagName('video')[0]; if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } box.style.display = 'none'; }
   if (hl.queue.length) return playHighlight(hl.queue.shift());
   scheduleRotate();
 }
@@ -6583,6 +6625,10 @@ readParams();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
 /* sound: any click, tap or key (a TV remote's OK) on the page turns it on */
+if (CONFIG.highlights) {                                         // one tap / click / key lets highlight clips play
+  var hlEv = ['click', 'keydown', 'touchstart', 'mousedown'];
+  for (var hli = 0; hli < hlEv.length; hli++) document.addEventListener(hlEv[hli], hlUnlock, true);
+}
 if (CONFIG.sound) {
   var sndEv = ['click', 'keydown', 'touchstart', 'mousedown'];
   for (var sni = 0; sni < sndEv.length; sni++) document.addEventListener(sndEv[sni], soundUnlock, true);
