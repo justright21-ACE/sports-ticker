@@ -858,6 +858,7 @@
   .ptv .rvp .trb { float: left; width: 8vh; height: 8vh; margin-right: 1vw; }
   .ptv .rvp.hasph .trb { width: auto; max-width: 45%; height: 18vh; border-radius: 0.6vh; }
   .narrow .ptv .rvp.hasph .trb { height: 17vh; }
+  .ptv .rvp .rvt em { display: block; font-style: normal; font-size: 2vh; font-weight: 700; color: #f5b800; margin-top: 0.4vh; letter-spacing: 0.05vw; }
   .ptv .rvp .rvt i { display: block; font-style: normal; font-size: 1.3vh; font-weight: 400; color: #6f7a94; margin-top: 0.4vh; }
   /* the trophy, faded, across a rivalry card */
   .card.rival { position: relative; }
@@ -1218,6 +1219,7 @@ var CONFIG = {
   pinGames: [{ date: '2026-11-07', lg: 'ncaaf', teams: ['ND', 'MIA'], tab: 'ND·MIA' }],
   rivalries: true,       // college rivalry games: RIVALRY tag with the game's name and trophy (?rivalry=0 off)
   trophyImages: {},
+  rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
@@ -1346,6 +1348,7 @@ function readParams() {
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
     if (k === 'rivalry') CONFIG.rivalries = v !== '0';
     if (k === 'trophyphoto') CONFIG.trophyPhotos = v !== '0';
+    if (k === 'series') CONFIG.rivalrySeries = v !== '0';
     if (k === 'upsetsec') CONFIG.upsetHoldSec = Math.max(10, +v || 90);
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
@@ -2373,6 +2376,8 @@ function lineHTML(e, lg) {
     var rvn = function (t) { return '<span class="rvn' + (t.length > 15 ? ' lg' : '') + '">' + esc(t) + '</span>'; };
     var rf = [{ lbl: '<span class="rvl">' + trophyIcon(rv, 'tri') + 'RIVALRY</span>', left: rvn(rv.name), right: '' }];
     if (rv.trophy && rv.trophy !== rv.name) rf.push({ lbl: '<span class="rvl">' + trophyIcon(rv, 'tri') + (rvWin || (isFinal(e) ? 'TROPHY' : 'FOR')) + '</span>', left: rvn(rv.trophy), right: '' });
+    var srs = seriesOf(e, rv);
+    if (srs) rf.push({ lbl: '<span class="rvl">' + trophyIcon(rv, 'tri') + 'SERIES</span>', left: rvn(seriesShort(e, srs)), right: '' });
     faces = rf.concat(faces);
   }
   if (!faces.length) return '<div class="lines">&nbsp;</div>';
@@ -3494,12 +3499,14 @@ function ptHTML(g, kind, lg) {
          qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
   }
 
-  var rv = rivalryOf(g, lg);
+  var rv = rivalryOf(g, lg), rvLive = rv && !pre && !fin ? seriesOf(g, rv) : '';
+  if (rvLive) p2 += '<div class="note"><b>ALL-TIME SERIES</b>' + esc(rvLive) + '</div>';   // during the game: under the score table
   if (rv && (pre || fin)) {                                       // the rivalry and the trophy at stake / who takes it home
     var rvw = fin ? trophyWinner(g, rv) : '';
-    var rvArt = trophyArt(rv, 'trb'), rvPh = /photo/.test(rvArt);
+    var rvArt = trophyArt(rv, 'trb'), rvPh = /photo/.test(rvArt), rvS = seriesOf(g, rv);
     p2 = '<div class="rvp' + (rvPh ? ' hasph' : '') + '">' + rvArt + '<div class="rvt"><b>RIVALRY' + (rv.trophy && pre ? ' · PLAYING FOR' : '') + '</b>' +
-         esc(pre && rv.trophy ? rv.trophy : rv.name) + '<small>' + esc(pre ? (rv.trophy && rv.trophy !== rv.name ? rv.name : '') : rvw) + '</small>' + (rvPh ? '<i>Photo: Wikipedia</i>' : '') + '</div></div>' + p2;
+         esc(pre && rv.trophy ? rv.trophy : rv.name) + '<small>' + esc(pre ? (rv.trophy && rv.trophy !== rv.name ? rv.name : '') : rvw) + '</small>' + (rvS ? '<em>ALL-TIME: ' + esc(rvS) + '</em>' : '') +
+         (rvPh || rvS ? '<i>' + (rvPh ? 'Photo' + (rvS ? ' and series' : '') : 'Series') + ': Wikipedia</i>' : '') + '</div></div>' + p2;
   }
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
   var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
@@ -4537,6 +4544,59 @@ function trophyArt(r, cls) {
   var ph = trophyPhoto(r);
   if (ph) return '<img class="' + cls + ' photo" src="' + esc(ph) + '" alt="" onerror="this.style.display=\'none\'">';
   return trophyIcon(r, cls);
+}
+/* All-time series record for a rivalry, from the "series" line of the rivalry's Wikipedia infobox
+   ("Michigan leads 62–51–6"). Tries the article we know, then the game's name, the trophy, and
+   "A–B football rivalry" both ways; only a line that reads like a record is used. Kept a week. */
+var RIV_WIKI = { 'The Game': 'Michigan–Ohio State football rivalry', 'Catholics vs. Convicts': 'Miami–Notre Dame football rivalry',
+  'Crosstown Showdown': 'UCLA–USC rivalry', 'USC vs Notre Dame': 'Notre Dame–USC football rivalry', 'Battle for the Axe': 'Minnesota–Wisconsin football rivalry',
+  'Holy War': 'BYU–Utah football rivalry', 'Big Game': 'Big Game (American football)' };
+var SERIES_KEY = 'fcw_series', seriesCache = {}, seriesAsking = {};
+try { seriesCache = JSON.parse(window.localStorage.getItem(SERIES_KEY)) || {}; } catch (e) {}
+function cleanWiki(t) {
+  t = String(t || '').replace(/<ref[^>]*\/>/g, '').replace(/<ref[\s\S]*?<\/ref>/g, '').split(/<br\s*\/?>/i)[0];
+  t = t.replace(/\{\{\s*(?:nowrap|nobr|small)\s*\|([^{}]*)\}\}/gi, '$1').replace(/\{\{[^{}]*\}\}/g, '');
+  t = t.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, '$1').replace(/<[^>]+>/g, '').replace(/'{2,}/g, '').replace(/&nbsp;/g, ' ');
+  return t.replace(/\s+/g, ' ').replace(/^[\s,]+|[\s,]+$/g, '');
+}
+function seriesOf(g, r) {
+  if (!CONFIG.rivalrySeries || !r || DEMO) return '';
+  var key = r.name, c = seriesCache[key], now = new Date().getTime();
+  if (c && now - c.at < (c.txt ? 7 : 1) * 86400000) return c.txt || '';
+  if (seriesAsking[key]) return '';
+  seriesAsking[key] = 1;
+  var A = schoolName(g.teams.away), H = schoolName(g.teams.home), tries = [], seen = {};
+  var cand = [RIV_WIKI[key], r.name, r.trophy, A + '–' + H + ' football rivalry', H + '–' + A + ' football rivalry'];
+  for (var i = 0; i < cand.length; i++) if (cand[i] && !seen[cand[i]]) { seen[cand[i]] = 1; tries.push(cand[i]); }
+  var k = 0, failed = false;
+  function done(txt) {
+    delete seriesAsking[key];
+    if (failed && !txt) return;                                  // network trouble: ask again next time
+    seriesCache[key] = { at: new Date().getTime(), txt: txt };
+    try { window.localStorage.setItem(SERIES_KEY, JSON.stringify(seriesCache)); } catch (e) {}
+  }
+  function next() {
+    if (k >= tries.length) return done('');
+    getJSON('https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=wikitext&section=0&redirects=1&origin=*&page=' +
+            encodeURIComponent(tries[k++].replace(/ /g, '_')), function (err, d) {
+      if (err && !d) failed = true;
+      var wt = d && d.parse && d.parse.wikitext && (d.parse.wikitext['*'] || d.parse.wikitext);
+      var m = typeof wt === 'string' ? wt.match(/\|\s*series\s*=\s*([^\n]+)/i) : null, txt = m ? cleanWiki(m[1]) : '';
+      if (txt && /(leads?|tied)/i.test(txt) && /\d+\s*[–-]\s*\d+/.test(txt) && txt.length < 60) return done(txt);
+      next();
+    });
+  }
+  next();
+  return '';
+}
+/* short form for a card: school names to abbreviations ("MICH leads 62–51–6") */
+function seriesShort(g, txt) {
+  var sides = ['away', 'home'];
+  for (var i = 0; i < sides.length; i++) {
+    var t = g.teams[sides[i]], nm = [schoolName(t), t.loc, t.short];
+    for (var j = 0; j < nm.length; j++) if (nm[j] && txt.indexOf(nm[j]) === 0) return t.abbreviation + txt.slice(nm[j].length);
+  }
+  return txt;
 }
 /* who takes the trophy home after the final: "Paul Bunyan's Axe goes to Wisconsin" */
 function trophyWinner(g, r) {
