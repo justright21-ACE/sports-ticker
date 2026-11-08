@@ -1422,8 +1422,11 @@ function checkChampion(lg, list) {
     var g = games[i];
     if (!isFinal(g) || !TITLE_RE.test(g.tag || '')) continue;
     var a = String(g.teams.away.srec || '').split('-'), h = String(g.teams.home.srec || '').split('-');
-    var series = g.teams.away.srec || g.teams.home.srec;
-    if (series && Math.max(+a[0] || 0, +h[0] || 0) < 4) continue;
+    var series = g.teams.away.srec || g.teams.home.srec || g.series;
+    // a series is over if any of ESPN's signs say so: a team on 4 wins, the series marked complete,
+    // "wins series" in its summary, or a final Game 7 (the win count can lag a while after the last out)
+    var done = Math.max(+a[0] || 0, +h[0] || 0) >= 4 || g.serDone || /\bwins?\b.*\bseries\b/i.test(g.series || '') || /\bGM 7\b/.test(g.tag || '');
+    if (series && !done) continue;
     var at = parseDate(g.date).getTime();
     if (!champAt[lg] || champAt[lg] < at) {
       champAt[lg] = at;
@@ -1665,7 +1668,7 @@ function fromEspn(ev, lg) {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
     detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in')) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg))) ? ev : null,
-    tag: tag, series: ser ? (ser.summary || '') : '',
+    tag: tag, series: ser ? (ser.summary || '') : '', serDone: !!(ser && ser.completed),
     tv: (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || '', venue: (c.venue && c.venue.fullName) || '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
