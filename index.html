@@ -3840,7 +3840,8 @@ function parseVideos(data) {
                  L.mobile && L.mobile.source && L.mobile.source.href, L.mobile && L.mobile.href];
     for (var j = 0; j < cands.length; j++) if (cands[j] && /\.mp4(\?|$)/i.test(cands[j])) { src = cands[j]; break; }
     if (!src || !v.id) continue;
-    out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0 });
+    var pub = Date.parse(v.originalPublishDate || v.lastModified || '') || 0;
+    out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0, at: pub });
   }
   return out;
 }
@@ -3854,21 +3855,57 @@ function highlightGames() {
   }
   return out;
 }
+/* A game's clips play from kickoff until 12 hours after it ends (recaps come in after the final,
+   when the game's big screen is gone, so the ticker keeps checking that game's page every 3 min). */
+var HL_WINDOW = 12 * 3600000, HL_PATHS = { nfl: 'football/nfl', ncaaf: 'football/college-football' };
+function hlInWindow(g, now) {
+  if (g.live) return true;
+  if (isFinal(g)) return now - seenFinal(g.id, now) <= HL_WINDOW;
+  return false;
+}
 function highlightCheck() {
   if (!CONFIG.highlights) return;
-  var hg = highlightGames();
-  for (var i = 0; i < hg.length; i++) {
-    var g = hg[i].g, det = ptDetail[g.eid], vids = det && det.videos;
-    if (!vids) continue;
-    for (var j = 0; j < vids.length; j++) {
-      var v = vids[j];
-      if (hl.seen[v.id]) continue;
-      hl.seen[v.id] = 1;
-      if (hl.primed[g.id] && (!CONFIG.highlightMaxSec || !v.dur || v.dur <= CONFIG.highlightMaxSec * 2))
-        hl.queue.push({ v: v, g: g, lg: hg[i].lg });
+  var now = new Date().getTime(), hg = highlightGames(), i, lg, d;
+  hl.games = hl.games || {};
+  for (i = 0; i < hg.length; i++) hl.games[hg[i].g.id] = { g: hg[i].g, lg: hg[i].lg };
+  for (lg in HL_PATHS) {                                        // your teams' games that already ended (screen reloaded since)
+    d = state.data[lg];
+    if (d) for (i = 0; i < d.games.length; i++) {
+      var ab = [d.games[i].teams.away.abbreviation, d.games[i].teams.home.abbreviation];
+      if (isFinal(d.games[i]) && ((lg === 'nfl' && inList(ab, 'CHI')) || (lg === 'ncaaf' && (inList(ab, 'USC') || inList(ab, 'WIS')))))
+        if (!hl.games[d.games[i].id]) hl.games[d.games[i].id] = { g: d.games[i], lg: lg };
     }
-    hl.primed[g.id] = 1;
   }
+  for (var id in hl.games) {
+    var e = hl.games[id];
+    if (d = state.data[e.lg]) for (i = 0; i < d.games.length; i++) if (d.games[i].id === id) e.g = d.games[i];   // latest score / status
+    if (!hlInWindow(e.g, now)) { if (now - (e.g.live ? now : parseDate(e.g.date).getTime()) > 2 * HL_WINDOW) delete hl.games[id]; continue; }
+    var det = ptDetail[e.g.eid];
+    if (det && det.videos && now - (det.at || 0) < 3 * 60000) hlTake(e, det.videos, now);
+    else if (!e.asking && (!e.at || now - e.at > 3 * 60000) && e.g.eid) hlFetch(e, now);
+  }
+  hlNext();
+}
+function hlFetch(e, now) {
+  e.asking = true; e.at = now;
+  getJSON(ESPN_API + HL_PATHS[e.lg] + '/summary?event=' + e.g.eid, function (err, data) {
+    e.asking = false;
+    if (!err && data) { hlTake(e, parseVideos(data), new Date().getTime()); hlNext(); }
+  });
+}
+function hlTake(e, vids, now) {
+  for (var j = 0; j < vids.length; j++) {
+    var v = vids[j];
+    if (hl.seen[v.id]) continue;
+    hl.seen[v.id] = 1;
+    if (!hl.primed[e.g.id]) continue;                           // already posted when the screen first saw this game
+    if (v.at && now - v.at > HL_WINDOW) continue;              // an old clip
+    if (CONFIG.highlightMaxSec && v.dur && v.dur > CONFIG.highlightMaxSec * 2) continue;
+    hl.queue.push({ v: v, g: e.g, lg: e.lg });
+  }
+  hl.primed[e.g.id] = 1;
+}
+function hlNext() {
   if (hl.queue.length > 3) hl.queue = hl.queue.slice(hl.queue.length - 3);   // only the newest few
   if (!hl.playing && hl.queue.length) playHighlight(hl.queue.shift());
 }
