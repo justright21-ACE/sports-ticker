@@ -1210,6 +1210,8 @@ var CONFIG = {
   cfpBracket: true,      // once the CFP rankings are out: a 12-team CFP bracket screen before the Top 25 (?cfpbracket=0 off)
   cbbUpset: true,        // college hoops: unranked team leading a ranked one in the 2nd half gets a CLOSE screen (?cbbupset=0 off)
   upsetAlert: true,      // ranked college team losing in the 2nd half, by any margin: UPSET screen (primetime-style), banner and jump (?upset=0 off)
+  nflUpset: true,        // NFL: a betting favorite by more than nflUpsetSpread trailing at halftime or later gets the UPSET screen (?nflupset=0 off)
+  nflUpsetSpread: 2.5,
   upsetHoldSec: 90,      // ...seconds the UPSET screen stays up while live (returns after every other screen, like primetime)
   upsetFinalMin: 15,     // ...minutes it stays in the rotation after an upset goes final
   halftime: true,        // halftime: the big screen shows the first-half stat battle (?halftime=0 off)
@@ -1349,6 +1351,7 @@ function readParams() {
     if (k === 'rivalry') CONFIG.rivalries = v !== '0';
     if (k === 'trophyphoto') CONFIG.trophyPhotos = v !== '0';
     if (k === 'series') CONFIG.rivalrySeries = v !== '0';
+    if (k === 'nflupset') CONFIG.nflUpset = v !== '0';
     if (k === 'upsetsec') CONFIG.upsetHoldSec = Math.max(10, +v || 90);
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
@@ -3070,7 +3073,25 @@ function upsetLiveOrJustFinal(g) {
   if (now - parseDate(g.date).getTime() > 6 * 3600000) return false;          // an old final after a reload
   return now - seenFinal(g.id, now) <= CONFIG.upsetFinalMin * 60000;
 }
+/* NFL: the betting favorite by more than nflUpsetSpread points (the closing line, else the opening
+   one) trailing at halftime or later */
+function nflSpread(g) {
+  var L = g.open || lines[keyOf(g)] || null, c = L && L.cur;
+  var side = c && c.side ? c.side : (L && L.side), line = c && c.side ? c.line : (L && L.line);
+  if (!side || !line || !/^-?[\d.]+$/.test(String(line))) return null;
+  return { side: side, pts: Math.abs(+line) };
+}
 function upsetOf(g, lg) {
+  if (lg === 'nfl') {
+    if (!CONFIG.nflUpset || !(g.live || isFinal(g)) || !(isHalftime(g) || quarterOf(g) >= 3)) return null;
+    var sp = nflSpread(g);
+    if (!sp || !(sp.pts > CONFIG.nflUpsetSpread)) return null;
+    var fa = num(scoreOf(g, sp.side)), dg = sp.side === 'home' ? 'away' : 'home', da = num(scoreOf(g, dg));
+    if (fa >= da || !upsetLiveOrJustFinal(g)) return null;
+    var fl = nickname(g.teams[sp.side].name) || g.teams[sp.side].abbreviation;
+    return { fav: g.teams[sp.side], favRank: 0, dog: g.teams[dg], dogRank: 0, by: da - fa, spread: sp.pts,
+             favLabel: fl + ' (-' + sp.pts + ')', dogLabel: nickname(g.teams[dg].name) || g.teams[dg].abbreviation, nfl: true };
+  }
   if (lg === 'ncaab') {                                    // 2nd half (or OT): a ranked team trails an UNRANKED team
     if (!CONFIG.cbbUpset || !(g.live || isFinal(g)) || quarterOf(g) < 2 || isHalftime(g)) return null;
     var ba = num(scoreOf(g, 'away')), bh = num(scoreOf(g, 'home'));
@@ -3117,6 +3138,8 @@ function closeKind(g, lg) {
     return ['UPSET', 'College Basketball · Upset ' + (isFinal(g) ? 'Final · #' + up.favRank + ' ' + schoolName(up.fav) + ' falls' :
             'Alert · #' + up.favRank + ' ' + schoolName(up.fav) + ' trails · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half'))];
   }
+  if (up && up.nfl) return ['UPSET', isFinal(g) ? 'NFL · Upset Final · ' + up.favLabel + ' fall to the ' + up.dogLabel :
+                  'NFL · Upset Alert · ' + up.favLabel + ' trail · ' + (isHalftime(g) ? 'Halftime' : quarterOf(g) > 4 ? 'Overtime' : QN[quarterOf(g)] || '2nd Half')];
   if (up) return ['UPSET', isFinal(g) ? 'Upset Final · #' + up.favRank + ' ' + schoolName(up.fav) + ' falls' :
                   'Upset Alert · #' + up.favRank + ' ' + schoolName(up.fav) + ' trails · ' + (quarterOf(g) > 4 ? 'Overtime' : QN[quarterOf(g)] || '2nd Half')];
   var open = Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8;      // just broke open (its last few minutes up)
@@ -3183,7 +3206,7 @@ function featuredGames() {
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
   for (i = 0; i < fv.length; i++) out.push(fv[i]);
-  for (i = 0; i < cn.length; i++) out.push({ g: cn[i], lg: 'nfl', kind: closeKind(cn[i], 'nfl'), hold: CONFIG.closeHoldSec });
+  for (i = 0; i < cn.length; i++) { var nk = closeKind(cn[i], 'nfl'); out.push({ g: cn[i], lg: 'nfl', kind: nk, hold: closeHold(cn[i], nk, 'nfl') }); }
   var cb2 = closeGames('ncaab'), ck;
   for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck, 'ncaaf') }); }
   for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck, 'ncaab'), upset: true }); }
@@ -4263,9 +4286,9 @@ function ptAnimate(pg) {
   var upz = pg.kind && (pg.kind[0] === 'UPSET' || pg.lg === 'ncaab') ? upsetOf(g, pg.lg) : null;
   if (upz && !upsetShown[id] && !rzEnd) {
     upsetShown[id] = true;
-    var dogN = (upz.dogRank ? '#' + upz.dogRank + ' ' : '') + schoolName(upz.dog);
-    var upHtml = '<div class="rza up"><div class="rzs"><b>UPSET ALERT</b><i>' + esc(('#' + upz.favRank + ' ' + schoolName(upz.fav) +
-      (isFinal(g) ? ' falls to ' + dogN : ' trails ' + dogN + ' by ' + upz.by)).toUpperCase()) + '</i></div></div>';
+    var dogN = upz.dogLabel || ((upz.dogRank ? '#' + upz.dogRank + ' ' : '') + schoolName(upz.dog));
+    var upHtml = '<div class="rza up"><div class="rzs"><b>UPSET ALERT</b><i>' + esc(((upz.favLabel || '#' + upz.favRank + ' ' + schoolName(upz.fav)) +
+      (isFinal(g) ? (upz.nfl ? ' fall to the ' : ' falls to ') + dogN : (upz.nfl ? ' trail the ' : ' trails ') + dogN + ' by ' + upz.by)).toUpperCase()) + '</i></div></div>';
     var upWait = delay ? delay - 0.3 : (entering ? 1.0 : 0);
     if (upWait > 0) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', upHtml); }, upWait * 1000);
     else root.insertAdjacentHTML('beforeend', upHtml);
