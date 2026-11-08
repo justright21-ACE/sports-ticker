@@ -3872,7 +3872,10 @@ function highlightGames() {
 var HL_WINDOW = 12 * 3600000, HL_PATHS = { nfl: 'football/nfl', ncaaf: 'football/college-football' };
 function hlInWindow(g, now) {
   if (g.live) return true;
-  if (isFinal(g)) return now - seenFinal(g.id, now) <= HL_WINDOW;
+  if (isFinal(g)) {                                               // when it ended: when this screen saw the final, but never later
+    var end = Math.min(seenFinal(g.id, now), parseDate(g.date).getTime() + 5 * 3600000);   // than about 5 hours after kickoff
+    return now - end <= HL_WINDOW;
+  }
   return false;
 }
 function highlightCheck() {
