@@ -1236,7 +1236,7 @@ var CONFIG = {
   trophyImages: {},
   rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
-  highlights: true,      // new ESPN highlight clips for the Bears / USC / Wisconsin / primetime games play full screen (?highlights=0 off)
+  highlights: false,     // OFF: clips froze on the real screens. ?highlights=1 brings it back to try again
   highlightMaxSec: 90,   // ...cut off after this long
   highlightsHD: false,   // ...the 720p file instead of the lighter default (?hd=1)
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
@@ -1370,7 +1370,7 @@ function readParams() {
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
     if (k === 'hd') CONFIG.highlightsHD = v !== '0';
-    if (k === 'hltest') CONFIG.hlTest = v !== '0';
+    if (k === 'hltest') { CONFIG.hlTest = v !== '0'; if (CONFIG.hlTest) CONFIG.highlights = true; }
     if (k === 'volume') CONFIG.soundVolume = Math.max(0, Math.min(100, +v || 0));
     if (k === 'quiet') CONFIG.soundQuiet = v === '0' ? null : String(v).split('-').map(function (x) { return +x || 0; });
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
