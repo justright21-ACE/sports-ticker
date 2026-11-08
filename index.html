@@ -856,6 +856,15 @@
   .ptv .pthead .rvh .tri { width: 3vh; height: 3vh; vertical-align: -0.5vh; margin-right: 0.4vw; }
   .ptv .rvp { overflow: hidden; margin-bottom: 1.2vh; padding-bottom: 1vh; border-bottom: 0.15vh solid rgba(245,184,0,0.35); color: #f5b800; }
   .ptv .rvp .trb { float: left; width: 8vh; height: 8vh; margin-right: 1vw; }
+  .ptv .rvp.hasph .trb { width: auto; max-width: 45%; height: 18vh; border-radius: 0.6vh; }
+  .narrow .ptv .rvp.hasph .trb { height: 17vh; }
+  .ptv .rvp .rvt i { display: block; font-style: normal; font-size: 1.3vh; font-weight: 400; color: #6f7a94; margin-top: 0.4vh; }
+  /* the trophy, faded, across a rivalry card */
+  .card.rival { position: relative; }
+  .card .cardtro { position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; pointer-events: none; z-index: 1; color: #f5b800; }
+  .card .cardtro .ctr { height: 100%; width: auto; max-width: 70%; opacity: 0.08; }
+  .card .cardtro svg.ctr { width: 60%; }
+  .card .cardtro img.ctr { opacity: 0.16; }
   .ptv .rvp .rvt { overflow: hidden; font-size: 2.8vh; font-weight: 700; color: #f2f4f8; line-height: 3.4vh; }
   .ptv .rvp .rvt b { display: block; font-size: 1.8vh; letter-spacing: 0.15vw; color: #f5b800; }
   .ptv .rvp .rvt small { display: block; font-size: 2vh; font-weight: 500; color: #9BA3B8; }
@@ -1206,7 +1215,8 @@ var CONFIG = {
   winProb: true,         // win-probability bar along the bottom of the big screens' score band (?winprob=0 off)
   idleScreen: true,      // no games on: UP NEXT screen with your teams' next games (?idle=0 off)
   rivalries: true,       // college rivalry games: RIVALRY tag with the game's name and trophy (?rivalry=0 off)
-  trophyImages: {},      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
+  trophyImages: {},
+  trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
@@ -1333,6 +1343,7 @@ function readParams() {
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
     if (k === 'rivalry') CONFIG.rivalries = v !== '0';
+    if (k === 'trophyphoto') CONFIG.trophyPhotos = v !== '0';
     if (k === 'upsetsec') CONFIG.upsetHoldSec = Math.max(10, +v || 90);
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
@@ -2621,7 +2632,7 @@ function cardHTML(e, lg) {
       '</span><span class="name"><span class="nn">' + (apRank(t, lg) ? '<b class="rk">' + apRank(t, lg) + '</b>' : '') +
       esc(t.short || nickname(t.name)) + '</span>' + recHTML(t, apRank(t, lg)) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
-  return '<div class="' + cls + '">' +
+  return '<div class="' + cls + '">' + (riv ? '<div class="cardtro">' + trophyArt(riv, 'ctr') + '</div>' : '') +
     (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
     (e.wwe ? '<div class="showbox"><div class="sn">' + esc(e.show) + '</div><div class="sv">' + esc(h.name || '') + '</div></div>'
            : row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '')) +
@@ -3474,8 +3485,9 @@ function ptHTML(g, kind, lg) {
   var rv = rivalryOf(g, lg);
   if (rv && (pre || fin)) {                                       // the rivalry and the trophy at stake / who takes it home
     var rvw = fin ? trophyWinner(g, rv) : '';
-    p2 = '<div class="rvp">' + trophyIcon(rv, 'trb') + '<div class="rvt"><b>RIVALRY' + (rv.trophy && pre ? ' · PLAYING FOR' : '') + '</b>' +
-         esc(pre && rv.trophy ? rv.trophy : rv.name) + '<small>' + esc(pre ? (rv.trophy && rv.trophy !== rv.name ? rv.name : '') : rvw) + '</small></div></div>' + p2;
+    var rvArt = trophyArt(rv, 'trb'), rvPh = /photo/.test(rvArt);
+    p2 = '<div class="rvp' + (rvPh ? ' hasph' : '') + '">' + rvArt + '<div class="rvt"><b>RIVALRY' + (rv.trophy && pre ? ' · PLAYING FOR' : '') + '</b>' +
+         esc(pre && rv.trophy ? rv.trophy : rv.name) + '<small>' + esc(pre ? (rv.trophy && rv.trophy !== rv.name ? rv.name : '') : rvw) + '</small>' + (rvPh ? '<i>Photo: Wikipedia</i>' : '') + '</div></div>' + p2;
   }
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
   var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
@@ -4468,6 +4480,51 @@ function trophyIcon(r, cls) {
   var img = r.trophy && CONFIG.trophyImages && CONFIG.trophyImages[r.slug];
   if (img) return '<img class="' + cls + '" src="img/trophies/' + esc(img) + '" alt="">';
   return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="currentColor">' + (TROPHY_SVG[r.icon] || TROPHY_SVG.swords) + '</svg>';
+}
+/* Trophy photos from Wikipedia: each trophy's own article (not a redirect to the rivalry article, so the
+   picture really is the trophy). Looked up by the screen itself, kept 30 days; no article or no photo
+   (or only a logo) and the drawn icon is used instead. */
+var TROPHY_WIKI = { "Paul Bunyan's Axe": "Paul Bunyan's Axe", 'Victory Bell': 'Victory Bell (UCLA–USC)', 'Jeweled Shillelagh': 'Jeweled Shillelagh',
+  'Floyd of Rosedale': 'Floyd of Rosedale', 'Little Brown Jug': 'Little Brown Jug (college football trophy)',
+  '$5 Bits of Broken Chair Trophy': '$5 Bits of Broken Chair Trophy', "Governor's Victory Bell": "Governor's Victory Bell",
+  'Heroes Trophy': 'Heroes Trophy', 'Heartland Trophy': 'Heartland Trophy', 'Cy-Hawk Trophy': 'Cy-Hawk Trophy', 'Old Oaken Bucket': 'Old Oaken Bucket',
+  'Paul Bunyan Trophy': 'Paul Bunyan Trophy', 'Land Grant Trophy': 'Land Grant Trophy', 'Land of Lincoln Trophy': 'Land of Lincoln Trophy',
+  'Purdue Cannon': 'Purdue Cannon', 'Old Brass Spittoon': 'Old Brass Spittoon', 'Platypus Trophy': 'Platypus Trophy', 'Apple Cup': 'Apple Cup',
+  'Territorial Cup': 'Territorial Cup', 'Stanford Axe': 'Stanford Axe', 'Okefenokee Oar': 'Okefenokee Oar', 'Golden Hat': 'Golden Hat Trophy',
+  'Golden Boot': 'Battle for the Golden Boot', "Commander-in-Chief's Trophy": "Commander-in-Chief's Trophy", 'Fremont Cannon': 'Fremont Cannon',
+  'Legends Trophy': 'Legends Trophy', 'Shillelagh Trophy': 'Shillelagh Trophy' };
+var TROPHY_PIC_KEY = 'fcw_trophyPics', trophyPics = {};
+try { trophyPics = JSON.parse(window.localStorage.getItem(TROPHY_PIC_KEY)) || {}; } catch (e) {}
+var trophyAsking = {};
+function trophyPhoto(r) {
+  if (!CONFIG.trophyPhotos || !r || !r.trophy || DEMO) return '';
+  var title = TROPHY_WIKI[r.trophy], now = new Date().getTime(), c = trophyPics[r.trophy];
+  if (!title) return '';
+  if (c && now - c.at < (c.src ? 30 : 1) * 86400000) return c.src || '';
+  if (!trophyAsking[r.trophy]) {
+    trophyAsking[r.trophy] = 1;
+    getJSON('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title.replace(/ /g, '_')), function (err, d) {
+      var src = '';
+      if (!err && d && d.type === 'standard') {
+        var same = String(d.title || '').toLowerCase() === title.toLowerCase();           // its own article, not a redirect
+        var th = d.thumbnail && d.thumbnail.source, orig = d.originalimage && d.originalimage.source;
+        var pic = th ? String(th).replace(/\/(\d+)px-/, '/600px-') : (orig || '');
+        if (same && pic && !/\.svg/i.test(pic) && !/logo|wordmark/i.test(pic)) src = pic;
+      }
+      if (err && !d) { delete trophyAsking[r.trophy]; return; }                                  // network trouble: ask again later
+      trophyPics[r.trophy] = { at: new Date().getTime(), src: src };
+      try { window.localStorage.setItem(TROPHY_PIC_KEY, JSON.stringify(trophyPics)); } catch (e) {}
+    });
+  }
+  return '';
+}
+/* the trophy as a picture: your own photo (CONFIG.trophyImages), else Wikipedia's, else the drawn icon */
+function trophyArt(r, cls) {
+  var own = r.trophy && CONFIG.trophyImages && CONFIG.trophyImages[r.slug];
+  if (own) return '<img class="' + cls + '" src="img/trophies/' + esc(own) + '" alt="">';
+  var ph = trophyPhoto(r);
+  if (ph) return '<img class="' + cls + ' photo" src="' + esc(ph) + '" alt="" onerror="this.style.display=\'none\'">';
+  return trophyIcon(r, cls);
 }
 /* who takes the trophy home after the final: "Paul Bunyan's Axe goes to Wisconsin" */
 function trophyWinner(g, r) {
