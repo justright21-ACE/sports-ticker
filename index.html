@@ -1414,11 +1414,12 @@ function noteSeason(lg, data, dateStr) {
 }
 var TITLE_RE = /WORLD SERIES|NBA FINALS|WNBA FINALS|^FINALS|STANLEY CUP FINAL|SUPER BOWL|NATL CHAMPIONSHIP/;
 /* the season's title is decided: a title game is final, and for a series one side has 4 wins */
-function checkChampion(lg) {
+function checkChampion(lg, list) {
   var d = state.data[lg];
-  if (!d || lg === 'ufc') return;
-  for (var i = 0; i < d.games.length; i++) {
-    var g = d.games[i];
+  if ((!d && !list) || lg === 'ufc') return;
+  var games = list || d.games;
+  for (var i = 0; i < games.length; i++) {
+    var g = games[i];
     if (!isFinal(g) || !TITLE_RE.test(g.tag || '')) continue;
     var a = String(g.teams.away.srec || '').split('-'), h = String(g.teams.home.srec || '').split('-');
     var series = g.teams.away.srec || g.teams.home.srec;
@@ -1480,6 +1481,37 @@ function standingsSeason(lg) {
   if (c.phase === 4) return false;                           // off-season
   if (c.postEnd && now > c.postEnd + DAY) return false;      // past the end of the playoffs
   return true;
+}
+/* The clinching game only counts if the screen saw it. If it was off that night (or the feed moved
+   on), look back over the last 30 days of playoff games once every 6 hours while the league has no
+   games today and the title isn't known yet, so a finished season still goes away. */
+var CHAMP_LEAGUES = ['mlb', 'nba', 'nhl', 'nfl', 'wnba'], champLook = {};
+function loadChampBackfill(cb) {
+  var todo = [], now = new Date().getTime(), DAY = 86400000;
+  for (var i = 0; i < CHAMP_LEAGUES.length; i++) {
+    var lg = CHAMP_LEAGUES[i], c = champAt[lg], sc = seasonCal[lg] || {};
+    if (DEMO || !inList(CONFIG.leagues, lg) || !ESPN_PATHS[lg] || windowGames(lg).length) continue;
+    if (c && now - c < 150 * DAY) continue;                       // already know this season's champion
+    if (!(seasonPhase[lg] === 3 || sc.phase === 3 || (!seasonPhase[lg] && !sc.at) || (sc.postEnd && now > (sc.regEnd || 0) && now < sc.postEnd + 30 * DAY))) continue;
+    if (champLook[lg] && now - champLook[lg] < 6 * 3600000) continue;
+    todo.push(lg);
+  }
+  var k = 0;
+  function next() {
+    if (k >= todo.length) return cb();
+    var lg2 = todo[k++];
+    champLook[lg2] = now;
+    var range = ymd(new Date(now - 30 * DAY)).replace(/-/g, '') + '-' + ymd(new Date(now)).replace(/-/g, '');
+    getJSON(ESPN_API + ESPN_PATHS[lg2] + '/scoreboard?dates=' + range + '&seasontype=3&limit=300', function (err, data) {
+      if (!err && data && data.events) {
+        var gs = [];
+        for (var j = 0; j < data.events.length; j++) { var g = fromEspn(data.events[j], lg2); if (g) gs.push(g); }
+        checkChampion(lg2, gs);
+      }
+      next();
+    });
+  }
+  next();
 }
 function seasonOver(lg) {
   if (!CONFIG.hideEnded || lg === 'ufc') return false;
@@ -5837,14 +5869,14 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }

@@ -50,7 +50,7 @@ Options go on the end of the address:
 - Top-bar order: after the big-screen tabs (primetime, your teams, close games), the league tabs go in the order their games are on: a league with a game on now first, then whichever league's next game starts soonest; leagues with nothing left today go last in their usual order. The screens rotate in the same order
 ## Ideas for later
 - Screen care for older monitors: shift the header, bottom bar and its label a few pixels every few minutes and dim the screen overnight when nothing is live, to avoid burn-in
-- A league drops off the top bar once its season is over (champion decided or ESPN says off-season), after the title game result has been up 12 hours; it comes back on its own next season (`?ended=1` keeps every tab)
+- A league drops off the top bar once its season is over (champion decided or ESPN says off-season), after the title game result has been up 12 hours; it comes back on its own next season (`?ended=1` keeps every tab) If the screen wasn't on for the clinching game (or ESPN's calendar still says postseason), it looks back over the last 30 days of playoff games every 6 hours until it finds the champion.
 - `?fav=DAL,TEX` override favorites for every league
 - `?leagues=nfl,ncaaf,nba` choose leagues (nfl, ncaaf, nba, mlb, wnba, ncaab, nhl)
 - NHL tab with the Blackhawks as the favorite
