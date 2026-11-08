@@ -1214,6 +1214,8 @@ var CONFIG = {
   halftime: true,        // halftime: the big screen shows the first-half stat battle (?halftime=0 off)
   winProb: true,         // win-probability bar along the bottom of the big screens' score band (?winprob=0 off)
   idleScreen: true,      // no games on: UP NEXT screen with your teams' next games (?idle=0 off)
+  // one-off big screens: a game that gets its own tab and primetime-style screen on that date
+  pinGames: [{ date: '2026-11-07', lg: 'ncaaf', teams: ['ND', 'MIA'], tab: 'ND·MIA' }],
   rivalries: true,       // college rivalry games: RIVALRY tag with the game's name and trophy (?rivalry=0 off)
   trophyImages: {},
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
@@ -2868,7 +2870,17 @@ function titleGames() {
 function wsGames() { return titleGames(); }
 /* Favorite college football teams (USC, Wisconsin) get the primetime treatment every game */
 var CFB_NAMES = { USC: 'USC Game Day', WIS: 'Wisconsin Game Day' };
+function pinOf(g, lg) {                                         // CONFIG.pinGames: this game, on that date
+  var P = CONFIG.pinGames || [], a = g.teams.away.abbreviation, h = g.teams.home.abbreviation, d = ymd(parseDate(g.date));
+  for (var i = 0; i < P.length; i++) {
+    var p = P[i];
+    if ((p.lg || 'ncaaf') === lg && p.date === d && inList(p.teams, a) && inList(p.teams, h)) return p;
+  }
+  return null;
+}
 function cfbKind(g) {
+  var pin = pinOf(g, 'ncaaf');
+  if (pin) return [pin.tab || (g.teams.away.abbreviation + '·' + g.teams.home.abbreviation), 'Featured Game'];
   var fav = favList('ncaaf'), a = g.teams.away.abbreviation, h = g.teams.home.abbreviation, mine = [];
   for (var i = 0; i < fav.length; i++) if ((fav[i] === a || fav[i] === h) && !inList(mine, fav[i])) mine.push(fav[i]);
   if (!mine.length) return null;
@@ -4440,7 +4452,7 @@ var RIVALRIES = [
   ['NEV', 'UNLV', 'Battle for Nevada', 'Fremont Cannon', 'cannon'], ['UNM', 'NMSU', 'Rio Grande Rivalry', 'Maloof Trophy', 'cup'],
   ['ND', 'NAVY', 'Notre Dame vs Navy', 'Rip Miller Trophy', 'cup'], ['ND', 'STAN', 'Notre Dame vs Stanford', 'Legends Trophy', 'cup'],
   ['ND', 'PUR', 'Notre Dame vs Purdue', 'Shillelagh Trophy', 'club'], ['ARK', 'MIZ', 'Battle Line Rivalry', 'Battle Line Trophy', 'cup'],
-  ['BAY', 'TCU', 'The Revivalry'] ];
+  ['BAY', 'TCU', 'The Revivalry'], ['ND', 'MIA', 'Catholics vs. Convicts'] ];
 function rivKeyOf(t) {
   var id = String(t.tid || ''), ab = String(t.abbreviation || '');
   for (var k in RIV_TEAMS) { var L = RIV_TEAMS[k]; if (id && String(L[0]) === id) return k; }
