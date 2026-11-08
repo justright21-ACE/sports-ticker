@@ -3952,13 +3952,27 @@ function playHighlight(it) {
   hl.playing = it;
   if (state.rotTimer) clearTimeout(state.rotTimer);                       // the rotation waits for the clip
   var g = it.g, who = (g.teams.away.short || g.teams.away.abbreviation) + ' vs ' + (g.teams.home.short || g.teams.home.abbreviation);
-  box.innerHTML = '<video playsinline webkit-playsinline preload="auto"></video><div class="hlbar"><b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i></div>';
+  box.innerHTML = '<video muted autoplay playsinline webkit-playsinline preload="auto"></video><div class="hlbar"><b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i></div>';
   var vid = box.getElementsByTagName('video')[0];
   vid.muted = !(CONFIG.sound && snd.on); vid.autoplay = true;
   hlStatus('playing: ' + it.v.title + ' · ' + String(it.v.src).replace(/^https?:\/\/([^\/]+).*$/, '$1'));
   vid.onended = function () { hlStatus('finished: ' + it.v.title); endHighlight(); };
   vid.onerror = function () { var c = vid.error && vid.error.code; hlStatus('video would not play (error ' + (c || '?') + ', ' + (['', 'stopped', 'network', 'decode', 'format / blocked'][c] || 'unknown') + '): ' + it.v.title); endHighlight(); };
   vid.onplaying = function () { hlStatus('playing now: ' + it.v.title); };
+  // watchdog: if the picture stops moving (stuck on a frame, buffering), nudge it; give up after ~10 s
+  var lastT = -1, stuck = 0;
+  clearInterval(hl.dog);
+  hl.dog = setInterval(function () {
+    if (hl.playing !== it) { clearInterval(hl.dog); return; }
+    var t = vid.currentTime || 0, mm = function (x) { x = Math.floor(x); return Math.floor(x / 60) + ':' + (x % 60 < 10 ? '0' : '') + (x % 60); };
+    if (t > lastT + 0.2) { stuck = 0; lastT = t; hlStatus('playing now: ' + it.v.title + ' · ' + mm(t) + (vid.duration ? ' / ' + mm(vid.duration) : '')); return; }
+    stuck++;
+    if (stuck === 3 || stuck === 6) { try { vid.muted = true; var pp = vid.play(); if (pp && pp['catch']) pp['catch'](function () {}); } catch (e) {} }
+    if (stuck >= 10) {
+      hlStatus('the clip froze at ' + mm(t) + ' (ready state ' + vid.readyState + ', network ' + vid.networkState + (vid.paused ? ', paused' : '') + '): ' + it.v.title);
+      clearInterval(hl.dog); endHighlight();
+    }
+  }, 1000);
   vid.src = it.v.src;
   try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](function (er) { hlStatus('the browser would not start the video: ' + (er && er.name || '?')); endHighlight(); }); }); } catch (e) {}
   box.style.display = 'block';
@@ -3967,7 +3981,7 @@ function playHighlight(it) {
 }
 function endHighlight() {
   if (!hl.playing) return;
-  clearTimeout(hl.timer); hl.playing = null;
+  clearTimeout(hl.timer); clearInterval(hl.dog); hl.playing = null;
   var box = $('hl');
   if (box) { var v = box.getElementsByTagName('video')[0]; if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } box.innerHTML = ''; box.style.display = 'none'; }
   if (hl.queue.length) return playHighlight(hl.queue.shift());
