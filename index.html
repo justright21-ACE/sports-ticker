@@ -1218,6 +1218,11 @@ var CONFIG = {
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
   closeGames: true,      // a game within one score (8 pts) in the 4th quarter / OT gets its own screen: any NFL game, college games with a Top 25 team
   closeMajorConf: true,  // ...and college games with an SEC / Big Ten / Big 12 / ACC team or Notre Dame (?closemajor=0 off: Top 25 only)
+  cbbClose: true,        // college hoops: a Top 25 or ACC / Big East / Big Ten / Big 12 / SEC team within cbbClosePts in the last cbbCloseMin minutes or OT gets a CLOSE screen (?cbbclose=0 off)
+  cbbCloseMin: 5,
+  cbbClosePts: 5,
+  cbbHoldSec: 25,        // basketball moves fast: a college hoops CLOSE screen stays up 25 s a time (?cbbsec=)
+  cbbUpsetHoldSec: 45,   // ...and an UPSET screen 45 s (football: 45 / 90)
   bigScreenLeadHrs: 4,   // games other than football: their big screen (countdown) starts this many hours before the start
   closeHoldSec: 45,      // ...seconds that screen stays up (returns after every other screen while it's close)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
@@ -1292,6 +1297,8 @@ function readParams() {
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
     if (k === 'closemajor') CONFIG.closeMajorConf = v !== '0';
+    if (k === 'cbbclose') CONFIG.cbbClose = v !== '0';
+    if (k === 'cbbsec') { CONFIG.cbbHoldSec = Math.max(10, +v || 25); CONFIG.cbbUpsetHoldSec = Math.max(15, Math.round(CONFIG.cbbHoldSec * 1.8)); }
     if (k === 'close') CONFIG.closeGames = v !== '0';                  // ?close=0 turns off the one-score 4th-quarter screen
     if (k === 'ended') CONFIG.hideEnded = v !== '1';                   // ?ended=1 keeps tabs for leagues whose season is over
     if (k === 'bracket') CONFIG.bracket = v !== '0';
@@ -2884,6 +2891,51 @@ function loadMajorCfb(cb) {
     cb();
   });
 }
+/* Same for college hoops: the Top 25 feed misses unranked ACC / Big East / Big Ten / Big 12 / SEC
+   games, so in season (November to early April) also check those five conferences' games. */
+var majorCbb = { at: 0, live: false, games: [] };
+function cbbCloseCond(g) {
+  if (!CONFIG.cbbClose || !g.live || isHalftime(g)) return false;
+  var q = quarterOf(g);
+  if (q < 2) return false;
+  if (q === 2) {                                                   // 2nd half: the last few minutes
+    var ck = String((g.raw && g.raw.status && g.raw.status.displayClock) || g.detail || ''), mm = ck.match(/^\s*(\d+):(\d+)/);
+    if (!mm || +mm[1] * 60 + +mm[2] > CONFIG.cbbCloseMin * 60) return false;
+  }
+  var ra = apRank(g.teams.away, 'ncaab'), rh = apRank(g.teams.home, 'ncaab');
+  if (!((ra && ra <= 25) || (rh && rh <= 25) || majorConf(g.teams.away, 'ncaab') || majorConf(g.teams.home, 'ncaab'))) return false;
+  return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= CONFIG.cbbClosePts;
+}
+function loadMajorCbb(cb) {
+  var now = new Date(), t = now.getTime(), mo = now.getMonth();
+  if (DEMO || !CONFIG.cbbClose || CONFIG.cbb === 'all' || !inList(CONFIG.leagues, 'ncaab') ||
+      !(mo >= 10 || mo <= 3)) { majorCbb.games = []; return cb(); }                       // season: November to April
+  var hot = false;
+  for (var h = 0; h < majorCbb.games.length; h++) if (cbbCloseCond(majorCbb.games[h]) || upsetOf(majorCbb.games[h], 'ncaab')) hot = true;
+  if (t - majorCbb.at < (hot ? 25000 : majorCbb.live ? 110000 : 20 * 60000)) return cb();
+  var day = ymd(new Date(t - 4 * 3600000)).replace(/-/g, ''), k = 0, out = [], seen = {}, live = false, ok = false;
+  function next() {
+    if (k >= MAJOR_CBB_IDS.length) {
+      majorCbb.at = ok ? t : t - 18 * 60000;
+      if (ok) { majorCbb.games = out; majorCbb.live = live; }
+      return cb();
+    }
+    getJSON(ESPN_API + ESPN_PATHS.ncaab + '/scoreboard?dates=' + day + '&groups=' + MAJOR_CBB_IDS[k++] + '&limit=100', function (err, data) {
+      if (!err && data) {
+        ok = true;
+        var evs = data.events || [];
+        for (var i = 0; i < evs.length; i++) {
+          var g = fromEspn(evs[i], 'ncaab');
+          if (!g || seen[g.id]) continue;
+          seen[g.id] = 1;
+          if (g.live) { live = true; if (!g.raw) g.raw = evs[i]; out.push(g); }   // keep the full feed: the big screen needs it
+        }
+      }
+      next();
+    });
+  }
+  next();
+}
 function closeGames(lg) {
   lg = lg || 'ncaaf';
   var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : cfbGames(), ownIds = {}, fvs = favScreenGames();
@@ -2891,18 +2943,19 @@ function closeGames(lg) {
   if (!d || !CONFIG.closeGames || !inList(CONFIG.leagues, lg)) return out;
   for (var j = 0; j < own.length; j++) ownIds[own[j].id] = 1;
   var list = d.games;
-  if (lg === 'ncaaf' && majorCfb.games.length) {                 // unranked major-conference games from the full FBS feed
+  var extra = lg === 'ncaaf' ? majorCfb.games : (lg === 'ncaab' ? majorCbb.games : []);
+  if (extra.length) {                                             // unranked major-conference games from the conference feeds
     var seen = {};
     for (var m = 0; m < list.length; m++) seen[list[m].id] = 1;
     list = list.slice(0);
-    for (m = 0; m < majorCfb.games.length; m++) if (!seen[majorCfb.games[m].id]) list.push(majorCfb.games[m]);
+    for (m = 0; m < extra.length; m++) if (!seen[extra[m].id]) list.push(extra[m]);
   }
   for (var i = 0; i < list.length; i++) {
     var g = list[i];
     if (ownIds[g.id]) continue;
     if (closeGrace[g.id] && closeGrace[g.id] > new Date().getTime()) { out.push(g); continue; }   // just scored: stays a moment
     if (upsetOf(g, lg)) { out.push(g); continue; }                       // an upset in the 2nd half, any margin (own UPSET screen)
-    if (lg === 'ncaab') continue;
+    if (lg === 'ncaab') { if (cbbCloseCond(g)) out.push(g); continue; }  // hoops: within 5 in the last 5 minutes / OT
     if (!g.live || quarterOf(g) < 4) continue;
     if (lg === 'ncaaf') {
       if (!cfbCloseEligible(g)) continue;
@@ -2947,9 +3000,11 @@ function upsetOf(g, lg) {
 }
 /* major conference = SEC, Big Ten, Big 12, ACC (ESPN conference ids 8, 5, 4, 1) plus Notre Dame */
 var MAJOR_CONF_IDS = ['1', '4', '5', '8'];
-function majorConf(t) {
+var MAJOR_CBB_IDS = ['2', '4', '7', '8', '23'];                 // basketball: ACC, Big East, Big Ten, Big 12, SEC
+function majorConf(t, lg) {
   if (!t) return false;
   var id = String(t.tid || '');
+  if (lg === 'ncaab') return inList(MAJOR_CBB_IDS, String(t.conf || ''));
   if (id === NOTRE_DAME || inList(MAJOR_CONF_IDS, String(t.conf || ''))) return true;
   return !!(id && cfpConf.byId[id] && inList(P4_CONFS, cfpConf.byId[id]));   // backup: the CFP conference table
 }
@@ -2969,7 +3024,7 @@ function closeKind(g, lg) {
   var up = upsetOf(g, lg);
   var QN = ['', '1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'];
   if (lg === 'ncaab') {
-    if (!up) return ['CLOSE', 'College Basketball · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half')];
+    if (!up) return ['CLOSE', 'College Basketball · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half') + ' · Close Game'];
     return ['UPSET', 'College Basketball · Upset ' + (isFinal(g) ? 'Final · #' + up.favRank + ' ' + schoolName(up.fav) + ' falls' :
             'Alert · #' + up.favRank + ' ' + schoolName(up.fav) + ' trails · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half'))];
   }
@@ -3015,9 +3070,10 @@ function favKind(g, lg) {
 }
 /* an UPSET gets the primetime treatment: 90 s a time while live (back after every other screen), then
    once per loop for a few minutes after the final; a CLOSE game 45 s */
-function closeHold(g, kind) {
-  if (kind[0] !== 'UPSET') return CONFIG.closeHoldSec;
-  return g.live ? CONFIG.upsetHoldSec : CONFIG.primetimeHoldPre;
+function closeHold(g, kind, lg) {
+  var hoops = lg === 'ncaab';
+  if (kind[0] !== 'UPSET') return hoops ? CONFIG.cbbHoldSec : CONFIG.closeHoldSec;
+  return g.live ? (hoops ? CONFIG.cbbUpsetHoldSec : CONFIG.upsetHoldSec) : CONFIG.primetimeHoldPre;
 }
 function featuredGames() {
   var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl'), fv = favScreenGames();
@@ -3026,8 +3082,8 @@ function featuredGames() {
   for (i = 0; i < fv.length; i++) out.push(fv[i]);
   for (i = 0; i < cn.length; i++) out.push({ g: cn[i], lg: 'nfl', kind: closeKind(cn[i], 'nfl'), hold: CONFIG.closeHoldSec });
   var cb2 = closeGames('ncaab'), ck;
-  for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck) }); }
-  for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck), upset: true }); }
+  for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck, 'ncaaf') }); }
+  for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck, 'ncaab'), upset: true }); }
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i].g, lg: ws[i].lg, kind: ws[i].kind });
   return out;
 }
@@ -5521,14 +5577,14 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
