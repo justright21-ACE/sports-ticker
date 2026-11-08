@@ -1247,6 +1247,7 @@ var CONFIG = {
   // Bears and USC: always a big screen; live (not halftime) it holds 5 minutes, and their score, plays
   // and stats are re-checked every 10 seconds (?fast=0 goes back to every 30)
   mustWatch: { nfl: ['CHI'], ncaaf: ['USC'] },
+  alwaysScreen: { nfl: ['PHI'] },   // also keep their big screen on primetime nights (without taking over like the Bears)
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
   inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
@@ -3211,7 +3212,7 @@ function favScreenGames() {
       if (!isFav(g, lg) || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
       if (lg === 'nfl' && ptKind(g)) continue;                          // already has its primetime screen
       if (/WORLD SERIES|NBA FINALS|WNBA FINALS|^FINALS|STANLEY CUP FINAL/.test(g.tag || '')) continue;   // a title series has its own screen
-      if (ptDay && !isMustWatch(g, lg)) continue;
+      if (ptDay && !isMustWatch(g, lg) && !alwaysScreen(g, lg)) continue;
       if (lg === 'nhl' && !hawksScreenOk(g)) continue;                 // Blackhawks: earn it first
       if (isFinal(g)) {
         if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
@@ -4136,6 +4137,10 @@ function sackHTML(sk, off, def, lg) {
 /* =================== BEARS / USC: MUST-WATCH GAMES ===================
    Always on the big screen; while live (not at halftime) the screen holds 5 minutes and the game's
    score, plays and stats are re-checked every 10 seconds. */
+function alwaysScreen(g, lg) {
+  var m = CONFIG.alwaysScreen && CONFIG.alwaysScreen[lg];
+  return !!m && (inList(m, g.teams.away.abbreviation) || inList(m, g.teams.home.abbreviation));
+}
 function isMustWatch(g, lg) {
   var m = CONFIG.mustWatch && CONFIG.mustWatch[lg];
   return !!m && (inList(m, g.teams.away.abbreviation) || inList(m, g.teams.home.abbreviation));
