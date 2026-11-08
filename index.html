@@ -3730,7 +3730,35 @@ function tone(f, at, len, type, vol, lp) {
   out.connect(snd.master);
   if (o.start) { o.start(t); o.stop(t + len + 0.05); } else { o.noteOn(t); o.noteOff(t + len + 0.05); }
 }
+/* a struck, ringing note: a few partials that die away (for the announcement chimes) */
+function bell(f, at, len, vol, parts) {
+  var c = snd.ctx, t = c.currentTime + at, P = parts || [[1, 1], [2, 0.35], [3.01, 0.18]];
+  for (var i = 0; i < P.length; i++) {
+    var o = c.createOscillator(), g = c.createGain ? c.createGain() : c.createGainNode();
+    o.type = 'sine'; o.frequency.value = f * P[i][0];
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime((vol || 0.5) * P[i][1], t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len / (1 + i * 0.6));
+    o.connect(g); g.connect(snd.master);
+    if (o.start) { o.start(t); o.stop(t + len + 0.05); } else { o.noteOn(t); o.noteOff(t + len + 0.05); }
+  }
+}
+/* low "thump" that drops in pitch */
+function thump(at, vol) {
+  var c = snd.ctx, t = c.currentTime + at, o = c.createOscillator(), g = c.createGain ? c.createGain() : c.createGainNode();
+  o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.35);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.8, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+  o.connect(g); g.connect(snd.master);
+  if (o.start) { o.start(t); o.stop(t + 0.6); } else { o.noteOn(t); o.noteOff(t + 0.6); }
+}
 var SOUNDS = {
+  /* three original "announcement" chimes to choose from */
+  chimeA: function () { bell(1319, 0, 1.6, 0.42); bell(880, 0.32, 2.2, 0.45); bell(440, 0.32, 2.2, 0.18); },            // Bulletin: two ringing notes, high then low
+  chimeB: function () {                                                                                                      // Breaking: quick rise into a ringing chord
+    bell(698, 0, 0.35, 0.35, [[1, 1], [4, 0.2]]); bell(880, 0.1, 0.35, 0.35, [[1, 1], [4, 0.2]]); bell(1047, 0.2, 0.35, 0.35, [[1, 1], [4, 0.2]]);
+    bell(698, 0.34, 2.0, 0.28); bell(880, 0.34, 2.0, 0.24); bell(1397, 0.34, 2.0, 0.22);
+  },
+  chimeC: function () { thump(0, 0.9); bell(1047, 0.05, 1.8, 0.3); bell(1568, 0.05, 1.8, 0.26); bell(2093, 0.12, 1.4, 0.14); },  // Spotlight: a thump under a bright chord
   score: function () { tone(784, 0, 0.18, 'triangle', 0.5); tone(1175, 0.14, 0.4, 'triangle', 0.45); },
   upset: function () {                                            // two-tone horn, three times
     for (var i = 0; i < 3; i++) { tone(466, i * 0.42, 0.2, 'sawtooth', 0.35, 1800); tone(587, i * 0.42 + 0.2, 0.2, 'sawtooth', 0.35, 1800); }
