@@ -195,6 +195,9 @@
   #hl .hlbar b { color: #f5b800; letter-spacing: 0.15vw; margin-right: 1vw; }
   #hl .hlbar span { font-weight: 700; margin-right: 1vw; }
   #hl .hlbar i { font-style: normal; color: #c9d1e3; }
+  #hlstat { position: fixed; right: 1vw; top: 12vh; z-index: 80; max-width: 46vw; padding: 0.8vh 1vw; border-radius: 0.6vh;
+            background: rgba(10,16,30,0.92); border: 0.15vh solid #f5b800; color: #f2f4f8; font-size: 1.9vh; line-height: 2.6vh; }
+  #hlstat b { color: #f5b800; margin-right: 0.5vw; }
   #sndnote { position: fixed; left: 1vw; bottom: 9vh; z-index: 60; display: none; padding: 0.6vh 1vw; border-radius: 0.6vh;
              background: rgba(10,16,30,0.85); border: 0.15vh solid rgba(245,184,0,0.6); color: #c9d1e3; font-size: 1.8vh; }
   #sndnote b { color: #f5b800; margin-right: 0.5vw; letter-spacing: 0.1vw; }
@@ -3833,14 +3836,21 @@ function soundCheck() {
    games; for your football teams (Bears, Eagles, USC, Wisconsin) and primetime NFL games, a clip that's new since the screen
    started plays full screen, muted (with sound if sound is on), then the rotation carries on.
    Clips already there when the screen first sees a game are skipped, so it doesn't replay the day. */
-var hl = { queue: [], seen: {}, primed: {}, playing: null, timer: 0 };
+var hl = { queue: [], seen: {}, primed: {}, playing: null, timer: 0, diag: { games: 0, pages: 0, clips: 0, noFile: 0, keys: '', last: '' } };
 function parseVideos(data) {
   var V = (data && data.videos) || [], out = [];
   for (var i = 0; i < V.length; i++) {
     var v = V[i] || {}, L = v.links || {}, src = '';
     var cands = [CONFIG.highlightsHD && L.source && L.source.HD && L.source.HD.href, L.source && L.source.href,
-                 L.mobile && L.mobile.source && L.mobile.source.href, L.mobile && L.mobile.href];
+                 L.mobile && L.mobile.source && L.mobile.source.href, L.mobile && L.mobile.href, L.source && L.source.full && L.source.full.href];
     for (var j = 0; j < cands.length; j++) if (cands[j] && /\.mp4(\?|$)/i.test(cands[j])) { src = cands[j]; break; }
+    if (!src) {                                                   // no MP4: the HLS stream, if this browser plays it
+      var hls = L.source && L.source.HLS && (L.source.HLS.href || (L.source.HLS.HD && L.source.HLS.HD.href));
+      var tv = document.createElement('video');
+      if (hls && tv.canPlayType && tv.canPlayType('application/vnd.apple.mpegurl')) src = hls;
+    }
+    hl.diag.clips++;
+    if (!src) { hl.diag.noFile++; hl.diag.keys = (L.source ? 'source:' + Object.keys(L.source).join('/') : '') + (L.mobile ? ' mobile:' + Object.keys(L.mobile).join('/') : '') || Object.keys(L).join('/'); }
     if (!src || !v.id) continue;
     var pub = Date.parse(v.originalPublishDate || v.lastModified || '') || 0;
     out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0, at: pub });
@@ -3889,12 +3899,15 @@ function highlightCheck() {
     if (det && det.videos && now - (det.at || 0) < 3 * 60000) hlTake(e, det.videos, now);
     else if (!e.asking && (!e.at || now - e.at > 3 * 60000) && e.g.eid) hlFetch(e, now);
   }
-  hlNext();
+  hlNext(); hlStatus();
 }
 function hlFetch(e, now) {
   e.asking = true; e.at = now;
   getJSON(ESPN_API + HL_PATHS[e.lg] + '/summary?event=' + e.g.eid, function (err, data) {
-    e.asking = false;
+    e.asking = false; hl.diag.pages++;
+    if (err) hl.diag.last = 'could not load ESPN game page';
+    else if (data && !data.videos) hl.diag.last = 'ESPN game page has no clip list';
+    hlStatus();
     if (!err && data) { hlTake(e, parseVideos(data), new Date().getTime()); hlNext(); }
   });
 }
@@ -3915,6 +3928,17 @@ function hlTake(e, vids, now) {
   }
   hl.primed[e.g.id] = 1;
 }
+/* ?hltest=1: a small box in the corner says what the highlight check is finding */
+function hlStatus(msg) {
+  if (!CONFIG.hlTest) return;
+  var el = $('hlstat');
+  if (!el) { el = document.createElement('div'); el.id = 'hlstat'; document.body.appendChild(el); }
+  var d = hl.diag, n = 0;
+  for (var k in hl.games) n++;
+  if (msg) d.last = msg;
+  el.innerHTML = '<b>HIGHLIGHT TEST</b> games checked: ' + n + ' · ESPN pages read: ' + d.pages + ' · clips listed: ' + d.clips +
+    (d.noFile ? ' · without a playable file: ' + d.noFile + (d.keys ? ' (' + esc(d.keys) + ')' : '') : '') + (d.last ? '<br>' + esc(d.last) : '');
+}
 function hlNext() {
   if (hl.queue.length > 3) hl.queue = hl.queue.slice(hl.queue.length - 3);   // only the newest few
   if (!hl.playing && hl.queue.length) playHighlight(hl.queue.shift());
@@ -3928,9 +3952,12 @@ function playHighlight(it) {
   box.innerHTML = '<video playsinline webkit-playsinline preload="auto"></video><div class="hlbar"><b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i></div>';
   var vid = box.getElementsByTagName('video')[0];
   vid.muted = !(CONFIG.sound && snd.on); vid.autoplay = true;
-  vid.onended = vid.onerror = function () { endHighlight(); };
+  hlStatus('playing: ' + it.v.title + ' · ' + String(it.v.src).replace(/^https?:\/\/([^\/]+).*$/, '$1'));
+  vid.onended = function () { hlStatus('finished: ' + it.v.title); endHighlight(); };
+  vid.onerror = function () { var c = vid.error && vid.error.code; hlStatus('video would not play (error ' + (c || '?') + ', ' + (['', 'stopped', 'network', 'decode', 'format / blocked'][c] || 'unknown') + '): ' + it.v.title); endHighlight(); };
+  vid.onplaying = function () { hlStatus('playing now: ' + it.v.title); };
   vid.src = it.v.src;
-  try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](endHighlight); }); } catch (e) {}
+  try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](function (er) { hlStatus('the browser would not start the video: ' + (er && er.name || '?')); endHighlight(); }); }); } catch (e) {}
   box.style.display = 'block';
   var cap = Math.min(it.v.dur || CONFIG.highlightMaxSec, CONFIG.highlightMaxSec) + 8;   // never longer than this, even if it stalls
   hl.timer = setTimeout(endHighlight, cap * 1000);
