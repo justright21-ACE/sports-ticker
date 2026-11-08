@@ -3828,7 +3828,7 @@ function soundCheck() {
 }
 /* =================== HIGHLIGHTS ===================
    Off unless the address has ?highlights=1. ESPN's game page lists short highlight clips for many
-   games; for the Bears, USC, Wisconsin and primetime NFL games, a clip that's new since the screen
+   games; for your football teams (Bears, Eagles, USC, Wisconsin) and primetime NFL games, a clip that's new since the screen
    started plays full screen, muted (with sound if sound is on), then the rotation carries on.
    Clips already there when the screen first sees a game are skipped, so it doesn't replay the day. */
 var hl = { queue: [], seen: {}, primed: {}, playing: null, timer: 0 };
@@ -3851,7 +3851,7 @@ function highlightGames() {
   for (i = 0; i < ftg.length; i++) {
     var g = ftg[i].g, lg = ftg[i].lg;
     var ab = [g.teams.away.abbreviation, g.teams.home.abbreviation];
-    if ((lg === 'nfl' && (ptIds[g.id] || inList(ab, 'CHI'))) || (lg === 'ncaaf' && (inList(ab, 'USC') || inList(ab, 'WIS')))) out.push(ftg[i]);
+    if ((lg === 'nfl' && (ptIds[g.id] || isFav(g, 'nfl'))) || (lg === 'ncaaf' && isFav(g, 'ncaaf'))) out.push(ftg[i]);   // your football teams + primetime
   }
   return out;
 }
@@ -3868,11 +3868,10 @@ function highlightCheck() {
   var now = new Date().getTime(), hg = highlightGames(), i, lg, d;
   hl.games = hl.games || {};
   for (i = 0; i < hg.length; i++) hl.games[hg[i].g.id] = { g: hg[i].g, lg: hg[i].lg };
-  for (lg in HL_PATHS) {                                        // your teams' games that already ended (screen reloaded since)
+  for (lg in HL_PATHS) {                                        // your teams' games, live or ended, even without a big screen
     d = state.data[lg];
     if (d) for (i = 0; i < d.games.length; i++) {
-      var ab = [d.games[i].teams.away.abbreviation, d.games[i].teams.home.abbreviation];
-      if (isFinal(d.games[i]) && ((lg === 'nfl' && inList(ab, 'CHI')) || (lg === 'ncaaf' && (inList(ab, 'USC') || inList(ab, 'WIS')))))
+      if ((d.games[i].live || isFinal(d.games[i])) && isFav(d.games[i], lg))
         if (!hl.games[d.games[i].id]) hl.games[d.games[i].id] = { g: d.games[i], lg: lg };
     }
   }
