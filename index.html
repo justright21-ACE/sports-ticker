@@ -847,6 +847,19 @@
   .ptv .pthead .r { float: right; }
   .ptv .pthead .hl { text-transform: none; color: #c9d0e0; letter-spacing: 0.05vw; }
   .ptv .pthead .hl b { margin-right: 0.6vw; }
+  /* rivalry games: gold RIVALRY tag with the trophy on cards, name in the big-screen heading, trophy box in the middle panel */
+  .lines .rvl { color: #f5b800; } .lines .rvn { color: #f2f4f8; font-weight: 700; }
+  .narrow .lines .rvn.lg { font-size: 2.1vh; } .narrow .lines .rvl { letter-spacing: 0.05vw; }
+  .lines .rvl .tri { width: 2.5vh; height: 2.5vh; vertical-align: -0.4vh; margin-right: 0.4vw; }
+  .card.rival { border-color: rgba(245,184,0,0.55); }
+  .ptv .pthead .rvh { color: #f5b800; text-transform: uppercase; }
+  .ptv .pthead .rvh .tri { width: 3vh; height: 3vh; vertical-align: -0.5vh; margin-right: 0.4vw; }
+  .ptv .rvp { overflow: hidden; margin-bottom: 1.2vh; padding-bottom: 1vh; border-bottom: 0.15vh solid rgba(245,184,0,0.35); color: #f5b800; }
+  .ptv .rvp .trb { float: left; width: 8vh; height: 8vh; margin-right: 1vw; }
+  .ptv .rvp .rvt { overflow: hidden; font-size: 2.8vh; font-weight: 700; color: #f2f4f8; line-height: 3.4vh; }
+  .ptv .rvp .rvt b { display: block; font-size: 1.8vh; letter-spacing: 0.15vw; color: #f5b800; }
+  .ptv .rvp .rvt small { display: block; font-size: 2vh; font-weight: 500; color: #9BA3B8; }
+  .narrow .ptv .rvp .trb { width: 6vh; height: 6vh; } .narrow .ptv .rvp .rvt { font-size: 2.3vh; line-height: 2.9vh; }
   /* squarer screens (4:3, 5:4): same layout, smaller type so it fits the narrower width */
   .narrow .ptv .pthead { font-size: 2.2vh; }
   .narrow .ptv .ptlogo .logo { width: 10vh; height: 10vh; }
@@ -1192,6 +1205,8 @@ var CONFIG = {
   halftime: true,        // halftime: the big screen shows the first-half stat battle (?halftime=0 off)
   winProb: true,         // win-probability bar along the bottom of the big screens' score band (?winprob=0 off)
   idleScreen: true,      // no games on: UP NEXT screen with your teams' next games (?idle=0 off)
+  rivalries: true,       // college rivalry games: RIVALRY tag with the game's name and trophy (?rivalry=0 off)
+  trophyImages: {},      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
@@ -1317,6 +1332,7 @@ function readParams() {
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
+    if (k === 'rivalry') CONFIG.rivalries = v !== '0';
     if (k === 'upsetsec') CONFIG.upsetHoldSec = Math.max(10, +v || 90);
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
@@ -2338,7 +2354,14 @@ function lineHTML(e, lg) {
     return '<div class="lines">' + (me ? '<span class="ou">MAIN EVENT</span>' : '') +
       '<span class="lbl flbl' + (me ? ' short' : '') + '">' + esc((e.promo ? e.promo + ' · ' : '') + String(e.wclass || 'BOUT').toUpperCase()) + '</span></div>';
   }
-  var faces = lineFaces(e, lg), html = '';
+  var faces = lineFaces(e, lg), html = '', rv = rivalryOf(e, lg);
+  if (rv) {                                                       // rivalry: its name (and the trophy) take turns with the lines
+    var rvA = num(scoreOf(e, 'away')), rvH = num(scoreOf(e, 'home')), rvWin = isFinal(e) && rvA !== rvH ? (rvA > rvH ? e.teams.away : e.teams.home).abbreviation + ' WINS' : '';
+    var rvn = function (t) { return '<span class="rvn' + (t.length > 15 ? ' lg' : '') + '">' + esc(t) + '</span>'; };
+    var rf = [{ lbl: '<span class="rvl">' + trophyIcon(rv, 'tri') + 'RIVALRY</span>', left: rvn(rv.name), right: '' }];
+    if (rv.trophy && rv.trophy !== rv.name) rf.push({ lbl: '<span class="rvl">' + trophyIcon(rv, 'tri') + (rvWin || (isFinal(e) ? 'TROPHY' : 'FOR')) + '</span>', left: rvn(rv.trophy), right: '' });
+    faces = rf.concat(faces);
+  }
   if (!faces.length) return '<div class="lines">&nbsp;</div>';
   var k = (state.lineFace || 0) % faces.length;
   for (var i = 0; i < faces.length; i++) {
@@ -2589,7 +2612,8 @@ function cardHTML(e, lg) {
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
   if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
   var rzc = CONFIG.redZone ? redZoneOf(e, lg) : null;
-  var cls = 'card' + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '') + (e.wwe ? ' show' : '') + (rzc ? ' rz' : '');
+  var riv = rivalryOf(e, lg);
+  var cls = 'card' + (riv ? ' rival' : '') + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '') + (e.wwe ? ' show' : '') + (rzc ? ' rz' : '');
   var hc = e.ufc ? '' : homeColor(h, lg);
   function row(t, s, lose, tint) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
@@ -3447,9 +3471,16 @@ function ptHTML(g, kind, lg) {
          qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
   }
 
+  var rv = rivalryOf(g, lg);
+  if (rv && (pre || fin)) {                                       // the rivalry and the trophy at stake / who takes it home
+    var rvw = fin ? trophyWinner(g, rv) : '';
+    p2 = '<div class="rvp">' + trophyIcon(rv, 'trb') + '<div class="rvt"><b>RIVALRY' + (rv.trophy && pre ? ' · PLAYING FOR' : '') + '</b>' +
+         esc(pre && rv.trophy ? rv.trophy : rv.name) + '<small>' + esc(pre ? (rv.trophy && rv.trophy !== rv.name ? rv.name : '') : rvw) + '</small></div></div>' + p2;
+  }
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
   var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
-             '<b>' + esc(kind[1] + (g.tag ? ' · ' + shortRound(g.tag) : '')) + '</b>' + esc((ln ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
+             '<b>' + esc(kind[1] + (g.tag ? ' · ' + shortRound(g.tag) : '')) + '</b>' + (rv ? '<b class="rvh">' + trophyIcon(rv, 'tri') + esc(rv.name) + '</b>' : '') +
+             esc((ln || rv ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   var half = halfHTML(g, lg, det, ca, ch);
   return '<div class="ptv' + (g.live ? ' is-live' : '') + (twoMinute(g, lg) ? ' urgent' : '') + (fin ? ' done' : '') + '">' + head + band +
     (half || '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div>') + '</div>';
@@ -4360,6 +4391,90 @@ var RANK_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-c
 var rankCache = {};
 /* Rank for a team (0 = unranked), from the main poll on the Top 25 screen: the College Football
    Playoff rankings once they're out (November on), the AP poll before that and for basketball. */
+/* ---------- College football rivalries: named games and the trophies they play for ----------
+   Teams by ESPN id (abbreviation as a backup). icon = the drawn trophy; a photo can replace it:
+   put it in img/trophies/ and list it in CONFIG.trophyImages, e.g. { axe: 'axe.png' } keyed by slug. */
+var RIV_TEAMS = { MICH: [130], OSU: [194], ALA: [333], AUB: [2], BYU: [252], UTAH: [254], TEX: [251], OU: [201], USC: [30], UCLA: [26],
+  ND: [87], WIS: [275], MINN: [135], IOWA: [2294], NEB: [158], PUR: [2509], IU: [84, 'IND'], MSU: [127], PSU: [213], ILL: [356], NU: [77, 'NW'],
+  ORE: [2483], ORST: [204], WASH: [264], WSU: [265], ARIZ: [12], ASU: [9], STAN: [24], CAL: [25], FLA: [57], UGA: [61], FSU: [52],
+  MIA: [2390], CLEM: [228], SC: [2579], MISS: [145], MSST: [344], LSU: [99], ARK: [8], TAMU: [245, 'TA&M', 'TA'], TENN: [2633], UK: [96],
+  LOU: [97], UVA: [258], VT: [259], UNC: [153], DUKE: [150], GT: [59], PITT: [221], WVU: [277], KU: [2305], KSU: [2306], ISU: [66],
+  OKST: [197], MIZ: [142], ARMY: [349], NAVY: [2426], AF: [2005], COLO: [38], CSU: [36], HOU: [248], RICE: [242], NEV: [2440],
+  UNLV: [2439], UNM: [167], NMSU: [166], BAY: [239], TCU: [2628] };
+var RIVALRIES = [
+  ['MICH', 'OSU', 'The Game'], ['ALA', 'AUB', 'Iron Bowl'], ['BYU', 'UTAH', 'Holy War'],
+  ['TEX', 'OU', 'Red River Rivalry', 'Golden Hat', 'hat'], ['USC', 'UCLA', 'Crosstown Showdown', 'Victory Bell', 'bell'],
+  ['USC', 'ND', 'USC vs Notre Dame', 'Jeweled Shillelagh', 'club'], ['WIS', 'MINN', 'Battle for the Axe', "Paul Bunyan's Axe", 'axe'],
+  ['MINN', 'IOWA', 'Floyd of Rosedale', 'Floyd of Rosedale', 'cup'], ['MINN', 'MICH', 'Little Brown Jug', 'Little Brown Jug', 'jug'],
+  ['MINN', 'NEB', '$5 Bits of Broken Chair', '$5 Bits of Broken Chair Trophy', 'cup'], ['MINN', 'PSU', "Governor's Victory Bell", "Governor's Victory Bell", 'bell'],
+  ['IOWA', 'NEB', 'Heroes Game', 'Heroes Trophy', 'cup'], ['IOWA', 'WIS', 'Heartland Trophy', 'Heartland Trophy', 'cup'],
+  ['IOWA', 'ISU', 'Cy-Hawk Game', 'Cy-Hawk Trophy', 'cup'], ['PUR', 'IU', 'Old Oaken Bucket', 'Old Oaken Bucket', 'bucket'],
+  ['MICH', 'MSU', 'Paul Bunyan Trophy', 'Paul Bunyan Trophy', 'cup'], ['PSU', 'MSU', 'Land Grant Trophy', 'Land Grant Trophy', 'cup'],
+  ['ILL', 'NU', 'Land of Lincoln Trophy', 'Land of Lincoln Trophy', 'cup'], ['ILL', 'PUR', 'Purdue Cannon', 'Purdue Cannon', 'cannon'],
+  ['WIS', 'NEB', 'Freedom Trophy', 'Freedom Trophy', 'cup'], ['IU', 'MSU', 'Old Brass Spittoon', 'Old Brass Spittoon', 'cup'],
+  ['ORE', 'ORST', 'Oregon vs Oregon State', 'Platypus Trophy', 'cup'], ['WASH', 'WSU', 'Apple Cup', 'Apple Cup', 'cup'],
+  ['ARIZ', 'ASU', 'Territorial Cup', 'Territorial Cup', 'cup'], ['STAN', 'CAL', 'Big Game', 'Stanford Axe', 'axe'],
+  ['FLA', 'UGA', 'Florida vs Georgia', 'Okefenokee Oar', 'cup'], ['FLA', 'FSU', 'Sunshine Showdown'],
+  ['UGA', 'GT', 'Clean, Old-Fashioned Hate', "Governor's Cup", 'cup'], ['UGA', 'AUB', "Deep South's Oldest Rivalry"],
+  ['CLEM', 'SC', 'Palmetto Bowl'], ['MISS', 'MSST', 'Egg Bowl', 'Golden Egg', 'egg'],
+  ['LSU', 'ARK', 'Battle for the Golden Boot', 'Golden Boot', 'boot'], ['LSU', 'MISS', 'Magnolia Bowl', 'Magnolia Bowl Trophy', 'cup'],
+  ['LSU', 'ALA', 'Alabama vs LSU'], ['TENN', 'ALA', 'Third Saturday in October'], ['UK', 'LOU', "Governor's Cup", "Governor's Cup", 'cup'],
+  ['UVA', 'VT', 'Commonwealth Clash', 'Commonwealth Cup', 'cup'], ['UNC', 'DUKE', 'Victory Bell', 'Victory Bell', 'bell'],
+  ['PITT', 'WVU', 'Backyard Brawl'], ['KU', 'KSU', 'Sunflower Showdown', "Governor's Cup", 'cup'], ['KU', 'MIZ', 'Border War'],
+  ['OU', 'OKST', 'Bedlam'], ['TEX', 'TAMU', 'Lone Star Showdown'], ['ARK', 'TAMU', 'Southwest Classic'],
+  ['ARMY', 'NAVY', 'Army vs Navy', "Commander-in-Chief's Trophy", 'cup'], ['NAVY', 'AF', 'Navy vs Air Force', "Commander-in-Chief's Trophy", 'cup'],
+  ['ARMY', 'AF', 'Army vs Air Force', "Commander-in-Chief's Trophy", 'cup'], ['COLO', 'CSU', 'Rocky Mountain Showdown', 'Centennial Cup', 'cup'],
+  ['MIA', 'FSU', 'Miami vs Florida State'], ['HOU', 'RICE', 'Bayou Bucket', 'Bayou Bucket', 'bucket'],
+  ['NEV', 'UNLV', 'Battle for Nevada', 'Fremont Cannon', 'cannon'], ['UNM', 'NMSU', 'Rio Grande Rivalry', 'Maloof Trophy', 'cup'],
+  ['ND', 'NAVY', 'Notre Dame vs Navy', 'Rip Miller Trophy', 'cup'], ['ND', 'STAN', 'Notre Dame vs Stanford', 'Legends Trophy', 'cup'],
+  ['ND', 'PUR', 'Notre Dame vs Purdue', 'Shillelagh Trophy', 'club'], ['ARK', 'MIZ', 'Battle Line Rivalry', 'Battle Line Trophy', 'cup'],
+  ['BAY', 'TCU', 'The Revivalry'] ];
+function rivKeyOf(t) {
+  var id = String(t.tid || ''), ab = String(t.abbreviation || '');
+  for (var k in RIV_TEAMS) { var L = RIV_TEAMS[k]; if (id && String(L[0]) === id) return k; }
+  if (id) return '';                                           // ESPN id known and not on the list
+  for (k in RIV_TEAMS) { L = RIV_TEAMS[k]; if (ab === k || inList(L.slice(1), ab)) return k; }
+  return '';
+}
+var rivCache = {};
+function rivalryOf(g, lg) {
+  if (!CONFIG.rivalries || lg !== 'ncaaf' || !g || !g.teams) return null;
+  if (rivCache[g.id] !== undefined) return rivCache[g.id];
+  var a = rivKeyOf(g.teams.away), h = rivKeyOf(g.teams.home), out = null;
+  if (a && h) for (var i = 0; i < RIVALRIES.length; i++) {
+    var R = RIVALRIES[i];
+    if ((R[0] === a && R[1] === h) || (R[0] === h && R[1] === a)) {
+      out = { name: R[2], trophy: R[3] || '', icon: R[4] || '', slug: String(R[3] || R[2]).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') };
+      break;
+    }
+  }
+  rivCache[g.id] = out;
+  return out;
+}
+var TROPHY_SVG = {
+  cup: '<path d="M7 2h10v5a5 5 0 0 1-10 0z"/><path d="M7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11.5" width="2" height="4.5"/><rect x="8" y="16" width="8" height="2"/><rect x="6" y="19" width="12" height="3" rx="0.5"/>',
+  axe: '<rect x="13.5" y="2" width="2.4" height="20" rx="1.2"/><path d="M13.5 4.5C10 4.5 6 3 3 1.5 1.5 5 1.5 11 3 14.5 6 13 10 11.5 13.5 11.5z"/>',
+  bucket: '<path d="M5 9h14l-2 12.5H7z"/><path d="M5.5 9a6.5 6.5 0 0 1 13 0" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5.6" y="12" width="12.8" height="1.3" fill="#000" opacity="0.35"/><rect x="6.5" y="17.5" width="11" height="1.3" fill="#000" opacity="0.35"/>',
+  bell: '<path d="M12 2.5a1.5 1.5 0 0 1 1.5 1.5v.8A6 6 0 0 1 18 10.6V16l2 3H4l2-3v-5.4a6 6 0 0 1 4.5-5.8V4A1.5 1.5 0 0 1 12 2.5z"/><circle cx="12" cy="21" r="1.8"/>',
+  jug: '<path d="M9.5 2.5h5v3.2c2.8 1.2 4.5 4 4.5 7.8 0 4.6-2.6 8-7 8s-7-3.4-7-8c0-3.8 1.7-6.6 4.5-7.8z"/><path d="M18.5 9c3 0 3 6.5-.5 6.5" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  cannon: '<path d="M2.5 10.5l15.5-5 1.6 4.8-15.5 5z"/><circle cx="20" cy="7.3" r="1.6"/><circle cx="9" cy="16.5" r="4.6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="16.5" r="1.3"/>',
+  hat: '<path d="M8 5.5c1.5-2.5 6.5-2.5 8 0l1.2 7.5H6.8z"/><path d="M1.5 12.5c3.5 2.5 17.5 2.5 21 0-.8 3.5-5 5-10.5 5S2.3 16 1.5 12.5z"/>',
+  boot: '<path d="M6.5 2h8v10.5l5.8 2.9c1 .5 1.2 1.7 1.2 2.8V20H5V13.5z"/><rect x="5" y="20" width="16.5" height="2"/>',
+  club: '<path d="M10.5 2c3-1 6.2.8 5.4 3.8-.4 1.5-2 2.2-2.2 3.4L12.6 22h-2.2L9.3 9.2C9 8 7.2 7 7.6 5c.3-1.5 1.3-2.6 2.9-3z"/>',
+  egg: '<ellipse cx="12" cy="9.5" rx="5.5" ry="7"/><rect x="8.5" y="17.5" width="7" height="2"/><rect x="6.5" y="20" width="11" height="2" rx="0.5"/>',
+  swords: '<path d="M3 2.5h2l11 11-2 2-11-11z"/><path d="M21 2.5h-2L8 13.5l2 2 11-11z"/><path d="M5.5 14.5l4 4-1.4 1.4-1.3-1.3-2.6 2.6-1.4-1.4 2.6-2.6-1.3-1.3zM18.5 14.5l-4 4 1.4 1.4 1.3-1.3 2.6 2.6 1.4-1.4-2.6-2.6 1.3-1.3z"/>'
+};
+function trophyIcon(r, cls) {
+  var img = r.trophy && CONFIG.trophyImages && CONFIG.trophyImages[r.slug];
+  if (img) return '<img class="' + cls + '" src="img/trophies/' + esc(img) + '" alt="">';
+  return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="currentColor">' + (TROPHY_SVG[r.icon] || TROPHY_SVG.swords) + '</svg>';
+}
+/* who takes the trophy home after the final: "Paul Bunyan's Axe goes to Wisconsin" */
+function trophyWinner(g, r) {
+  var a = num(scoreOf(g, 'away')), h = num(scoreOf(g, 'home'));
+  if (!r.trophy || a === h) return '';
+  return r.trophy + ' goes to ' + schoolName(a > h ? g.teams.away : g.teams.home);
+}
 function apRank(t, lg) {
   if (!RANK_PATHS[lg] || !t) return 0;
   var rk = rankingsFor(lg);
