@@ -1205,6 +1205,7 @@ var CONFIG = {
   inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
   singleGameTab: true,   // one-game NFL nights: the game only on its primetime screen, NFL tab = standings + leaders (?onegame=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
+  hawksGate: true,       // ...the Blackhawks only once they're above .500 or after the NHL All-Star break (?hawksgate=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
   bigPlayJump: true,     // a 20+ yard play or a turnover in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
   bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
@@ -1315,6 +1316,7 @@ function readParams() {
     if (k === 'winprob') CONFIG.winProb = v !== '0';
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
+    if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
     if (k === 'upsetsec') CONFIG.upsetHoldSec = Math.max(10, +v || 90);
     if (k === 'cbbupset') CONFIG.cbbUpset = v !== '0';
     if (k === 'cfpbracket') CONFIG.cfpBracket = v !== '0';
@@ -3050,6 +3052,7 @@ function favScreenGames() {
       if (lg === 'nfl' && ptKind(g)) continue;                          // already has its primetime screen
       if (/WORLD SERIES|NBA FINALS|WNBA FINALS|^FINALS|STANLEY CUP FINAL/.test(g.tag || '')) continue;   // a title series has its own screen
       if (ptDay && !isMustWatch(g, lg)) continue;
+      if (lg === 'nhl' && !hawksScreenOk(g)) continue;                 // Blackhawks: earn it first
       if (isFinal(g)) {
         if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
       } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
@@ -3058,6 +3061,19 @@ function favScreenGames() {
     }
   }
   return out;
+}
+/* The Blackhawks get their own screen once they're above .500 (more wins than regulation losses, the
+   same as a points percentage over .500) or once the All-Star break is over, whichever comes first. */
+function hawksScreenOk(g) {
+  if (!CONFIG.hawksGate) return true;
+  var t = g.teams.away.abbreviation === 'CHI' ? g.teams.away : (g.teams.home.abbreviation === 'CHI' ? g.teams.home : null);
+  if (!t) return true;                                             // not a Blackhawks game
+  var now = new Date(), mo = now.getMonth(), p = String(CONFIG.playoffPictureFrom.nhl || '02-09').split('-');
+  if (mo <= 5 && now.getTime() >= new Date(now.getFullYear(), +p[0] - 1, +p[1]).getTime()) return true;   // after the All-Star break
+  var rec = t.rec || '';
+  if (!rec) for (var i = 0; i < idle.teams.length; i++) if (idle.teams[i].key === 'nhl:CHI') rec = idle.teams[i].rec || '';
+  var m = String(rec).match(/^\s*(\d+)-(\d+)/);
+  return !!m && +m[1] > +m[2];
 }
 function favKind(g, lg) {
   var f = favList(lg), mine = [], t;
