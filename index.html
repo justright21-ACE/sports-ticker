@@ -200,6 +200,18 @@
   #hlstat { position: fixed; right: 1vw; top: 12vh; z-index: 80; max-width: 46vw; padding: 0.8vh 1vw; border-radius: 0.6vh;
             background: rgba(10,16,30,0.92); border: 0.15vh solid #f5b800; color: #f2f4f8; font-size: 1.9vh; line-height: 2.6vh; }
   #hlstat b { color: #f5b800; margin-right: 0.5vw; }
+  #hlcard { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; background: #0a1020; overflow: hidden; }
+  #hlcard .hcimg { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-size: cover; background-position: center; }
+  #hlcard .hcshade { position: absolute; left: 0; right: 0; bottom: 0; height: 60%;
+             background: -webkit-linear-gradient(top, rgba(5,8,16,0), rgba(5,8,16,0.92) 55%); background: linear-gradient(to bottom, rgba(5,8,16,0), rgba(5,8,16,0.92) 55%); }
+  #hlcard .hcbody { position: absolute; left: 4vw; right: 4vw; bottom: 5vh; color: #f2f4f8; }
+  #hlcard .hclbl { display: inline-block; background: #f5b800; color: #0a1020; font-weight: 800; letter-spacing: 0.3vw; font-size: 2.6vh; padding: 0.6vh 1.2vw; border-radius: 0.5vh; }
+  #hlcard .hcttl { font-size: 6vh; line-height: 7vh; font-weight: 800; margin: 1.6vh 0 2.2vh; text-shadow: 0 0.3vh 1vh rgba(0,0,0,0.7); }
+  #hlcard .hcsc { white-space: nowrap; font-size: 4vh; }
+  #hlcard .hct { display: inline-block; vertical-align: middle; }
+  #hlcard .hct img { height: 6vh; width: 6vh; vertical-align: middle; margin-right: 1vw; }
+  #hlcard .hct b { vertical-align: middle; margin-right: 1.2vw; } #hlcard .hct span { vertical-align: middle; font-weight: 800; color: #fff; }
+  #hlcard .hcsc i { display: inline-block; vertical-align: middle; font-style: normal; color: #f5b800; font-size: 2.8vh; letter-spacing: 0.2vw; margin: 0 2.4vw; }
   #hltap { position: fixed; left: 1vw; bottom: 14vh; z-index: 60; display: none; padding: 0.6vh 1vw; border-radius: 0.6vh;
            background: rgba(10,16,30,0.88); border: 0.15vh solid rgba(245,184,0,0.6); color: #c9d1e3; font-size: 1.8vh; }
   #hltap b { color: #f5b800; margin-right: 0.5vw; letter-spacing: 0.1vw; }
@@ -1244,7 +1256,9 @@ var CONFIG = {
   rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
   highlights: true,      // new ESPN highlight clips for your football teams / primetime games play full screen (?highlights=0 off)
-  highlightMaxSec: 90,   // ...cut off after this long
+  highlightMaxSec: 90,
+  hlVideo: null,         // null: video, except picture cards on BrowseHere (TCL) which pops videos out; ?hlvideo=0 cards, ?hlvideo=1 video
+  hlCardSec: 10,         // ...how long a picture card stays up   // ...cut off after this long
   highlightsHD: false,   // ...the 720p file instead of the lighter default (?hd=1)
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
   soundVolume: 70,       // 0-100 (?volume=)
@@ -1377,6 +1391,7 @@ function readParams() {
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
     if (k === 'hd') CONFIG.highlightsHD = v !== '0';
+    if (k === 'hlvideo') CONFIG.hlVideo = v !== '0';
     if (k === 'hltest') { CONFIG.hlTest = v !== '0'; if (CONFIG.hlTest) CONFIG.highlights = true; }
     if (k === 'volume') CONFIG.soundVolume = Math.max(0, Math.min(100, +v || 0));
     if (k === 'quiet') CONFIG.soundQuiet = v === '0' ? null : String(v).split('-').map(function (x) { return +x || 0; });
@@ -3858,9 +3873,10 @@ function parseVideos(data) {
     }
     hl.diag.clips++;
     if (!src) { hl.diag.noFile++; hl.diag.keys = (L.source ? 'source:' + Object.keys(L.source).join('/') : '') + (L.mobile ? ' mobile:' + Object.keys(L.mobile).join('/') : '') || Object.keys(L).join('/'); }
-    if (!src || !v.id) continue;
+    if ((!src && !hlCards()) || !v.id) continue;
     var pub = Date.parse(v.originalPublishDate || v.lastModified || '') || 0;
-    out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0, at: pub });
+    var th = v.thumbnail || (v.posterImages && v.posterImages['default'] && v.posterImages['default'].href) || '';
+    out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0, at: pub, thumb: th });
   }
   return out;
 }
@@ -3967,7 +3983,7 @@ function hlBox() {
   return box;
 }
 function hlUnlock() {                                            // any tap / click / key on the page: bless the player
-  if (hl.unlocked || !CONFIG.highlights) return;
+  if (hl.unlocked || !CONFIG.highlights || hlCards()) return;
   hl.unlocked = true;
   var v = hlBox().getElementsByTagName('video')[0];
   try {
@@ -3982,12 +3998,41 @@ function hlTapNote(show) {
   if (!n && show) { n = document.createElement('div'); n.id = 'hltap'; n.innerHTML = '<b>HIGHLIGHTS</b> tap or click the screen once to let clips play'; document.body.appendChild(n); }
   if (n) n.style.display = show ? 'block' : 'none';
 }
+/* Card mode: browsers that open every video in their own pop-up player (BrowseHere on Google TV)
+   get a picture card instead: the clip's photo, the teams, the score and the headline, no video. */
+function hlCards() {
+  if (CONFIG.hlVideo === false) return true;
+  if (CONFIG.hlVideo === true) return false;
+  return /BrowseHere|TCL/i.test(navigator.userAgent || '');
+}
+function showHighlightCard(it) {
+  var box = hlBox(), g = it.g;
+  hl.playing = it;
+  if (state.rotTimer) clearTimeout(state.rotTimer);
+  var v = box.getElementsByTagName('video')[0]; if (v) v.style.display = 'none';
+  var card = $('hlcard');
+  if (!card) { card = document.createElement('div'); card.id = 'hlcard'; box.insertBefore(card, box.firstChild); }
+  var side = function (t, sd) { return '<div class="hct">' + (t.logo ? '<img src="' + esc(t.logo) + '" alt="" onerror="this.style.display=\'none\'">' : '') +
+    '<b>' + esc(t.abbreviation) + '</b><span>' + esc(scoreOf(g, sd) === '' ? '' : String(num(scoreOf(g, sd)))) + '</span></div>'; };
+  card.innerHTML = (it.v.thumb ? '<div class="hcimg" style="background-image:url(\'' + esc(it.v.thumb).replace(/'/g, '%27') + '\')"></div>' : '') +
+    '<div class="hcshade"></div><div class="hcbody"><div class="hclbl">HIGHLIGHT</div><div class="hcttl">' + esc(it.v.title) + '</div>' +
+    '<div class="hcsc">' + side(g.teams.away, 'away') + '<i>' + esc(isFinal(g) ? 'FINAL' : (g.detail || '')) + '</i>' + side(g.teams.home, 'home') + '</div></div>';
+  card.style.display = 'block';
+  box.getElementsByTagName('div')[box.getElementsByTagName('div').length - 1].style.display = 'none';
+  box.className = ''; box.style.display = 'block';
+  hlStatus('card: ' + it.v.title);
+  hl.timer = setTimeout(function () { card.style.display = 'none'; if (v) v.style.display = ''; endHighlight(); }, CONFIG.hlCardSec * 1000);
+}
 function playHighlight(it) {
+  if (hlCards()) return showHighlightCard(it);
   var box = hlBox();
+  var bar = box.getElementsByTagName('div'); bar[bar.length - 1].style.display = '';
+  var cardEl = $('hlcard'); if (cardEl) cardEl.style.display = 'none';
+  box.getElementsByTagName('video')[0].style.display = '';
   hl.playing = it;
   if (state.rotTimer) clearTimeout(state.rotTimer);                       // the rotation waits for the clip
   var g = it.g, who = (g.teams.away.short || g.teams.away.abbreviation) + ' vs ' + (g.teams.home.short || g.teams.home.abbreviation);
-  box.getElementsByTagName('div')[0].innerHTML = '<b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i>';
+  bar[bar.length - 1].innerHTML = '<b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i>';
   var vid = box.getElementsByTagName('video')[0];
   vid.muted = !(CONFIG.sound && snd.on); vid.autoplay = true; vid.controls = false;
   hlStatus('playing: ' + it.v.title + ' · ' + String(it.v.src).replace(/^https?:\/\/([^\/]+).*$/, '$1'));
@@ -4026,8 +4071,9 @@ function playHighlight(it) {
 function endHighlight() {
   if (!hl.playing) return;
   clearTimeout(hl.timer); clearInterval(hl.dog); hl.playing = null;
-  var box = $('hl');
-  if (box) { var v = box.getElementsByTagName('video')[0]; if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } box.style.display = 'none'; }
+  var box = $('hl'), cd = $('hlcard');
+  if (cd) cd.style.display = 'none';
+  if (box) { var v = box.getElementsByTagName('video')[0]; if (v && v.getAttribute('src')) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } box.style.display = 'none'; }
   if (hl.queue.length) return playHighlight(hl.queue.shift());
   scheduleRotate();
 }
