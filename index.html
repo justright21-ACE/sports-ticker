@@ -189,6 +189,8 @@
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.25; } 100% { opacity: 1; } }
 
   #hl { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 70; display: none; background: #000; }
+  #hl.loading { opacity: 0; }
+  #hl { -webkit-transition: opacity 0.4s; transition: opacity 0.4s; }
   #hl video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #000; }
   #hl .hlbar { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.4vh 2vw; background: rgba(8,12,24,0.85);
                border-top: 0.3vh solid #f5b800; color: #f2f4f8; font-size: 2.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1236,7 +1238,7 @@ var CONFIG = {
   trophyImages: {},
   rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
-  highlights: false,     // OFF: clips froze on the real screens. ?highlights=1 brings it back to try again
+  highlights: true,      // new ESPN highlight clips for your football teams / primetime games play full screen (?highlights=0 off)
   highlightMaxSec: 90,   // ...cut off after this long
   highlightsHD: false,   // ...the 720p file instead of the lighter default (?hd=1)
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
@@ -3958,7 +3960,7 @@ function playHighlight(it) {
   hlStatus('playing: ' + it.v.title + ' · ' + String(it.v.src).replace(/^https?:\/\/([^\/]+).*$/, '$1'));
   vid.onended = function () { hlStatus('finished: ' + it.v.title); endHighlight(); };
   vid.onerror = function () { var c = vid.error && vid.error.code; hlStatus('video would not play (error ' + (c || '?') + ', ' + (['', 'stopped', 'network', 'decode', 'format / blocked'][c] || 'unknown') + '): ' + it.v.title); endHighlight(); };
-  vid.onplaying = function () { hlStatus('playing now: ' + it.v.title); };
+  vid.onplaying = function () { box.className = ''; hlStatus('playing now: ' + it.v.title); };   // show it once it's actually moving
   // watchdog: if the picture stops moving (stuck on a frame, buffering), nudge it; give up after ~10 s
   var lastT = -1, stuck = 0;
   clearInterval(hl.dog);
@@ -3975,7 +3977,7 @@ function playHighlight(it) {
   }, 1000);
   vid.src = it.v.src;
   try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](function (er) { hlStatus('the browser would not start the video: ' + (er && er.name || '?')); endHighlight(); }); }); } catch (e) {}
-  box.style.display = 'block';
+  box.className = 'loading'; box.style.display = 'block';           // invisible while the video starts up (hides the first-second stutter)
   var cap = Math.min(it.v.dur || CONFIG.highlightMaxSec, CONFIG.highlightMaxSec) + 8;   // never longer than this, even if it stalls
   hl.timer = setTimeout(endHighlight, cap * 1000);
 }
