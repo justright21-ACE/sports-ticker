@@ -188,6 +188,9 @@
   @-webkit-keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.25; } 100% { opacity: 1; } }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.25; } 100% { opacity: 1; } }
 
+  #sndnote { position: fixed; left: 1vw; bottom: 9vh; z-index: 60; display: none; padding: 0.6vh 1vw; border-radius: 0.6vh;
+             background: rgba(10,16,30,0.85); border: 0.15vh solid rgba(245,184,0,0.6); color: #c9d1e3; font-size: 1.8vh; }
+  #sndnote b { color: #f5b800; margin-right: 0.5vw; letter-spacing: 0.1vw; }
   #msg {
     display: none; position: absolute; top: 34vh; left: 10vw; right: 10vw;
     text-align: center; font-size: 4.4vh; color: #a5aec4; line-height: 6vh;
@@ -1223,6 +1226,9 @@ var CONFIG = {
   trophyImages: {},
   rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
+  sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
+  soundVolume: 70,       // 0-100 (?volume=)
+  soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
@@ -1347,6 +1353,9 @@ function readParams() {
     if (k === 'winprob') CONFIG.winProb = v !== '0';
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
+    if (k === 'sound') CONFIG.sound = v !== '0';
+    if (k === 'volume') CONFIG.soundVolume = Math.max(0, Math.min(100, +v || 0));
+    if (k === 'quiet') CONFIG.soundQuiet = v === '0' ? null : String(v).split('-').map(function (x) { return +x || 0; });
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
     if (k === 'rivalry') CONFIG.rivalries = v !== '0';
     if (k === 'trophyphoto') CONFIG.trophyPhotos = v !== '0';
@@ -3665,6 +3674,117 @@ function bigPlayHTML(bp, t, lg, rtl) {
    detectJump() runs before the screens are rebuilt (so a just-scored game can stay), jumpTo() after. */
 var evTrack = {}, closeGrace = {};
 var upsetSeen = {}, upsetPrimed = false, upsetShown = {};
+/* =================== SOUND ===================
+   Off unless the address has ?sound=1 (so you can pick which screen makes noise). Browsers only let
+   a page play sound after someone clicks / taps / presses a key on it, once per page load, so until
+   then a small note in the corner asks for that. Sounds are made right here (no files):
+     upset  - a two-tone horn when a game newly goes on UPSET ALERT
+     score  - a quick chime when a close football game (CLOSE / UPSET screen) has a score
+     td     - a short fanfare for a Bears touchdown
+     win    - a longer fanfare when any of your teams wins
+   Quiet hours (CONFIG.soundQuiet) keep it silent overnight. */
+var snd = { ctx: null, on: false, master: null, last: 0, track: {}, primed: false, log: [] };
+function soundAllowedNow() {
+  var q = CONFIG.soundQuiet, h = new Date().getHours();
+  if (!q || q.length !== 2 || q[0] === q[1]) return true;
+  return q[0] > q[1] ? !(h >= q[0] || h < q[1]) : !(h >= q[0] && h < q[1]);
+}
+function soundNote() {
+  var el = $('sndnote');
+  if (!CONFIG.sound) { if (el) el.style.display = 'none'; return; }
+  if (!el) {
+    el = document.createElement('div'); el.id = 'sndnote';
+    el.innerHTML = '<b>SOUND</b> click or press OK to turn on';
+    document.body.appendChild(el);
+  }
+  el.style.display = snd.on ? 'none' : 'block';
+}
+function soundUnlock() {
+  if (!CONFIG.sound || snd.on) return;
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!snd.ctx) {
+      snd.ctx = new AC();
+      snd.master = snd.ctx.createGain ? snd.ctx.createGain() : snd.ctx.createGainNode();
+      snd.master.gain.value = Math.max(0, Math.min(1, CONFIG.soundVolume / 100));
+      snd.master.connect(snd.ctx.destination);
+    }
+    if (snd.ctx.resume) snd.ctx.resume();
+    snd.on = true;
+    soundNote();
+    playSound('score', true);                                    // a quick chime: sound is on
+  } catch (e) {}
+}
+/* one note: frequency, start (s from now), length (s), wave, loudness 0-1, optional low-pass */
+function tone(f, at, len, type, vol, lp) {
+  var c = snd.ctx, t = c.currentTime + at;
+  var o = c.createOscillator(), g = c.createGain ? c.createGain() : c.createGainNode(), out = g;
+  o.type = type || 'sine'; o.frequency.value = f;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol || 0.5, t + 0.02);
+  g.gain.setValueAtTime(vol || 0.5, t + Math.max(0.03, len - 0.08));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+  o.connect(g);
+  if (lp && c.createBiquadFilter) { var fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; g.connect(fl); out = fl; }
+  out.connect(snd.master);
+  if (o.start) { o.start(t); o.stop(t + len + 0.05); } else { o.noteOn(t); o.noteOff(t + len + 0.05); }
+}
+var SOUNDS = {
+  score: function () { tone(784, 0, 0.18, 'triangle', 0.5); tone(1175, 0.14, 0.4, 'triangle', 0.45); },
+  upset: function () {                                            // two-tone horn, three times
+    for (var i = 0; i < 3; i++) { tone(466, i * 0.42, 0.2, 'sawtooth', 0.35, 1800); tone(587, i * 0.42 + 0.2, 0.2, 'sawtooth', 0.35, 1800); }
+  },
+  td: function () {                                               // rising brass fanfare
+    var N = [392, 523, 659, 784];
+    for (var i = 0; i < N.length; i++) tone(N[i], i * 0.13, i === 3 ? 0.75 : 0.14, 'sawtooth', 0.32, 2400);
+    tone(196, 0.39, 0.75, 'triangle', 0.35);
+  },
+  win: function () {                                              // longer fanfare
+    var N = [[523, 0, 0.16], [659, 0.16, 0.16], [784, 0.32, 0.16], [1047, 0.48, 0.42], [784, 0.92, 0.16], [1047, 1.08, 0.9]];
+    for (var i = 0; i < N.length; i++) { tone(N[i][0], N[i][1], N[i][2], 'sawtooth', 0.3, 2600); tone(N[i][0] / 2, N[i][1], N[i][2], 'triangle', 0.25); }
+  }
+};
+function playSound(name, force) {
+  snd.log.push(name + (snd.on ? '' : ' (muted: not turned on)'));
+  if (!CONFIG.sound || !snd.on || !snd.ctx || !SOUNDS[name]) return;
+  var now = new Date().getTime();
+  if (!force && (now - snd.last < 6000 || !soundAllowedNow())) return;   // never on top of each other; quiet hours
+  snd.last = now;
+  try { if (snd.ctx.resume) snd.ctx.resume(); SOUNDS[name](); } catch (e) {}
+}
+/* what changed since the last refresh: the biggest thing wins (win > touchdown > upset > score) */
+function soundCheck() {
+  if (!CONFIG.sound) return;
+  var ftg = featuredGames(), next = {}, best = '', RANK = { score: 1, upset: 2, td: 3, win: 4 }, i, id;
+  function want(n) { if (!best || RANK[n] > RANK[best]) best = n; }
+  var big = {};
+  for (i = 0; i < ftg.length; i++) big[ftg[i].g.id] = ftg[i];
+  for (var lg in state.data) {
+    var d = state.data[lg];
+    if (!d || !d.games) continue;
+    for (i = 0; i < d.games.length; i++) {
+      var g = d.games[i]; id = g.id;
+      var a = num(scoreOf(g, 'away')), h = num(scoreOf(g, 'home')), w = snd.track[id], f = big[id];
+      var up = !!(f && (f.kind[0] === 'UPSET' || (f.upset && upsetOf(g, lg))));
+      var foot = lg === 'nfl' || lg === 'ncaaf', close = foot && !!(f && (f.kind[0] === 'CLOSE' || f.kind[0] === 'UPSET'));
+      next[id] = { a: a, h: h, fin: isFinal(g), up: up, close: close };
+      if (!snd.primed || !w) continue;                            // nothing on the first look
+      if (up && !w.up) want('upset');
+      if (w.close && (a > w.a || h > w.h)) want('score');
+      if (lg === 'nfl' && (g.teams.away.abbreviation === 'CHI' || g.teams.home.abbreviation === 'CHI')) {
+        var bears = g.teams.away.abbreviation === 'CHI' ? a - w.a : h - w.h;
+        if (bears >= 6) want('td');
+      }
+      if (isFinal(g) && !w.fin && isFav(g, lg) && a !== h) {
+        var winT = a > h ? g.teams.away : g.teams.home;
+        if (inList(favList(lg), winT.abbreviation)) want('win');
+      }
+    }
+  }
+  snd.track = next; snd.primed = true;
+  if (best) playSound(best);
+}
 function detectJump() {
   var ftg = featuredGames(), hit = null, now = new Date().getTime(), i, next = {};
   // a score in a game that was a CLOSE game at the last check
@@ -3918,6 +4038,7 @@ function fastRefresh() {
   }
   function done() {
     loadPtDetails(function () {
+      soundCheck();
       var hit = detectJump();
       buildPages();
       var jumped = jumpTo(hit);
@@ -5925,6 +6046,7 @@ function refreshAll() {
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
     loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+      soundCheck();                               // upset / close-game score / Bears TD / your team won
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
@@ -6249,6 +6371,12 @@ if (OUTER) buildFrame(); else {
 readParams();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
+/* sound: any click, tap or key (a TV remote's OK) on the page turns it on */
+if (CONFIG.sound) {
+  var sndEv = ['click', 'keydown', 'touchstart', 'mousedown'];
+  for (var sni = 0; sni < sndEv.length; sni++) document.addEventListener(sndEv[sni], soundUnlock, true);
+  soundNote();
+}
 refreshAll();
 scheduleRotate();
 setInterval(antiBurn, 10 * 60000);
