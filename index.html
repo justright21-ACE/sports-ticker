@@ -9,7 +9,7 @@
   SPORTS TICKER  -  powered by SportsBlaze (free, no API key)
   -------------------------------------------------------------
   Written in old-style JavaScript (no fetch, no arrow functions)
-  so it runs on older Samsung TV / monitor web browsers.
+  so it runs on older TV / monitor web browsers and a Chromecast.
 
   QUICK SETTINGS: edit the CONFIG block below, OR add options to
   the page address, for example:
@@ -188,6 +188,13 @@
   @-webkit-keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.25; } 100% { opacity: 1; } }
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.25; } 100% { opacity: 1; } }
 
+  #hl { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 70; display: none; background: #000; }
+  #hl video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #000; }
+  #hl .hlbar { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.4vh 2vw; background: rgba(8,12,24,0.85);
+               border-top: 0.3vh solid #f5b800; color: #f2f4f8; font-size: 2.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #hl .hlbar b { color: #f5b800; letter-spacing: 0.15vw; margin-right: 1vw; }
+  #hl .hlbar span { font-weight: 700; margin-right: 1vw; }
+  #hl .hlbar i { font-style: normal; color: #c9d1e3; }
   #sndnote { position: fixed; left: 1vw; bottom: 9vh; z-index: 60; display: none; padding: 0.6vh 1vw; border-radius: 0.6vh;
              background: rgba(10,16,30,0.85); border: 0.15vh solid rgba(245,184,0,0.6); color: #c9d1e3; font-size: 1.8vh; }
   #sndnote b { color: #f5b800; margin-right: 0.5vw; letter-spacing: 0.1vw; }
@@ -1226,6 +1233,9 @@ var CONFIG = {
   trophyImages: {},
   rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
+  highlights: false,     // ?highlights=1: new ESPN highlight clips for the Bears / USC / Wisconsin / primetime games play full screen
+  highlightMaxSec: 90,   // ...cut off after this long
+  highlightsHD: false,   // ...the 720p file instead of the lighter default (?hd=1)
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
   soundVolume: 70,       // 0-100 (?volume=)
   soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
@@ -1354,6 +1364,8 @@ function readParams() {
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
+    if (k === 'highlights') CONFIG.highlights = v !== '0';
+    if (k === 'hd') CONFIG.highlightsHD = v !== '0';
     if (k === 'volume') CONFIG.soundVolume = Math.max(0, Math.min(100, +v || 0));
     if (k === 'quiet') CONFIG.soundQuiet = v === '0' ? null : String(v).split('-').map(function (x) { return +x || 0; });
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
@@ -3292,6 +3304,7 @@ function loadPtDetails(cb) {
         }
         if (data.drives && data.drives.current) det.drive = data.drives.current.description || '';
         det.tos = timeoutPlays(data, g);
+        det.videos = parseVideos(data);
         det.leaders = {};
         var tl = data.leaders || [];
         for (var u = 0; u < tl.length; u++) if (tl[u].team && tl[u].team.id) det.leaders[tl[u].team.id] = tl[u].leaders || [];
@@ -3813,6 +3826,76 @@ function soundCheck() {
   snd.track = next; snd.primed = true;
   if (best) playSound(best);
 }
+/* =================== HIGHLIGHTS ===================
+   Off unless the address has ?highlights=1. ESPN's game page lists short highlight clips for many
+   games; for the Bears, USC, Wisconsin and primetime NFL games, a clip that's new since the screen
+   started plays full screen, muted (with sound if sound is on), then the rotation carries on.
+   Clips already there when the screen first sees a game are skipped, so it doesn't replay the day. */
+var hl = { queue: [], seen: {}, primed: {}, playing: null, timer: 0 };
+function parseVideos(data) {
+  var V = (data && data.videos) || [], out = [];
+  for (var i = 0; i < V.length; i++) {
+    var v = V[i] || {}, L = v.links || {}, src = '';
+    var cands = [CONFIG.highlightsHD && L.source && L.source.HD && L.source.HD.href, L.source && L.source.href,
+                 L.mobile && L.mobile.source && L.mobile.source.href, L.mobile && L.mobile.href];
+    for (var j = 0; j < cands.length; j++) if (cands[j] && /\.mp4(\?|$)/i.test(cands[j])) { src = cands[j]; break; }
+    if (!src || !v.id) continue;
+    out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0 });
+  }
+  return out;
+}
+function highlightGames() {
+  var ftg = featuredGames(), out = [], pt = primetimeGames(), ptIds = {}, i;
+  for (i = 0; i < pt.length; i++) ptIds[pt[i].id] = 1;
+  for (i = 0; i < ftg.length; i++) {
+    var g = ftg[i].g, lg = ftg[i].lg;
+    var ab = [g.teams.away.abbreviation, g.teams.home.abbreviation];
+    if ((lg === 'nfl' && (ptIds[g.id] || inList(ab, 'CHI'))) || (lg === 'ncaaf' && (inList(ab, 'USC') || inList(ab, 'WIS')))) out.push(ftg[i]);
+  }
+  return out;
+}
+function highlightCheck() {
+  if (!CONFIG.highlights) return;
+  var hg = highlightGames();
+  for (var i = 0; i < hg.length; i++) {
+    var g = hg[i].g, det = ptDetail[g.eid], vids = det && det.videos;
+    if (!vids) continue;
+    for (var j = 0; j < vids.length; j++) {
+      var v = vids[j];
+      if (hl.seen[v.id]) continue;
+      hl.seen[v.id] = 1;
+      if (hl.primed[g.id] && (!CONFIG.highlightMaxSec || !v.dur || v.dur <= CONFIG.highlightMaxSec * 2))
+        hl.queue.push({ v: v, g: g, lg: hg[i].lg });
+    }
+    hl.primed[g.id] = 1;
+  }
+  if (hl.queue.length > 3) hl.queue = hl.queue.slice(hl.queue.length - 3);   // only the newest few
+  if (!hl.playing && hl.queue.length) playHighlight(hl.queue.shift());
+}
+function playHighlight(it) {
+  var box = $('hl');
+  if (!box) { box = document.createElement('div'); box.id = 'hl'; document.body.appendChild(box); }
+  hl.playing = it;
+  if (state.rotTimer) clearTimeout(state.rotTimer);                       // the rotation waits for the clip
+  var g = it.g, who = (g.teams.away.short || g.teams.away.abbreviation) + ' vs ' + (g.teams.home.short || g.teams.home.abbreviation);
+  box.innerHTML = '<video playsinline webkit-playsinline preload="auto"></video><div class="hlbar"><b>HIGHLIGHT</b><span>' + esc(who) + '</span><i>' + esc(it.v.title) + '</i></div>';
+  var vid = box.getElementsByTagName('video')[0];
+  vid.muted = !(CONFIG.sound && snd.on); vid.autoplay = true;
+  vid.onended = vid.onerror = function () { endHighlight(); };
+  vid.src = it.v.src;
+  try { var pr = vid.play(); if (pr && pr['catch']) pr['catch'](function () { vid.muted = true; var p2 = vid.play(); if (p2 && p2['catch']) p2['catch'](endHighlight); }); } catch (e) {}
+  box.style.display = 'block';
+  var cap = Math.min(it.v.dur || CONFIG.highlightMaxSec, CONFIG.highlightMaxSec) + 8;   // never longer than this, even if it stalls
+  hl.timer = setTimeout(endHighlight, cap * 1000);
+}
+function endHighlight() {
+  if (!hl.playing) return;
+  clearTimeout(hl.timer); hl.playing = null;
+  var box = $('hl');
+  if (box) { var v = box.getElementsByTagName('video')[0]; if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } box.innerHTML = ''; box.style.display = 'none'; }
+  if (hl.queue.length) return playHighlight(hl.queue.shift());
+  scheduleRotate();
+}
 function detectJump() {
   var ftg = featuredGames(), hit = null, now = new Date().getTime(), i, next = {};
   // a score in a game that was a CLOSE game at the last check
@@ -4070,7 +4153,8 @@ function fastRefresh() {
       var hit = detectJump();
       buildPages();
       var jumped = jumpTo(hit);
-      refreshRender(jumped); if (jumped) scheduleRotate();
+      refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate();
+      highlightCheck();
       fastBusy = false;
     });
   }
@@ -6078,7 +6162,8 @@ function refreshAll() {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
-      refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
+      refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); renderCrawl(); renderFoot(errs);
+      highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
     }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
@@ -6087,6 +6172,7 @@ function refreshAll() {
 }
 
 function rotate() {
+  if (hl.playing) return;                                 // a highlight is on: it restarts the rotation when it ends
   if (state.pages.length > 1) { state.pageIndex = (state.pageIndex + 1) % state.pages.length; renderPage(); }
   scheduleRotate();
 }
