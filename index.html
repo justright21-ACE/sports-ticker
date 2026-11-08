@@ -1492,6 +1492,35 @@ function standingsSeason(lg) {
    on), look back over the last 30 days of playoff games once every 6 hours while the league has no
    games today and the title isn't known yet, so a finished season still goes away. */
 var CHAMP_LEAGUES = ['mlb', 'nba', 'nhl', 'nfl', 'wnba'], champLook = {};
+/* A screen that came on after kickoff never saw the scoreboard's betting line (ESPN drops it then),
+   but the game's summary still carries it ("pickcenter"). For live / just-finished NFL games with
+   no line saved, look it up there once (again after 10 minutes if that fails). */
+var lineAsk = {};
+function loadMissingLines(cb) {
+  var d = state.data.nfl, todo = [], now = new Date().getTime();
+  if (DEMO || !d || !CONFIG.nflUpset) return cb();
+  for (var i = 0; i < d.games.length; i++) {
+    var g = d.games[i];
+    if (!g.eid || !(g.live || (isFinal(g) && now - parseDate(g.date).getTime() < 6 * 3600000)) || nflSpread(g)) continue;
+    if (lineAsk[g.id] && now - lineAsk[g.id] < 10 * 60000) continue;
+    todo.push(g);
+  }
+  var k = 0;
+  function next() {
+    if (k >= todo.length || k >= 8) { saveLines(); return cb(); }
+    var g = todo[k++];
+    lineAsk[g.id] = now;
+    getJSON(ESPN_API + 'football/nfl/summary?event=' + g.eid, function (err, data) {
+      var hc = data && data.header && data.header.competitions && data.header.competitions[0];
+      if (!err && data && data.pickcenter && data.pickcenter.length && hc) {
+        recordLine({ date: g.date }, { odds: data.pickcenter, competitors: hc.competitors || [] });
+        g.open = lines[keyOf(g)] || null;
+      }
+      next();
+    });
+  }
+  next();
+}
 function loadChampBackfill(cb) {
   var todo = [], now = new Date().getTime(), DAY = 86400000;
   for (var i = 0; i < CHAMP_LEAGUES.length; i++) {
@@ -5895,14 +5924,14 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
       refreshRender(jumped); if (jumped) scheduleRotate(); renderCrawl(); renderFoot(errs);
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
