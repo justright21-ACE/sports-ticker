@@ -5412,27 +5412,39 @@ function playSegment(i) {
   state.crawlTimer = setTimeout(function () { playSegment(state.crawlIdx + 1); }, secs * 1000 + 300);
 }
 
-/* Colors by game day: the Bears, USC or Wisconsin colors on the days they play (from the morning
-   until an hour after the final); after the Super Bowl, the Bulls or White Sox colors on their game days.
-   Every other day: the house colors (navy + gold with the Bears orange lines). Two of them on the same
-   day: the game that's on now wins, then the next one to start, then the one that just ended. */
+/* Colors by game day: the Bears, USC or Wisconsin colors on the days they play; after the Super Bowl,
+   the Bulls or White Sox colors on their game days. USC and Wisconsin keep their colors the whole day
+   they play (midnight to midnight, or an hour after the final if it runs past midnight); the others
+   from the morning until an hour after the final. USC and Wisconsin both playing: USC. Every other
+   day: the house colors (navy + gold with the Bears orange lines). Two others on the same day: the
+   game that's on now wins, then the next one to start, then the one that just ended. */
 var THEME_TEAMS = [['bears', 'nfl', ['CHI']], ['usc', 'ncaaf', ['USC']], ['wis', 'ncaaf', ['WIS']]];
 var THEME_OFFSEASON = [['bulls', 'nba', ['CHI']], ['sox', 'mlb', ['CHW', 'CWS']]];
+var THEME_ALLDAY = ['usc', 'wis'], THEME_OVER = { wis: 'usc' };     // wis gives way to usc
 function gameDayTheme() {
-  var now = new Date().getTime(), today = ymd(new Date()), list = THEME_TEAMS.concat(nflOffseason() ? THEME_OFFSEASON : []), best = null, bestScore = 0;
-  for (var k = 0; k < list.length; k++) {
-    var d = state.data[list[k][1]];
+  var now = new Date().getTime(), today = ymd(new Date()), list = THEME_TEAMS.concat(nflOffseason() ? THEME_OFFSEASON : []), sc = {}, k, i;
+  for (k = 0; k < list.length; k++) {
+    var d = state.data[list[k][1]], key = list[k][0];
     if (!d) continue;
-    for (var i = 0; i < d.games.length; i++) {
+    for (i = 0; i < d.games.length; i++) {
       var g = d.games[i];
       if (!inList(list[k][2], g.teams.away.abbreviation) && !inList(list[k][2], g.teams.home.abbreviation)) continue;
       if (/postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
-      var t = parseDate(g.date).getTime(), score = 0;
+      var t = parseDate(g.date).getTime(), score = 0, isToday = ymd(new Date(t)) === today;
       if (g.live) score = 3e13;                                        // on right now
-      else if (isFinal(g)) { var fs = seenFinal(g.id, now); if (now - fs <= 60 * 60000 && now - t < 4.5 * 3600000) score = 1e13 - (now - fs); }   // ended within the hour
-      else if (ymd(new Date(t)) === today) score = 2e13 - t / 1000;     // later today: the soonest wins
-      if (score > bestScore) { bestScore = score; best = list[k][0]; }
+      else if (isFinal(g)) {
+        var fs = seenFinal(g.id, now);
+        if (now - fs <= 60 * 60000 && now - t < 4.5 * 3600000) score = 1e13 - (now - fs);   // ended within the hour
+        else if (isToday && inList(THEME_ALLDAY, key)) score = 1;      // USC / Wisconsin: the rest of their game day
+      }
+      else if (isToday) score = 2e13 - t / 1000;                       // later today: the soonest wins
+      if (score > (sc[key] || 0)) sc[key] = score;
     }
+  }
+  var best = null, bestScore = 0;
+  for (k in sc) {
+    if (THEME_OVER[k] && sc[THEME_OVER[k]]) continue;                 // Wisconsin on a USC game day: USC
+    if (sc[k] > bestScore) { bestScore = sc[k]; best = k; }
   }
   return best;
 }
