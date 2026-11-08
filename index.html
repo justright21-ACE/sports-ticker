@@ -1367,6 +1367,7 @@ function readParams() {
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
     if (k === 'hd') CONFIG.highlightsHD = v !== '0';
+    if (k === 'hltest') CONFIG.hlTest = v !== '0';
     if (k === 'volume') CONFIG.soundVolume = Math.max(0, Math.min(100, +v || 0));
     if (k === 'quiet') CONFIG.soundQuiet = v === '0' ? null : String(v).split('-').map(function (x) { return +x || 0; });
     if (k === 'hawksgate') CONFIG.hawksGate = v !== '0';
@@ -3876,6 +3877,10 @@ function highlightCheck() {
         if (!hl.games[d.games[i].id]) hl.games[d.games[i].id] = { g: d.games[i], lg: lg };
     }
   }
+  if (CONFIG.hlTest && !hl.tested && hl.testFrom && now - hl.testFrom > 20000) {   // test: none of your games has a clip, try any NFL / college game today
+    for (lg in HL_PATHS) { d = state.data[lg]; if (d) for (i = 0; i < d.games.length && i < 40; i++) if ((d.games[i].live || isFinal(d.games[i])) && !hl.games[d.games[i].id]) hl.games[d.games[i].id] = { g: d.games[i], lg: lg }; }
+  }
+  if (CONFIG.hlTest && !hl.testFrom) hl.testFrom = now;
   for (var id in hl.games) {
     var e = hl.games[id];
     if (d = state.data[e.lg]) for (i = 0; i < d.games.length; i++) if (d.games[i].id === id) e.g = d.games[i];   // latest score / status
@@ -3894,6 +3899,11 @@ function hlFetch(e, now) {
   });
 }
 function hlTake(e, vids, now) {
+  if (CONFIG.hlTest && !hl.tested && vids.length) {             // ?hltest=1: play the newest clip right away, once
+    var nw = vids[0];
+    for (var q = 1; q < vids.length; q++) if ((vids[q].at || 0) > (nw.at || 0)) nw = vids[q];
+    hl.tested = true; hl.queue.push({ v: nw, g: e.g, lg: e.lg });
+  }
   for (var j = 0; j < vids.length; j++) {
     var v = vids[j];
     if (hl.seen[v.id]) continue;
