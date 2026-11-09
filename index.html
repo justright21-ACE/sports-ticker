@@ -200,6 +200,11 @@
   #hlstat { position: fixed; right: 1vw; top: 12vh; z-index: 80; max-width: 46vw; padding: 0.8vh 1vw; border-radius: 0.6vh;
             background: rgba(10,16,30,0.92); border: 0.15vh solid #f5b800; color: #f2f4f8; font-size: 1.9vh; line-height: 2.6vh; }
   #hlstat b { color: #f5b800; margin-right: 0.5vw; }
+  .ptv .pph { position: relative; margin: 0.6vh 0 1.2vh; border-radius: 0.8vh; overflow: hidden; border: 0.2vh solid rgba(245,184,0,0.7); background: #000; }
+  .ptv .pph .ppimg { width: 100%; height: 24vh; background-size: cover; background-position: center; }
+  .narrow .ptv .pph .ppimg { height: 20vh; }
+  .ptv .pph .pptxt { position: absolute; left: 0; right: 0; bottom: 0; padding: 3vh 1vw 1vh; font-size: 2.3vh; line-height: 2.8vh; font-weight: 700; color: #fff;
+             background: -webkit-linear-gradient(top, rgba(0,0,0,0), rgba(0,0,0,0.85) 45%); background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.85) 45%); }
   #hlcard { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; background: #0a1020; overflow: hidden; }
   #hlcard .hcimg { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-size: cover; background-position: center; }
   #hlcard .hcshade { position: absolute; left: 0; right: 0; bottom: 0; height: 60%;
@@ -1256,6 +1261,8 @@ var CONFIG = {
   rivalrySeries: true,   // ...and the all-time series record, from the rivalry's Wikipedia page (?series=0 off)
   trophyPhotos: true,    // ...otherwise a photo of the trophy from Wikipedia, if it has its own article (?trophyphoto=0: drawn icons only)      // your own trophy photos in img/trophies/, by slug: { 'paul-bunyan-s-axe': 'axe.png' }
   highlights: false,     // PAUSED until a better TV browser is found; ?highlights=1 turns it on for a screen
+  panelPhotos: true,     // a new ESPN highlight's photo + headline replaces the field graphic on a football big screen for a bit (?panelphoto=0 off)
+  panelPhotoSec: 15,
   highlightMaxSec: 90,
   hlVideo: false,        // false: picture cards (the main screen's BrowseHere pops videos out); ?hlvideo=1 plays the video instead
   hlCardSec: 10,         // ...how long a picture card stays up   // ...cut off after this long
@@ -1391,6 +1398,7 @@ function readParams() {
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
     if (k === 'hd') CONFIG.highlightsHD = v !== '0';
+    if (k === 'panelphoto') CONFIG.panelPhotos = v !== '0';
     if (k === 'hlvideo') CONFIG.hlVideo = v !== '0';
     if (k === 'hltest') { CONFIG.hlTest = v !== '0'; if (CONFIG.hlTest) CONFIG.highlights = true; }
     if (k === 'volume') CONFIG.soundVolume = Math.max(0, Math.min(100, +v || 0));
@@ -3635,6 +3643,11 @@ function ptHTML(g, kind, lg) {
          qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
   }
 
+  var php = !pre && !fin && (lg === 'nfl' || lg === 'ncaaf') ? panelPhotoOf(g) : null;
+  if (php) {                                                      // a new highlight: its photo + headline in place of the field
+    p2 = '<div class="ph">HIGHLIGHT</div><div class="pph"><div class="ppimg" style="background-image:url(\'' + esc(php.thumb).replace(/'/g, '%27') + '\')"></div>' +
+         '<div class="pptxt">' + esc(php.title) + '</div></div>' + qtable;
+  }
   var rv = rivalryOf(g, lg), rvLive = rv && !pre && !fin ? seriesOf(g, rv) : '';
   if (rvLive) p2 += '<div class="note"><b>ALL-TIME SERIES</b>' + esc(rvLive) + '</div>';   // during the game: under the score table
   if (rv && (pre || fin)) {                                       // the rivalry and the trophy at stake / who takes it home
@@ -3873,9 +3886,9 @@ function parseVideos(data) {
     }
     hl.diag.clips++;
     if (!src) { hl.diag.noFile++; hl.diag.keys = (L.source ? 'source:' + Object.keys(L.source).join('/') : '') + (L.mobile ? ' mobile:' + Object.keys(L.mobile).join('/') : '') || Object.keys(L).join('/'); }
-    if ((!src && !hlCards()) || !v.id) continue;
-    var pub = Date.parse(v.originalPublishDate || v.lastModified || '') || 0;
     var th = v.thumbnail || (v.posterImages && v.posterImages['default'] && v.posterImages['default'].href) || '';
+    if (!v.id || (!src && !th)) continue;
+    var pub = Date.parse(v.originalPublishDate || v.lastModified || '') || 0;
     out.push({ id: String(v.id), src: src, title: v.headline || v.description || 'Highlight', dur: +v.duration || 0, at: pub, thumb: th });
   }
   return out;
@@ -3950,6 +3963,7 @@ function hlTake(e, vids, now) {
     if (!hl.primed[e.g.id]) continue;                           // already posted when the screen first saw this game
     if (v.at && now - v.at > HL_WINDOW) continue;              // an old clip
     if (CONFIG.highlightMaxSec && v.dur && v.dur > CONFIG.highlightMaxSec * 2) continue;
+    if (!v.src && !hlCards()) continue;                          // video mode needs a playable file
     hl.queue.push({ v: v, g: e.g, lg: e.lg });
   }
   hl.primed[e.g.id] = 1;
@@ -3964,6 +3978,37 @@ function hlStatus(msg) {
   if (msg) d.last = msg;
   el.innerHTML = '<b>HIGHLIGHT TEST</b> games checked: ' + n + ' · ESPN pages read: ' + d.pages + ' · clips listed: ' + d.clips +
     (d.noFile ? ' · without a playable file: ' + d.noFile + (d.keys ? ' (' + esc(d.keys) + ')' : '') : '') + (d.last ? '<br>' + esc(d.last) : '');
+}
+/* Highlight photo in the big screen's middle panel: when ESPN posts a new clip for a football game on
+   a big screen, its photo and headline take the place of the field graphic for panelPhotoSec, then the
+   field comes back. Just a picture, so it works in any browser. */
+var pph = { seen: {}, primed: {}, show: {} };
+function panelPhotoCheck() {
+  if (!CONFIG.panelPhotos) return;
+  var ftg = featuredGames(), now = new Date().getTime();
+  for (var i = 0; i < ftg.length; i++) {
+    var g = ftg[i].g, lg = ftg[i].lg, det = ptDetail[g.eid], vids = det && det.videos;
+    if ((lg !== 'nfl' && lg !== 'ncaaf') || !vids) continue;
+    var newest = null;
+    for (var j = 0; j < vids.length; j++) {
+      var v = vids[j];
+      if (pph.seen[v.id]) continue;
+      pph.seen[v.id] = 1;
+      if (!pph.primed[g.id] || !v.thumb || (v.at && now - v.at > HL_WINDOW)) continue;   // first look / no photo / old
+      if (!newest || (v.at || 0) > (newest.at || 0)) newest = v;
+    }
+    pph.primed[g.id] = 1;
+    if (newest && g.live) {
+      pph.show[g.id] = { v: newest, until: now + CONFIG.panelPhotoSec * 1000 };
+      (function (gid) {                                            // put the field back when its time is up
+        setTimeout(function () { var pg = state.pages[state.pageIndex]; if (pg && pg.pt && pg.game && pg.game.id === gid) refreshRender(false); }, CONFIG.panelPhotoSec * 1000 + 200);
+      })(g.id);
+    }
+  }
+}
+function panelPhotoOf(g) {
+  var sp = pph.show[g.id];
+  return sp && new Date().getTime() < sp.until ? sp.v : null;
 }
 function hlNext() {
   if (hl.queue.length > 3) hl.queue = hl.queue.slice(hl.queue.length - 3);   // only the newest few
@@ -4334,7 +4379,7 @@ function fastRefresh() {
   }
   function done() {
     loadPtDetails(function () {
-      soundCheck();
+      soundCheck(); panelPhotoCheck();
       var hit = detectJump();
       buildPages();
       var jumped = jumpTo(hit);
@@ -6343,7 +6388,7 @@ function refreshAll() {
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
     loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
-      soundCheck();                               // upset / close-game score / Bears TD / your team won
+      soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
