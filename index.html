@@ -1329,6 +1329,7 @@ var CONFIG = {
   crawlSpeed: 90,        // bottom ticker speed (pixels per second)
   crawlPerSegment: 5,    // games per bottom-bar segment
   crawlMaxPerLeague: 10, // most games per league in the bottom bar (your teams + live first)
+  crawlAllCollege: true, // ...except college: every FBS football and every Division I basketball game today (?crawlall=0: same games as the cards)
   crawlStats: true,      // key stats in the bottom bar for live games + your teams' games
   crawlNews: true,       // league headlines in the bottom bar
   newsPerLeague: 2       // headlines per league
@@ -1413,6 +1414,7 @@ function readParams() {
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'spotlight') CONFIG.spotlight = v !== '0';
+    if (k === 'crawlall') CONFIG.crawlAllCollege = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
     if (k === 'hd') CONFIG.highlightsHD = v !== '0';
@@ -6390,14 +6392,48 @@ function crawlGameHTML(e, lg, sx) {
          (ln ? '<span class="st">  ' + esc(ln) + '</span>' : '') +
          (sx ? '<span class="sx">' + esc(sx) + '</span>' : '') + '</span>';
 }
+/* The bottom bar carries every FBS football and every Division I basketball game (the cards on top
+   stay with the big ones). Fetched for today: every 2 minutes while any of them is on, every 15 otherwise. */
+var crawlFull = {}, CRAWL_FULL = { ncaaf: '&groups=80&limit=300', ncaab: '&groups=50&limit=400' };
+function loadCrawlFull(cb) {
+  var todo = [], now = new Date().getTime(), day = ymd(new Date(now - 4 * 3600000)).replace(/-/g, '');
+  for (var lg in CRAWL_FULL) {
+    if (DEMO || !CONFIG.crawlAllCollege || !inList(CONFIG.leagues, lg) || seasonOver(lg)) { delete crawlFull[lg]; continue; }
+    if ((lg === 'ncaaf' && CONFIG.cfb === 'fbs') || (lg === 'ncaab' && CONFIG.cbb === 'all')) { delete crawlFull[lg]; continue; }   // the main feed has them all
+    var c = crawlFull[lg];
+    if (c && c.day === day && now - c.at < (c.live ? 110000 : 15 * 60000)) continue;
+    todo.push(lg);
+  }
+  var k = 0;
+  (function next() {
+    if (k >= todo.length) return cb();
+    var lg2 = todo[k++];
+    getJSON(ESPN_API + ESPN_PATHS[lg2] + '/scoreboard?dates=' + day + CRAWL_FULL[lg2], function (err, data) {
+      if (!err && data && data.events) {
+        var gs = [], live = false;
+        for (var i = 0; i < data.events.length; i++) { var g = fromEspn(data.events[i], lg2); if (g) { gs.push(g); if (g.live) live = true; } }
+        crawlFull[lg2] = { at: now, day: day, games: gs, live: live };
+      } else if (crawlFull[lg2]) crawlFull[lg2].at = now - 13 * 60000;       // try again in 2 minutes
+      next();
+    });
+  })();
+}
+function crawlGames(lg) {
+  var d = state.data[lg], base = (d && d.games) || [], cf = crawlFull[lg];
+  if (!cf || !cf.games.length) return base.slice(0);
+  var have = {}, out = base.slice(0), i;
+  for (i = 0; i < base.length; i++) have[base[i].id] = 1;
+  for (i = 0; i < cf.games.length; i++) if (!have[cf.games[i].id]) out.push(cf.games[i]);
+  return out;
+}
 function renderCrawl() {
   var groups = [], today = ymd(new Date());
   for (var i = 0; i < CONFIG.leagues.length; i++) {
-    var lg = CONFIG.leagues[i], d = state.data[lg];
-    if (!d || !d.games.length || seasonOver(lg)) continue;
-    var all = sortGames(d.games.slice(0), lg), games = [], segs = [];
+    var lg = CONFIG.leagues[i], d = state.data[lg], cg = crawlGames(lg);
+    if (!cg.length || seasonOver(lg)) continue;
+    var all = sortGames(cg, lg), games = [], segs = [];
     for (var j = 0; j < all.length; j++) if (crawlRelevant(all[j], lg, today)) games.push(all[j]);
-    games = games.slice(0, CONFIG.crawlMaxPerLeague);
+    if (!crawlFull[lg]) games = games.slice(0, CONFIG.crawlMaxPerLeague);   // college with the full list: every game
     var name = LEAGUE_NAMES[lg] || lg.toUpperCase();
     for (var k = 0; k < games.length; k += CONFIG.crawlPerSegment) {
       var html = '';
@@ -6591,7 +6627,7 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
@@ -6600,7 +6636,7 @@ function refreshAll() {
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
