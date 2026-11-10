@@ -1197,6 +1197,7 @@ var CONFIG = {
 
   // Men's college basketball: 'top25' = games with a ranked team, 'all' = every Division I game
   cbb: 'top25',
+  cbbGood: true,         // ...plus good matchups outside it: a team receiving AP votes, or national TV with two winning teams (?cbbgood=0 off)
 
   // College football: 'top25' = games with a ranked team, 'fbs' = every FBS game
   cfb: 'top25',
@@ -1371,6 +1372,7 @@ function readParams() {
     if (!k) continue;
     if (k === 'leagues' && v) { CONFIG.leagues = v.toLowerCase().split(','); CONFIG.seasonSwitch = null; }
     if (k === 'cbb' && v) CONFIG.cbb = v.toLowerCase();
+    if (k === 'cbbgood') CONFIG.cbbGood = v !== '0';
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
@@ -1643,9 +1645,100 @@ function espnDay(lg, dateStr, cb) {
     var evs = (data && data.events) || [], out = [];
     for (var i = 0; i < evs.length; i++) { var g = fromEspn(evs[i], lg); if (g) out.push(g); }
     if (lg === 'ncaaf' && CONFIG.cfb !== 'fbs') return addFavCfb(dateStr, out, cb);
+    if (lg === 'ncaab' && CONFIG.cbb !== 'all') return addGoodCbb(dateStr, out, cb);
     cb(null, out);
   });
 }
+/* Good college hoops matchups outside the Top 25 feed: games with a team receiving AP votes, and
+   games on national TV (ESPN, ESPN2, ABC, FS1, FOX, CBS, NBC, TNT, truTV) where both teams have
+   winning records; until both teams have played 6 games, national TV alone is enough. They join the
+   scores page with a gold tag saying why. Found with one look at every Division I game (every 30 min,
+   15 while one of them is on); their scores then come from just their conferences' feeds. */
+var GOOD_TV = /^(ESPN|ESPN2|ABC|FS1|FOX|CBS|NBC|TNT|TRUTV|TBS)$/i;
+var goodCbb = { day: {}, ev: {}, confAt: {} };
+function goodWhy(ev, votes) {
+  var c = ev.competitions && ev.competitions[0];
+  if (!c || !c.competitors || c.competitors.length < 2) return '';
+  var i, rec = [], rankedHere = false;
+  for (i = 0; i < c.competitors.length; i++) {
+    var cp = c.competitors[i], t = cp.team || {};
+    if (cp.curatedRank && cp.curatedRank.current && cp.curatedRank.current <= 25) rankedHere = true;
+    var r = (cp.records || cp.record || []), tot = '';
+    for (var j = 0; j < r.length; j++) if (!r[j].type || r[j].type === 'total') { tot = r[j].summary; break; }
+    var m = String(tot || '').match(/^(\d+)-(\d+)/);
+    rec.push(m ? { w: +m[1], l: +m[2] } : null);
+  }
+  if (rankedHere) return '';                                        // the Top 25 feed has it already
+  for (i = 0; i < c.competitors.length; i++) if (votes[String((c.competitors[i].team || {}).id)]) return 'AP VOTES';
+  var tv = '', B = c.broadcasts || [];
+  for (i = 0; i < B.length && !tv; i++) {
+    if (B[i].market && B[i].market !== 'national') continue;
+    var nm = B[i].names || [];
+    for (var k = 0; k < nm.length; k++) if (GOOD_TV.test(String(nm[k]).replace(/\s+/g, ''))) { tv = String(nm[k]).toUpperCase(); break; }
+  }
+  if (!tv) return '';
+  var early = !rec[0] || !rec[1] || rec[0].w + rec[0].l < 6 || rec[1].w + rec[1].l < 6;
+  if (early || (rec[0].w > rec[0].l && rec[1].w > rec[1].l)) return tv;
+  return '';
+}
+function addGoodCbb(dateStr, out, cb) {
+  if (!CONFIG.cbbGood || DEMO) return cb(null, out);
+  var now = new Date().getTime(), D = dateStr.replace(/-/g, ''), day = goodCbb.day[D], rk = rankingsFor('ncaab');
+  var votes = (rk && rk.votesById) || {}, haveVotes = !!(rk && rk.votesById);
+  var anyLive = false, id;
+  if (day) for (id in day.picks) { var e0 = goodCbb.ev[id]; if (e0 && e0.status && e0.status.type && e0.status.type.state === 'in') anyLive = true; }
+  var past = D < ymd(new Date(now - 6 * 3600000)).replace(/-/g, '');
+  var needScan = !day || (!past && now - day.at > (anyLive ? 15 : 30) * 60000) || (haveVotes && !day.votes);
+  function finish() {
+    var d = goodCbb.day[D];
+    if (!d) return cb(null, out);
+    var have = {}, i;
+    for (i = 0; i < out.length; i++) have[out[i].eid] = 1;
+    for (id in d.picks) {
+      if (have[id] || !goodCbb.ev[id]) continue;
+      var g = fromEspn(goodCbb.ev[id], 'ncaab');
+      if (g) { g.why = d.picks[id].why; out.push(g); }
+    }
+    cb(null, out);
+  }
+  function refreshConfs() {                                       // live / about-to-start picks: just their conferences
+    var d = goodCbb.day[D], confs = [], seen = {};
+    if (!d || past) return finish();
+    for (id in d.picks) {
+      var ev = goodCbb.ev[id], st = ev && ev.status && ev.status.type && ev.status.type.state;
+      var soon = ev && st === 'pre' && parseDate(ev.date).getTime() - now < 15 * 60000;
+      if ((st === 'in' || soon) && d.picks[id].conf && !seen[d.picks[id].conf]) { seen[d.picks[id].conf] = 1; confs.push(d.picks[id].conf); }
+    }
+    var k = 0;
+    (function next() {
+      if (k >= confs.length || k >= 5) return finish();
+      var cf = confs[k++], key = D + '|' + cf;
+      if (goodCbb.confAt[key] && now - goodCbb.confAt[key] < 50000) return next();
+      goodCbb.confAt[key] = now;
+      getJSON(ESPN_API + ESPN_PATHS.ncaab + '/scoreboard?dates=' + D + '&groups=' + cf + '&limit=100', function (err, data) {
+        var evs = (!err && data && data.events) || [];
+        for (var i = 0; i < evs.length; i++) if (d.picks[evs[i].id]) goodCbb.ev[evs[i].id] = evs[i];
+        next();
+      });
+    })();
+  }
+  if (!needScan) return refreshConfs();
+  getJSON(ESPN_API + ESPN_PATHS.ncaab + '/scoreboard?dates=' + D + '&groups=50&limit=400', function (err, data) {
+    if (err || !data) { if (day) day.at = now - 25 * 60000; return refreshConfs(); }   // try again in 5 min
+    var evs = data.events || [], picks = {};
+    for (var i = 0; i < evs.length; i++) {
+      var why = goodWhy(evs[i], votes);
+      if (!why) continue;
+      var cps = evs[i].competitions[0].competitors, conf = '';
+      for (var j = 0; j < cps.length && !conf; j++) conf = String((cps[j].team || {}).conferenceId || '');
+      picks[evs[i].id] = { why: why, conf: conf };
+      goodCbb.ev[evs[i].id] = evs[i];
+    }
+    goodCbb.day[D] = { at: now, picks: picks, votes: haveVotes };
+    finish();
+  });
+}
+
 /* The college feed only carries games with a ranked team. Your teams' games always count, so on
    college game days (Thu-Sat, and every day of bowl season) also check their conference's games. */
 var favCfbMiss = {};
@@ -2502,6 +2595,10 @@ function lineHTML(e, lg) {
     var srs = seriesOf(e, rv);
     if (srs) rf.push({ lbl: '<span class="rvl">' + trophyIcon(rv, 'tri') + 'SERIES</span>', left: rvn(seriesShort(e, srs)), right: '' });
     faces = rf.concat(faces);
+  }
+  if (e.why) {                                                    // a good matchup outside the Top 25: say why it's here
+    var whyTxt = e.why === 'AP VOTES' ? 'AP votes' : 'On ' + e.why;
+    faces = [{ lbl: '<span class="rvl">GOOD MATCHUP</span>', left: '<span class="rvn">' + esc(whyTxt) + '</span>', right: '' }].concat(faces);
   }
   if (!faces.length) return '<div class="lines">&nbsp;</div>';
   var k = (state.lineFace || 0) % faces.length;
@@ -5205,9 +5302,10 @@ function loadRankings(cb) {
           var ot = oth[v].team || {};
           if (ot.location || ot.name) votes.push({ name: ot.location || ot.name, pts: oth[v].points });
         }
-        var byId = {};
+        var byId = {}, votesById = {};
         for (var b2 = 0; b2 < list.length; b2++) if (list[b2].team.tid) byId[list[b2].team.tid] = list[b2].rank;
-        rankCache[lg] = { at: now, ap: list, byId: byId, hasCoaches: !!cr.length, votes: votes,
+        for (var v2 = 0; v2 < oth.length; v2++) if (oth[v2].team && oth[v2].team.id) votesById[String(oth[v2].team.id)] = +oth[v2].points || 1;
+        rankCache[lg] = { at: now, ap: list, byId: byId, hasCoaches: !!cr.length, votes: votes, votesById: votesById,
                           cfp: !!cfp, mainLabel: cfp ? 'CFP' : 'AP', secLabel: secLabel, firstWeek: !anyPrev,
                           votesLabel: cfp ? 'ALSO RECEIVING AP VOTES' : 'ALSO RECEIVING VOTES',
                           title: cfp ? 'College Football Playoff Rankings' :
