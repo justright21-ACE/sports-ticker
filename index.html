@@ -566,6 +566,17 @@
     border-left: 0.8vh solid #fff; border-radius: 0 1vh 1vh 0; max-width: 58vh; overflow: hidden; text-overflow: ellipsis; }
   .ptv .spot .spt b { display: block; font-size: 3.6vh; line-height: 4.4vh; font-weight: 800; color: #fff; letter-spacing: 0.1vw; overflow: hidden; text-overflow: ellipsis; }
   .ptv .spot .spt i { display: block; font-style: normal; font-size: 2.3vh; line-height: 3vh; color: #c9d1e3; }
+  /* replay review: a monitor pops in, OVERTURNED (red) or CALL STANDS (white/gray) */
+  @-webkit-keyframes rvIn { 0% { opacity: 0; -webkit-transform: scale(1.4); } 14% { opacity: 1; -webkit-transform: none; } 86% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes rvIn { 0% { opacity: 0; transform: scale(1.4); } 14% { opacity: 1; transform: none; } 86% { opacity: 1; } 100% { opacity: 0; } }
+  .ptv .rvw { position: absolute; left: 0; right: 0; top: 8vh; z-index: 8; text-align: center; pointer-events: none; -webkit-animation: rvIn 3.2s ease-out 1 both; animation: rvIn 3.2s ease-out 1 both; }
+  .ptv .rvw .mon { width: 11vh; height: 11vh; margin: 0 auto; }
+  .ptv .rvw .rb { display: inline-block; margin-top: 0.4vh; padding: 0.8vh 2.6vw; border-radius: 1vh; box-shadow: 0 1vh 3vh rgba(0,0,0,0.5); max-width: 90%;
+    color: #0a1020; background: #f2f4f8; background-image: -webkit-repeating-linear-gradient(0deg, #f2f4f8 0, #f2f4f8 2.4vh, #dfe3ea 2.4vh, #dfe3ea 4.8vh);
+    background-image: repeating-linear-gradient(90deg, #f2f4f8 0, #f2f4f8 2.4vh, #dfe3ea 2.4vh, #dfe3ea 4.8vh); }
+  .ptv .rvw.rv .rb { background: #e23d3d; background-image: none; color: #fff; }
+  .ptv .rvw .rb b { display: block; font-size: 5vh; line-height: 6vh; font-weight: 800; letter-spacing: 0.4vw; }
+  .ptv .rvw .rb i { display: block; font-style: normal; font-size: 2.2vh; line-height: 2.8vh; font-weight: 700; letter-spacing: 0.15vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* penalty line in the leaders panels */
   .ptv .pen { margin-top: 0.8vh; font-size: 2vh; color: #c9d1e3; } .ptv .pen b { color: #ffd400; letter-spacing: 0.15vw; margin-right: 0.6vw; font-size: 1.7vh; }
   .ptv .panel:last-child .pen { text-align: right; }
@@ -1302,6 +1313,7 @@ var CONFIG = {
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
   soundVolume: 70,       // 0-100 (?volume=)
   soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
+  reviews: true,         // replay reviews: OVERTURNED (touchdown / turnover / catch / spot) or a failed coach's challenge, CALL STANDS (?reviews=0 off)
   bigPenalties: true,    // a yellow FLAG banner for big penalties: 15+ yards, pass interference, personal fouls, or one that wipes out a TD / big gain (?flags=0 off)
   spotlight: true,       // the player's photo, name and number with TOUCHDOWN / INTERCEPTION / FUMBLE / BIG PLAY (?spotlight=0 off)
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
@@ -1434,6 +1446,7 @@ function readParams() {
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'spotlight') CONFIG.spotlight = v !== '0';
     if (k === 'flags') CONFIG.bigPenalties = v !== '0';
+    if (k === 'reviews') CONFIG.reviews = v !== '0';
     if (k === 'bigplay') CONFIG.bigPlayYds = Math.max(5, +v || 15);
     if (k === 'crawlall') CONFIG.crawlAllCollege = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
@@ -3785,7 +3798,7 @@ function ptHTML(g, kind, lg) {
     var who = abbrById[s.possession] || '';
     p2 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
          '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
-         (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(s.lastPlay.text) + '</span></div>' : '') + qtable;
+         (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(wasReversed(s.lastPlay.text) ? 'After review: ' + finalText(s.lastPlay.text) : s.lastPlay.text) + '</span></div>' : '') + qtable;
   } else {
     p2 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g, lg)) + '</div>' +
          qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
@@ -3887,8 +3900,8 @@ function spotlightHTML(p, name, t, lg, line, delay) {
 function bigPlayOf(g) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
   if (!lp || !lp.text) return null;
-  var tx = String(lp.text), ty = String((lp.type && (lp.type.text || lp.type.abbreviation)) || '');
-  if (/punt|kick|penalty|no play|intercept|fumble|sack|field goal|extra point|two-point|timeout/i.test(ty + ' ' + tx) && !/touchdown/i.test(tx)) return { id: lp.id || tx };
+  var tx = finalText(lp.text), ty = wasReversed(lp.text) ? '' : String((lp.type && (lp.type.text || lp.type.abbreviation)) || '');
+  if (wasReversed(lp.text) || /punt|kick|penalty|no play|intercept|fumble|sack|field goal|extra point|two-point|timeout/i.test(ty + ' ' + tx) && !/touchdown/i.test(tx)) return { id: lp.id || tx };
   var yd = lp.statYardage !== undefined && lp.statYardage !== null ? +lp.statYardage : 0;
   if (!yd) { var m = tx.match(/for (\d+) (?:yds?|yards?)/i) || tx.match(/(\d+) (?:yd|yard) (?:run|pass|reception)/i); yd = m ? +m[1] : 0; }
   var pass = /pass|reception|catch/i.test(ty) || /\bpass\b/i.test(tx), run = !pass && (/rush|run|scramble/i.test(ty) || /\b(run|rush|left end|right end|up the middle|left tackle|right tackle|left guard|right guard)\b/i.test(tx));
@@ -4499,8 +4512,10 @@ function turnoverOf(g, prevPoss) {
   }
   return null;
 }
+function finalText(tx) { var m = String(tx).match(/\bREVERSED\.?\s*([\s\S]*)$/i); return m ? m[1] : String(tx); }   // after a review: what stood
+function wasReversed(tx) { return /\bREVERSED\b/i.test(String(tx)); }
 function turnoverFromPlay(lp, c, prevPoss) {
-  var tx = String(lp.text), ty = String((lp.type && (lp.type.text || lp.type.abbreviation)) || ''), all = ty + ' ' + tx, kind = '', who = '';
+  var tx = finalText(lp.text), ty = wasReversed(lp.text) ? '' : String((lp.type && (lp.type.text || lp.type.abbreviation)) || ''), all = ty + ' ' + tx, kind = '', who = '';
   if (/no play|penalty.*(declined|offsetting)/i.test(tx) && !/intercept|recovered/i.test(tx)) return null;
   if (/intercept/i.test(all)) {
     kind = 'INTERCEPTION!';
@@ -4530,6 +4545,41 @@ function turnoverHTML(to, t, lg) {
 }
 function prev_a(p) { return p ? p.a : 0; } function prev_h(p) { return p ? p.h : 0; }
 /* ---- sacks ---- */
+/* ---- replay reviews: a call OVERTURNED that matters (touchdown, turnover, catch, a spot / first down), or a
+   coach's challenge that fails (CALL STANDS, and it costs a timeout). Also a score that goes back down. ---- */
+var reviewShown = {};
+function reviewFromPlay(lp) {
+  var tx = String(lp.text || '');
+  if (!/(challenged|replay official|reviewed|booth review)/i.test(tx)) return null;
+  var rev = wasReversed(tx), stands = /\b(upheld|stands|confirmed)\b/i.test(tx);
+  if (!rev && !stands) return null;
+  var coach = (tx.match(/\b([A-Z][A-Z&]{1,4}) challenged/) || [])[1] || '';
+  var what = ((tx.match(/(?:reviewed|challenged) the (.+?) ruling/i) || [])[1] || '').toUpperCase();
+  var before = tx.split(/\b(?:The Replay Official|[A-Z][A-Z&]{1,4} challenged)\b/)[0];
+  var head = rev && /touchdown/i.test(before) && !/touchdown/i.test(finalText(tx)) ? 'TOUCHDOWN OVERTURNED' :
+             rev && /intercept/i.test(before) ? 'INTERCEPTION OVERTURNED' : rev && /fumble/i.test(before) ? 'FUMBLE OVERTURNED' : '';
+  if (rev && !head && !/complet|catch|first down|short of|goal line|plane|recover|safety|field goal|spot|forward progress|out of bounds|touchdown|intercept|fumble/i.test(tx)) return null;
+  if (!rev && !coach) return null;                                   // a booth review that confirms the call: not worth a banner
+  return { id: lp.id || tx, rev: rev, coach: coach, what: what, head: head };
+}
+function reviewOf(g) {
+  var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay, r = lp && lp.text ? reviewFromPlay(lp) : null;
+  if (r) return r;
+  var det = g.eid && ptDetail[g.eid], R = (det && det.recent) || [];
+  for (var i = R.length - 1; i >= Math.max(0, R.length - 4); i--) if (R[i] && R[i].text && (r = reviewFromPlay(R[i]))) return r;
+  return null;
+}
+var MONITOR = '<svg viewBox="0 0 60 60"><rect x="6" y="10" width="48" height="32" rx="3" fill="#0a1020" stroke="#ffffff" stroke-width="3"/>' +
+  '<path d="M26 19 L38 26 L26 33 Z" fill="#ffffff"/><path d="M22 50 L38 50 M30 42 L30 50" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>';
+function reviewHTML(rv, g, lg) {
+  var ct = rv.coach ? (g.teams.away.abbreviation === rv.coach ? g.teams.away : (g.teams.home.abbreviation === rv.coach ? g.teams.home : null)) : null;
+  var cn = ct ? String(ct.short || nickname(ct.name) || ct.abbreviation).toUpperCase() : rv.coach;
+  var big = rv.rev ? 'OVERTURNED' : 'CALL STANDS';
+  var sub = rv.head || (rv.what ? rv.what : (rv.rev ? 'CALL REVERSED' : ''));
+  if (rv.coach) sub += (sub ? ' · ' : '') + (rv.rev ? 'CHALLENGED BY ' + cn : cn + ' LOSE A TIMEOUT');
+  else sub += (sub ? ' · ' : '') + 'BOOTH REVIEW';
+  return '<div class="rvw' + (rv.rev ? ' rv' : '') + '"><div class="mon">' + MONITOR + '</div><div class="rb"><b>' + big + '</b><i>' + esc(sub) + '</i></div></div>';
+}
 /* ---- big penalties: 15+ yards, pass interference, personal fouls, or one that wipes out a TD / big gain ---- */
 var penShown = {};
 function penaltyFromPlay(lp) {
@@ -4566,7 +4616,7 @@ function sackOf(g) {
   return null;
 }
 function sackFromPlay(lp) {
-  var tx = String(lp.text), ty = String((lp.type && (lp.type.text || lp.type.abbreviation)) || '');
+  var tx = finalText(lp.text), ty = wasReversed(lp.text) ? '' : String((lp.type && (lp.type.text || lp.type.abbreviation)) || '');
   if (!/sack/i.test(ty) && !/\bsacked\b/i.test(tx)) return null;
   if (/no play/i.test(tx)) return null;
   var yd = lp.statYardage !== undefined && lp.statYardage !== null ? Math.abs(+lp.statYardage) : 0;
@@ -5003,7 +5053,21 @@ function ptAnimate(pg) {
     wpa.style.width = prev.wp; void root.offsetWidth;
     setTimeout(function () { wpa.style.width = now.wp; }, 60);
   }
-  var delay = 0, to = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? turnoverOf(g, prev && prev.poss) : null;
+  var delay = 0, foot = pg.lg === 'nfl' || pg.lg === 'ncaaf', rvw = foot && CONFIG.reviews ? reviewOf(g) : null, rvShownNow = false;
+  if (rvw && !prev) reviewShown[id] = rvw.id;
+  if (!rvw && foot && CONFIG.reviews && prev && !fin && (a < prev.a || h < prev.h)) {   // the score went back down: a score taken off
+    var dropA = prev.a - a, dropH = prev.h - h, dd = Math.max(dropA, dropH);
+    rvw = { id: 'drop' + a + '-' + h, rev: true, coach: '', what: '', head: dd >= 6 ? 'TOUCHDOWN OVERTURNED' : (dd === 3 ? 'FIELD GOAL TAKEN OFF' : 'POINTS TAKEN OFF') };
+  }
+  if (prev && rvw && reviewShown[id] !== rvw.id) {                      // a review since we last looked
+    reviewShown[id] = rvw.id; rvShownNow = true;
+    var rvHtml = reviewHTML(rvw, g, pg.lg), w9 = entering ? 1.0 : 0;
+    if (w9) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', rvHtml); }, w9 * 1000);
+    else root.insertAdjacentHTML('beforeend', rvHtml);
+    delay = 3.0 + w9;
+  }
+  var to = foot ? turnoverOf(g, prev && prev.poss) : null;
+  if (rvShownNow && to && rvw && to.id === rvw.id) to = null;          // the review banner covers that play
   if (to && !prev) tovShown[id] = to.id;                                // already there the first time we see the game
   if (prev && to && to.id !== prev.play && tovShown[id] !== to.id) {    // a turnover since we last looked
     tovShown[id] = to.id;
@@ -5050,6 +5114,7 @@ function ptAnimate(pg) {
     delay = 2.8 + w1;
     bp = null;
   }
+  if (rvShownNow) bp = null;
   if (prev && bp && bp.id !== prev.play && bp.yd >= CONFIG.bigPlayYds && bp.kind) {     // a 15+ yard run or pass since we last looked
     var cc = compOf(g) || {}, sit = cc.situation || {}, offId = String(sit.possession || ''), awayC = sideComp(cc, 'away') || {}, homeC = sideComp(cc, 'home') || {};
     var offSide = String((awayC.team || {}).id) === offId ? 'away' : (String((homeC.team || {}).id) === offId ? 'home' : '');
