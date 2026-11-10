@@ -566,6 +566,22 @@
     border-left: 0.8vh solid #fff; border-radius: 0 1vh 1vh 0; max-width: 58vh; overflow: hidden; text-overflow: ellipsis; }
   .ptv .spot .spt b { display: block; font-size: 3.6vh; line-height: 4.4vh; font-weight: 800; color: #fff; letter-spacing: 0.1vw; overflow: hidden; text-overflow: ellipsis; }
   .ptv .spot .spt i { display: block; font-style: normal; font-size: 2.3vh; line-height: 3vh; color: #c9d1e3; }
+  /* penalty line in the leaders panels */
+  .ptv .pen { margin-top: 0.8vh; font-size: 2vh; color: #c9d1e3; } .ptv .pen b { color: #ffd400; letter-spacing: 0.15vw; margin-right: 0.6vw; font-size: 1.7vh; }
+  .ptv .panel:last-child .pen { text-align: right; }
+  /* big-penalty flag: a yellow flag drops and lands, the call slides in under it */
+  @-webkit-keyframes flagDrop { 0% { -webkit-transform: translateY(-40vh) rotate(-40deg); opacity: 0; } 30% { -webkit-transform: translateY(0) rotate(12deg); opacity: 1; } 38% { -webkit-transform: translateY(-2vh) rotate(-4deg); }
+    46% { -webkit-transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes flagDrop { 0% { transform: translateY(-40vh) rotate(-40deg); opacity: 0; } 30% { transform: translateY(0) rotate(12deg); opacity: 1; } 38% { transform: translateY(-2vh) rotate(-4deg); }
+    46% { transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @-webkit-keyframes flagBar { 0%, 28% { opacity: 0; -webkit-transform: scaleX(0.2); } 40% { opacity: 1; -webkit-transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes flagBar { 0%, 28% { opacity: 0; transform: scaleX(0.2); } 40% { opacity: 1; transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+  .ptv .flag { position: absolute; left: 0; right: 0; top: 6vh; height: 24vh; z-index: 8; text-align: center; pointer-events: none; }
+  .ptv .flag .fl { width: 14vh; height: 14vh; margin: 0 auto; -webkit-animation: flagDrop 3.2s ease-out 1 both; animation: flagDrop 3.2s ease-out 1 both; }
+  .ptv .flag .fb2 { display: inline-block; margin-top: 0.4vh; padding: 0.8vh 2.4vw; background: #ffd400; color: #0a1020; border-radius: 1vh; box-shadow: 0 1vh 3vh rgba(0,0,0,0.5);
+    max-width: 90%; -webkit-animation: flagBar 3.2s ease-out 1 both; animation: flagBar 3.2s ease-out 1 both; }
+  .ptv .flag .fb2 b { display: block; font-size: 4.6vh; line-height: 5.6vh; font-weight: 800; letter-spacing: 0.2vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptv .flag .fb2 i { display: block; font-style: normal; font-size: 2.2vh; line-height: 2.8vh; font-weight: 700; letter-spacing: 0.15vw; }
   .ptv .pop { position: absolute; left: 0; right: 0; top: 50%; height: 11vh; margin-top: -5.5vh; z-index: 6; text-align: center; color: #ffffff;
     -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%; -webkit-animation: ptBanner 3.6s ease-out 1 both; animation: ptBanner 3.6s ease-out 1 both; }
   .ptv .pop b { display: block; font-size: 7vh; line-height: 7.4vh; letter-spacing: 0.6vw; font-weight: 800; -webkit-animation: ptText 3.6s ease-out 1 both; animation: ptText 3.6s ease-out 1 both; }
@@ -859,6 +875,7 @@
   .ptv .field .fb { position: absolute; top: 2.1vh; width: 3.2vh; height: 1.9vh; margin-left: -1.6vh; }
   .ptv .field .lab { position: absolute; bottom: 0.2vh; font-size: 1.6vh; color: rgba(255,255,255,0.75); }
   .ptv .note { font-size: 2.4vh; line-height: 3.3vh; color: #c9d0e0; margin-top: 1vh; }
+  .ptv .note.lp span { display: block; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-height: 6.6vh; }   /* long plays (penalties): 2 lines */
   .ptv .note b { color: #f5b800; font-size: 2vh; letter-spacing: 0.15vw; display: block; }
   .ptv table.q { width: 100%; border-collapse: collapse; font-size: 2.7vh; margin-bottom: 1.2vh; }
   .ptv table.q th { color: #9FA9BD; font-weight: 600; font-size: 2vh; text-align: center; padding-bottom: 0.4vh; }
@@ -1285,6 +1302,7 @@ var CONFIG = {
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
   soundVolume: 70,       // 0-100 (?volume=)
   soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
+  bigPenalties: true,    // a yellow FLAG banner for big penalties: 15+ yards, pass interference, personal fouls, or one that wipes out a TD / big gain (?flags=0 off)
   spotlight: true,       // the player's photo, name and number with TOUCHDOWN / INTERCEPTION / FUMBLE / BIG PLAY (?spotlight=0 off)
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
@@ -1415,6 +1433,7 @@ function readParams() {
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'spotlight') CONFIG.spotlight = v !== '0';
+    if (k === 'flags') CONFIG.bigPenalties = v !== '0';
     if (k === 'bigplay') CONFIG.bigPlayYds = Math.max(5, +v || 15);
     if (k === 'crawlall') CONFIG.crawlAllCollege = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
@@ -3593,7 +3612,7 @@ function winBarHTML(g, lg, det) {
 /* HALFTIME: the two teams' first half side by side, a bar per stat (football and basketball) */
 var HALF_STATS = {
   foot: [['TOTAL YARDS', ['totalYards']], ['PASSING', ['netPassingYards']], ['RUSHING', ['rushingYards']], ['3RD DOWNS', ['thirdDownEff'], 'eff'],
-         ['TURNOVERS', ['turnovers'], 'low'], ['POSSESSION', ['possessionTime'], 'clock'], ['FIRST DOWNS', ['firstDowns']]],
+         ['TURNOVERS', ['turnovers'], 'low'], ['PENALTIES', ['totalPenaltiesYards'], 'pen'], ['POSSESSION', ['possessionTime'], 'clock'], ['FIRST DOWNS', ['firstDowns']]],
   hoops: [['FIELD GOAL %', ['fieldGoalPct']], ['3-POINT %', ['threePointFieldGoalPct']], ['REBOUNDS', ['totalRebounds', 'rebounds']],
           ['ASSISTS', ['assists']], ['TURNOVERS', ['totalTurnovers', 'turnovers'], 'low'], ['POINTS IN PAINT', ['pointsInPaint']]]
 };
@@ -3608,6 +3627,7 @@ function halfHTML(g, lg, det, ca, ch) {
   function val(v, how) {
     if (how === 'clock') { var m = v.match(/(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : NaN; }
     if (how === 'eff') { var e = v.match(/(\d+)\s*-\s*(\d+)/); return e ? (+e[2] ? +e[1] / +e[2] : 0) : NaN; }
+    if (how === 'pen') { var pn = v.match(/(\d+)\s*-\s*(\d+)/); return pn ? +pn[2] : NaN; }      // penalty yards (fewer = better)
     return parseFloat(v.replace(/,/g, ''));
   }
   for (var i = 0; i < list.length && n < 6; i++) {
@@ -3616,8 +3636,10 @@ function halfHTML(g, lg, det, ca, ch) {
     var na = val(va, how), nh = val(vh, how);
     if (isNaN(na) || isNaN(nh)) continue;
     // fewer turnovers = the bigger bar
-    var tot = na + nh, share = tot > 0 ? (how === 'low' ? nh / tot : na / tot) : 0.5, better = na === nh ? '' : ((how === 'low' ? na < nh : na > nh) ? 'a' : 'h');
+    var low = how === 'low' || how === 'pen';
+    var tot = na + nh, share = tot > 0 ? (low ? nh / tot : na / tot) : 0.5, better = na === nh ? '' : ((low ? na < nh : na > nh) ? 'a' : 'h');
     if (how === 'eff') { va = va.replace(/\s*-\s*/, '/'); vh = vh.replace(/\s*-\s*/, '/'); }
+    if (how === 'pen') { va = va.replace(/\s*-\s*/, '–'); vh = vh.replace(/\s*-\s*/, '–'); }
     var dl = (0.3 + n * 0.14).toFixed(2), anim = '-webkit-animation-delay:' + dl + 's;animation-delay:' + dl + 's;';
     rows += '<div class="hrow"><span class="hv a' + (better === 'a' ? ' up' : '') + '">' + esc(va) + '</span><span class="hv h' + (better === 'h' ? ' up' : '') + '">' + esc(vh) + '</span>' +
       '<div class="hl">' + esc(list[i][0]) + '</div><div class="hb" style="' + anim + 'background:#' + hc + '"><div class="ha" style="width:' + Math.round(share * 100) + '%;background:#' + ac + '"></div></div></div>';
@@ -3701,6 +3723,8 @@ function ptHTML(g, kind, lg) {
                          [['FG %', st.fieldGoalPct], ['3PT %', st.threePointFieldGoalPct], ['REBOUNDS', st.totalRebounds || st.rebounds], ['TURNOVERS', st.totalTurnovers || st.turnovers]], c2 = '';
       for (var k = 0; k < cells.length; k++) if (cells[k][1] !== undefined) c2 += '<span>' + cells[k][0] + '<b>' + esc(cells[k][1]) + '</b></span>';
       if (c2) html += '<div class="tst">' + c2 + '</div>';
+      var pen = foot ? String(st.totalPenaltiesYards || '').match(/(\d+)\s*-\s*(\d+)/) : null;
+      if (pen) html += '<div class="pen"><b>PENALTIES</b>' + pen[1] + ' for ' + pen[2] + ' yds</div>';
     }
     return html + injHTML(g, cp, pre, cp === ch);
   }
@@ -3761,7 +3785,7 @@ function ptHTML(g, kind, lg) {
     var who = abbrById[s.possession] || '';
     p2 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
          '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
-         (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '') + qtable;
+         (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(s.lastPlay.text) + '</span></div>' : '') + qtable;
   } else {
     p2 = '<div class="ph">' + (fin ? 'FINAL' : 'GAME') + '</div><div class="dd">' + esc(fin ? (num(scoreOf(g, 'home')) === num(scoreOf(g, 'away')) ? 'Tie game' : (num(scoreOf(g, 'home')) > num(scoreOf(g, 'away')) ? h.abbreviation : a.abbreviation) + ' wins') : clockText(g, lg)) + '</div>' +
          qtable + (s.lastPlay && s.lastPlay.text ? '<div class="note"><b>LAST PLAY</b>' + esc(s.lastPlay.text) + '</div>' : '');
@@ -4506,6 +4530,32 @@ function turnoverHTML(to, t, lg) {
 }
 function prev_a(p) { return p ? p.a : 0; } function prev_h(p) { return p ? p.h : 0; }
 /* ---- sacks ---- */
+/* ---- big penalties: 15+ yards, pass interference, personal fouls, or one that wipes out a TD / big gain ---- */
+var penShown = {};
+function penaltyFromPlay(lp) {
+  var tx = String(lp.text || '');
+  if (!/PENALTY on/i.test(tx) || /declined|offsetting/i.test(tx)) return null;
+  var m = tx.match(/PENALTY on ([A-Z][A-Z&]{1,4})-([^,]+?), ([^,]+?), (\d+) yards?/i);
+  if (!m) return null;
+  var yd = +m[4], foul = m[3].replace(/\s+/g, ' '), wiped = /touchdown nullified|nullified/i.test(tx);
+  var big = yd >= 15 || /pass interference|roughing|unnecessary|face ?mask|unsportsmanlike|targeting|horse ?collar/i.test(foul) || wiped;
+  if (!big) return null;
+  return { id: lp.id || tx, abbr: m[1].toUpperCase(), who: m[2].replace(/^\s+|\s+$/g, ''), foul: foul, yd: yd, wiped: /touchdown nullified/i.test(tx) ? 'TOUCHDOWN WIPED OUT' : (wiped ? 'PLAY WIPED OUT' : '') };
+}
+function penaltyOf(g) {
+  var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay, pz = lp && lp.text ? penaltyFromPlay(lp) : null;
+  if (pz) return pz;
+  var det = g.eid && ptDetail[g.eid], R = (det && det.recent) || [];
+  for (var i = R.length - 1; i >= Math.max(0, R.length - 3); i--) if (R[i] && R[i].text && (pz = penaltyFromPlay(R[i]))) return pz;
+  return null;
+}
+var FLAG = '<svg viewBox="0 0 60 60"><path d="M30 6 Q44 4 54 10 Q46 26 52 40 Q40 34 28 38 Q22 24 30 6 Z" fill="#ffd400" stroke="#b38f00" stroke-width="2"/>' +
+  '<circle cx="24" cy="44" r="7" fill="#ffd400" stroke="#b38f00" stroke-width="2"/><path d="M29 38 Q27 41 26 41" stroke="#b38f00" stroke-width="2" fill="none"/></svg>';
+function penaltyHTML(pz, t, lg) {
+  var nick = String((t && (t.short || nickname(t.name))) || pz.abbr).toUpperCase();
+  return '<div class="flag"><div class="fl">' + FLAG + '</div><div class="fb2"><b>FLAG · ' + esc(pz.foul.toUpperCase()) + '</b><i>' +
+    esc(nick + ' · ' + String(pz.who).toUpperCase() + ' · ' + pz.yd + ' YARDS' + (pz.wiped ? ' · ' + pz.wiped : '')) + '</i></div></div>';
+}
 var sackShown = {};
 function sackOf(g) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
@@ -4970,7 +5020,18 @@ function ptAnimate(pg) {
     delay = 3.0 + w0;
     bp = null;
   }
-  var sk = !to && (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? sackOf(g) : null;
+  var pz = !to && CONFIG.bigPenalties && (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? penaltyOf(g) : null;
+  if (pz && !prev) penShown[id] = pz.id;
+  if (prev && pz && penShown[id] !== pz.id) {                           // a big penalty since we last looked: the flag drops
+    penShown[id] = pz.id;
+    var pt = g.teams.away.abbreviation === pz.abbr ? g.teams.away : (g.teams.home.abbreviation === pz.abbr ? g.teams.home : null);
+    var pzHtml = penaltyHTML(pz, pt, pg.lg), wp = entering ? 1.0 : 0;
+    if (wp) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', pzHtml); }, wp * 1000);
+    else root.insertAdjacentHTML('beforeend', pzHtml);
+    delay = Math.max(delay, 3.0 + wp);
+    bp = null;
+  }
+  var sk = !to && !pz && (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? sackOf(g) : null;
   if (sk && !prev) sackShown[id] = sk.id;
   if (prev && sk && sk.id !== prev.play && sackShown[id] !== sk.id) {   // a sack since we last looked
     sackShown[id] = sk.id;
