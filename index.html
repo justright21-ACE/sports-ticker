@@ -591,7 +591,7 @@
   .nomotion .ptv.done .center .clk { visibility: visible; } .nomotion .ptv .stamp { display: none; }
   .ptv.done .side.win .ptlogo { -webkit-transform: scale(1.14); transform: scale(1.14); -webkit-transition: -webkit-transform 0.6s 1.8s; transition: transform 0.6s 1.8s; }
   .ptv.done .side.lose { opacity: 0.5; -webkit-transition: opacity 0.6s 1.8s; transition: opacity 0.6s 1.8s; }
-  /* big play (20+ yard run or pass): a runner sprints across, or a ball flies into a pair of hands */
+  /* big play (15+ yard run or pass): a runner sprints across, or a ball flies into a pair of hands */
   .ptv { position: relative; }
   .ptv .bigplay { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 7; overflow: hidden; pointer-events: none; }
   .ptv .bigplay .lbl2 { position: absolute; left: 50%; top: 0.8vh; width: 70vh; margin-left: -35vh; text-align: center; font-size: 4.6vh; line-height: 6vh; font-weight: 800;
@@ -1302,7 +1302,8 @@ var CONFIG = {
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
   hawksGate: true,       // ...the Blackhawks only once they're above .500 or after the NHL All-Star break (?hawksgate=0 off)
   bigPlayHoldSec: 90,    // a screen the ticker jumped to after a big play stays this long
-  bigPlayJump: true,     // a 20+ yard play or a turnover in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
+  bigPlayYds: 15,        // a run or pass this long is a BIG PLAY (?bigplay=)
+  bigPlayJump: true,     // a 15+ yard play or a turnover in a primetime / game-day / CLOSE game, or any score in a CLOSE game, jumps to its screen (?jump=0 off)
   bracket: true,         // March Madness bracket screens in the NCAAB rotation (?bracket=0 turns them off)
   bracketHoldSec: 20,    // ...seconds per bracket screen
   standings: true,       // standings screens, shown before a league's games start or after its last final
@@ -1414,6 +1415,7 @@ function readParams() {
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'spotlight') CONFIG.spotlight = v !== '0';
+    if (k === 'bigplay') CONFIG.bigPlayYds = Math.max(5, +v || 15);
     if (k === 'crawlall') CONFIG.crawlAllCollege = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
@@ -3796,7 +3798,7 @@ setInterval(function () {
     for (var j = 0; j < spans.length; j++) spans[j].className = 'lf' + (j === k ? ' on' : '');
   }
 }, 4000);
-/* ---- big plays: 20+ yard runs and passes ---- */
+/* ---- big plays: 15+ yard runs and passes (CONFIG.bigPlayYds) ---- */
 /* ---- player spotlight: the photo of who scored / picked it off / made the big play ----
    Names come from the play ("Khalil Shakir 12 Yd pass from Josh Allen", "INTERCEPTED by K.Joseph");
    photos and numbers from the game's box score (every player who has a stat). */
@@ -3902,7 +3904,7 @@ function bigPlayHTML(bp, t, lg, rtl) {
   return html + '<div class="lbl2" style="background:#' + col + '">BIG PLAY<i>' + esc(who + lab) + '</i></div></div>';
 }
 /* Jumps the rotation straight to a big screen when something happens there:
-   - a 20+ yard run or pass in a live primetime / game-day / CLOSE game
+   - a 15+ yard run or pass in a live primetime / game-day / CLOSE game
    - any score in a CLOSE game (a score that breaks the game open keeps its CLOSE screen
      for 3 more minutes, so the scoring banner still gets its moment)
    detectJump() runs before the screens are rebuilt (so a just-scored game can stay), jumpTo() after. */
@@ -4321,7 +4323,7 @@ function detectJump() {
     var bp = bigPlayOf(g), was = evTrack[g.id];
     var tov = turnoverOf(g, was && was.poss);
     if (!hit && was && tov && tov.id !== was.play && (g.live || isFinal(g))) hit = { id: g.id, was: was, why: 'turnover' };
-    if (!hit && was && bp && bp.id !== was.play && bp.yd >= 20 && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
+    if (!hit && was && bp && bp.id !== was.play && bp.yd >= CONFIG.bigPlayYds && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
     if (!hit && was && !was.fin && CONFIG.celebrate && winFor(g, lg)) hit = { id: g.id, was: was, why: 'win' };
     next[g.id] = { lg: lg, fin: isFinal(g), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
@@ -4939,7 +4941,7 @@ function ptAnimate(pg) {
     delay = 2.8 + w1;
     bp = null;
   }
-  if (prev && bp && bp.id !== prev.play && bp.yd >= 20 && bp.kind) {     // a 20+ yard run or pass since we last looked
+  if (prev && bp && bp.id !== prev.play && bp.yd >= CONFIG.bigPlayYds && bp.kind) {     // a 15+ yard run or pass since we last looked
     var cc = compOf(g) || {}, sit = cc.situation || {}, offId = String(sit.possession || ''), awayC = sideComp(cc, 'away') || {}, homeC = sideComp(cc, 'home') || {};
     var offSide = String((awayC.team || {}).id) === offId ? 'away' : (String((homeC.team || {}).id) === offId ? 'home' : '');
     if (a > prev.a) offSide = 'away'; else if (h > prev.h) offSide = 'home';     // scoring play: the scorers had the ball
