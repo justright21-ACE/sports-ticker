@@ -3839,7 +3839,9 @@ function tdScorer(g, det, side, prevPts) {
     var sp = sc[i], spT = String((sp.team && sp.team.id) || ''), spPts = +(side === 'home' ? sp.homeScore : sp.awayScore);
     if (tid && spT && spT !== tid) continue;
     if (!(spPts > prevPts && Math.abs(spPts - pts) <= 2)) break;   // the summary hasn't caught up yet
-    var tx = String(sp.text || ''), m = tx.match(/^(.+?) \d+ (?:Yd|Yard)s? (pass from (.+?)(?: \(|$)|run|interception return|fumble return|fumble recovery|punt return|kickoff return|blocked)/i);
+    var tx = String(sp.text || ''), fg = tx.match(/^(.+?) (\d+) (?:Yd|Yard)s? Field Goal/i);
+    if (fg) return { name: fg[1], line: fg[2] + '-yard field goal', tid: tid };
+    var m = tx.match(/^(.+?) \d+ (?:Yd|Yard)s? (pass from (.+?)(?: \(|$)|run|interception return|fumble return|fumble recovery|punt return|kickoff return|blocked)/i);
     if (!m) return null;
     var how = /pass from/i.test(m[2]) ? 'catch from ' + m[3] : m[2].toLowerCase();
     var yd = (tx.match(/ (\d+) (?:Yd|Yard)/i) || [])[1];
@@ -4997,8 +4999,12 @@ function ptAnimate(pg) {
       if (delay) { pop.style.webkitAnimationDelay = delay + 's'; pop.style.animationDelay = delay + 's'; }
       if (band) band.appendChild(pop);
       if (delay) { var pb2 = pop.getElementsByTagName('b')[0]; if (pb2) { pb2.style.webkitAnimationDelay = delay + 's'; pb2.style.animationDelay = delay + 's'; } }
-      if (CONFIG.spotlight && lab === 'TOUCHDOWN' && (pg.lg === 'nfl' || pg.lg === 'ncaaf')) {
+      if (CONFIG.spotlight && (lab === 'TOUCHDOWN' || lab === 'FIELD GOAL') && (pg.lg === 'nfl' || pg.lg === 'ncaaf')) {
         var dt = ptDetail[g.eid], ts = tdScorer(g, dt, side, side === 'away' ? prev.a : prev.h);
+        if (!ts && lab === 'FIELD GOAL') {                            // the summary hasn't caught up: the play itself ("J.Bates 41 yard field goal is GOOD")
+          var flp = ((compOf(g) || {}).situation || {}).lastPlay, fm = flp && String(flp.text || '').match(/([A-Z][a-zA-Z'\-]*\.? ?[A-Z][a-zA-Z'\-]+) (\d+) (?:yard|yd) field goal is good/i);
+          if (fm) ts = { name: fm[1], line: fm[2] + '-yard field goal' };
+        }
         if (!ts && bigPlayOf(g) && /touchdown/i.test(((compOf(g) || {}).situation || {}).lastPlay ? ((compOf(g) || {}).situation.lastPlay.text || '') : '')) {
           var lbp = bigPlayOf(g); if (lbp.who) ts = { name: lbp.who, line: (lbp.yd ? lbp.yd + '-yard ' : '') + (lbp.kind === 'pass' ? 'catch' : 'run') };
         }
