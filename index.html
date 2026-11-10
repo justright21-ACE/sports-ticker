@@ -4506,9 +4506,16 @@ function turnoverHTML(to, t, lg) {
 }
 function prev_a(p) { return p ? p.a : 0; } function prev_h(p) { return p ? p.h : 0; }
 /* ---- sacks ---- */
+var sackShown = {};
 function sackOf(g) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
-  if (!lp || !lp.text) return null;
+  var sk = lp && lp.text ? sackFromPlay(lp) : null;
+  if (sk) return sk;
+  var det = g.eid && ptDetail[g.eid], R = (det && det.recent) || [];   // looked after the next snap: the last few plays
+  for (var i = R.length - 1; i >= Math.max(0, R.length - 3); i--) if (R[i] && R[i].text && (sk = sackFromPlay(R[i]))) return sk;
+  return null;
+}
+function sackFromPlay(lp) {
   var tx = String(lp.text), ty = String((lp.type && (lp.type.text || lp.type.abbreviation)) || '');
   if (!/sack/i.test(ty) && !/\bsacked\b/i.test(tx)) return null;
   if (/no play/i.test(tx)) return null;
@@ -4516,7 +4523,14 @@ function sackOf(g) {
   if (!yd) { var m = tx.match(/for (-?\d+) (?:yds?|yards?)/i) || tx.match(/for a loss of (\d+)/i); yd = m ? Math.abs(+m[1]) : 0; }
   var who = '', sb = tx.search(/sacked by /i);
   if (sb >= 0) who = (tx.substr(sb + 10).match(NAME_RE) || [])[1] || '';
-  if (!who) { var par = tx.match(/\(([A-Z][^()]*?)\)/); if (par) who = (par[1].split(/[;,]/)[0].match(NAME_RE) || [])[1] || ''; }
+  if (!who) {                                                     // the tackler in brackets, not "(Shotgun)" / "(No Huddle)" at the start
+    var pars = tx.match(/\(([^()]+)\)/g) || [];
+    for (var pi = pars.length - 1; pi >= 0 && !who; pi--) {
+      var inner = pars[pi].slice(1, -1).split(/[;,]| and /)[0].replace(/^\s+/, '');
+      if (/^(shotgun|no huddle|pistol|under center|punt formation|field goal formation)/i.test(inner)) continue;
+      who = (inner.match(NAME_RE) || [])[1] || '';
+    }
+  }
   return { id: lp.id || tx, yd: yd, who: who };
 }
 var QB_FIG = function (c) {
@@ -4957,13 +4971,19 @@ function ptAnimate(pg) {
     bp = null;
   }
   var sk = !to && (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? sackOf(g) : null;
-  if (prev && sk && sk.id !== prev.play) {                              // a sack since we last looked
+  if (sk && !prev) sackShown[id] = sk.id;
+  if (prev && sk && sk.id !== prev.play && sackShown[id] !== sk.id) {   // a sack since we last looked
+    sackShown[id] = sk.id;
     var cc1 = compOf(g) || {}, sit1 = cc1.situation || {}, aw1 = sideComp(cc1, 'away') || {}, lp1 = sit1.lastPlay || {};
     var offId = String((lp1.team && lp1.team.id) || sit1.possession || prev.poss || ''), defS;
     if (h - prev.h === 2) defS = 'home'; else if (a - prev.a === 2) defS = 'away';               // safety: the 2 points went to the defense
     else defS = String((aw1.team || {}).id) === offId ? 'home' : 'away';
     var offS = defS === 'home' ? 'away' : 'home';
     var skHtml = sackHTML(sk, g.teams[offS], g.teams[defS], pg.lg), w1 = entering ? 1.0 : 0, bandEl = root.querySelector('.band');
+    if (CONFIG.spotlight && sk.who) {
+      skHtml += spotlightHTML(findPlayer(ptDetail[g.eid], sk.who, g.teams[defS].tid), sk.who, g.teams[defS], pg.lg, 'Sack' + (sk.yd ? ' · ' + sk.yd + '-yard loss' : ''), 0.6);
+      spotEnd = Math.max(spotEnd, w1 + 4.1);
+    }
     var addSack = function () { if (!root.parentNode) return; root.insertAdjacentHTML('beforeend', skHtml); if (bandEl) bandEl.className += ' shake'; };
     if (w1) setTimeout(addSack, w1 * 1000); else addSack();
     delay = 2.8 + w1;
