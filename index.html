@@ -876,6 +876,25 @@
   .ptv .p2 .note { margin-top: 0.6vh; }
   .narrow .ptv .tst span { font-size: 1.8vh; line-height: 2.6vh; }
   .ptv .ph { font-size: 2.2vh; color: #f5b800; font-weight: 700; letter-spacing: 0.2vw; margin-bottom: 1vh; }
+  /* angled field + current drive row */
+  .ptv .field3 { position: relative; margin: 0.4vh 0 0.2vh; }
+  .ptv .field3 .fsvg { display: block; width: 100%; height: 12.5vh; }
+  @-webkit-keyframes arcDraw { 0% { stroke-dashoffset: 600; } 100% { stroke-dashoffset: 0; } }
+  @keyframes arcDraw { 0% { stroke-dashoffset: 600; } 100% { stroke-dashoffset: 0; } }
+  @-webkit-keyframes pinIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+  @keyframes pinIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+  .ptv .field3 .arc { stroke-dasharray: 600; -webkit-animation: arcDraw 1.1s 0.3s ease-out both; animation: arcDraw 1.1s 0.3s ease-out both; }
+  .ptv .field3 .pin { -webkit-animation: pinIn 0.6s 1.1s ease-out both; animation: pinIn 0.6s 1.1s ease-out both; }
+  .ptv .field3.rz .ez.tgt { -webkit-animation: ptPulse 1.1s ease-in-out infinite; animation: ptPulse 1.1s ease-in-out infinite; }
+  .ptv .drv { overflow: hidden; margin-bottom: 0.4vh; }
+  .ptv .drv .logo { float: left; width: 6.2vh; height: 6.2vh; margin: 0.4vh 1vw 0 0; }
+  .ptv .drv .logo img { width: 100%; height: 100%; }
+  .ptv .drv .drt { overflow: hidden; }
+  .ptv .drv .ph { margin-bottom: 0.3vh; }
+  .ptv .drv .dc { display: inline-block; width: 25%; text-align: center; vertical-align: top; }
+  .ptv .drv .dc b { display: block; font-size: 2.7vh; line-height: 3.1vh; font-weight: 800; color: #f2f4f8; white-space: nowrap; }
+  .ptv .drv .dc i { display: block; font-style: normal; font-size: 1.6vh; line-height: 2vh; color: #9aa4ba; letter-spacing: 0.1vw; }
+  .narrow .ptv .drv .dc b { font-size: 2.3vh; } .narrow .ptv .drv .logo { width: 5vh; height: 5vh; } .narrow .ptv .field3 .fsvg { height: 11vh; }
   .ptv .dd { font-size: 4.4vh; font-weight: 700; line-height: 5.2vh; }
   .ptv .dd small { display: block; font-size: 2.5vh; color: #a5aec4; font-weight: 500; line-height: 3.4vh; }
   .ptv .field { position: relative; height: 6.4vh; margin: 1.4vh 0 1.2vh 0; border-radius: 0.6vh; background: #1d5a2e; overflow: hidden; }
@@ -1315,6 +1334,7 @@ var CONFIG = {
   soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
   reviews: true,         // replay reviews: OVERTURNED (touchdown / turnover / catch / spot) or a failed coach's challenge, CALL STANDS (?reviews=0 off)
   bigPenalties: true,    // a yellow FLAG banner for big penalties: 15+ yards, pass interference, personal fouls, or one that wipes out a TD / big gain (?flags=0 off)
+  field3d: true,         // the angled field with goalposts, ball pin, last-play arc and a CURRENT DRIVE row (?field3d=0: the flat field)
   spotlight: true,       // the player's photo, name and number with TOUCHDOWN / INTERCEPTION / FUMBLE / BIG PLAY (?spotlight=0 off)
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
@@ -1445,6 +1465,7 @@ function readParams() {
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
     if (k === 'spotlight') CONFIG.spotlight = v !== '0';
+    if (k === 'field3d') CONFIG.field3d = v !== '0';
     if (k === 'flags') CONFIG.bigPenalties = v !== '0';
     if (k === 'reviews') CONFIG.reviews = v !== '0';
     if (k === 'bigplay') CONFIG.bigPlayYds = Math.max(5, +v || 15);
@@ -3495,6 +3516,11 @@ function loadPtDetails(cb) {
         det.tos = timeoutPlays(data, g);
         det.roster = rosterOf(data); det.scoring = data.scoringPlays || [];
         det.recent = recentPlays(data);
+        var cd = data.drives && data.drives.current;
+        det.driveInfo = cd ? { start: (cd.start && cd.start.text) || '', plays: cd.offensivePlays !== undefined ? cd.offensivePlays : ((cd.plays || []).length || ''),
+                               yards: cd.yards, team: cd.team && (cd.team.abbreviation || cd.team.id) } : null;
+        var lpp = cd && cd.plays && cd.plays.length ? cd.plays[cd.plays.length - 1] : null;
+        det.lastSpots = lpp && lpp.start && lpp.end ? { id: lpp.id, s: lpp.start.yardsToEndzone, e: lpp.end.yardsToEndzone } : null;
         det.videos = parseVideos(data);
         det.leaders = {};
         var tl = data.leaders || [];
@@ -3568,6 +3594,52 @@ function timeoutsLeft(g, det, s, which) {
     if (!((q === 2 || q === 4) && mm && +mm[1] < 3)) return null;
   }
   return v;
+}
+/* The field, drawn at an angle: stripes, end zones in team colors, goalposts, yard numbers, the line of
+   scrimmage (blue) and the line to gain (yellow), a pin over the ball, and the last play as an arc from where
+   it started to where it ended. One SVG, so it looks the same in every browser. */
+function fieldSVG(o) {
+  // o: { awayC, homeC, los (0-100 from the away goal), fd, tgt: 'away'|'home', rz, arc: [from, to] | null, offC }
+  var TL = 120, TR = 880, BL = 40, BR = 960, TY = 70, BY = 200, SIDE = 22;
+  function P(t, d) {                                             // t: 0..1 along the field (incl. end zones), d: 0 far edge .. 1 near edge
+    var x = (TL + (TR - TL) * t) * (1 - d) + (BL + (BR - BL) * t) * d, y = TY + (BY - TY) * d;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }
+  function T(yard) { return 0.08 + Math.max(0, Math.min(100, yard)) / 100 * 0.84; }   // yards from the away goal line -> t
+  function quad(t0, t1, fill, cls) { return '<polygon' + (cls ? ' class="' + cls + '"' : '') + ' points="' + P(t0, 0) + ' ' + P(t1, 0) + ' ' + P(t1, 1) + ' ' + P(t0, 1) + '" fill="' + fill + '"/>'; }
+  var svg = '<svg class="fsvg" viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid meet">';
+  // the near side of the field (thickness) and the grass
+  svg += '<polygon points="' + BL + ',' + BY + ' ' + BR + ',' + BY + ' ' + BR + ',' + (BY + SIDE) + ' ' + BL + ',' + (BY + SIDE) + '" fill="#2e6b38"/>';
+  for (var k = 0; k < 10; k++) svg += quad(T(k * 10), T(k * 10 + 10), k % 2 ? '#3f9a4c' : '#4caf5a');
+  svg += quad(0, 0.08, '#' + (o.awayC || '33405c'), 'ez' + (o.tgt === 'away' ? ' tgt' : '')) + quad(0.92, 1, '#' + (o.homeC || '33405c'), 'ez' + (o.tgt === 'home' ? ' tgt' : ''));
+  for (k = 1; k < 10; k++) svg += '<line x1="' + P(T(k * 10), 0).split(',')[0] + '" y1="' + TY + '" x2="' + P(T(k * 10), 1).split(',')[0] + '" y2="' + BY + '" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>';
+  // goalposts
+  function post(t, flip) {
+    var base = P(t, 0.5).split(','), x = +base[0] + (flip ? 26 : -26), y = +base[1];
+    return '<g stroke="#f5c400" stroke-width="5" stroke-linecap="round" fill="none"><path d="M' + x + ' ' + (y + 34) + ' L' + x + ' ' + (y - 6) + '"/>' +
+      '<path d="M' + (x - 12) + ' ' + (y - 6) + ' L' + (x + 12) + ' ' + (y - 6) + '"/><path d="M' + (x - 12) + ' ' + (y - 6) + ' L' + (x - 12) + ' ' + (y - 62) + '"/><path d="M' + (x + 12) + ' ' + (y - 6) + ' L' + (x + 12) + ' ' + (y - 62) + '"/></g>';
+  }
+  svg += post(0, false) + post(1, true);
+  // lines to gain / scrimmage
+  if (o.fd !== null && o.fd !== undefined) svg += '<line x1="' + P(T(o.fd), 0).split(',')[0] + '" y1="' + TY + '" x2="' + P(T(o.fd), 1).split(',')[0] + '" y2="' + BY + '" stroke="#ffd400" stroke-width="5"/>';
+  svg += '<line class="losl" x1="' + P(T(o.los), 0).split(',')[0] + '" y1="' + TY + '" x2="' + P(T(o.los), 1).split(',')[0] + '" y2="' + BY + '" stroke="#4da3ff" stroke-width="5"/>';
+  // last play: an arc from where it started to where it ended
+  if (o.arc && Math.abs(o.arc[1] - o.arc[0]) >= 1) {
+    var a0 = P(T(o.arc[0]), 0.55).split(','), a1 = P(T(o.arc[1]), 0.55).split(','), mx = (+a0[0] + +a1[0]) / 2, lift = Math.min(70, 18 + Math.abs(+a1[0] - +a0[0]) * 0.35);
+    svg += '<path class="arc" d="M' + a0[0] + ' ' + a0[1] + ' Q' + mx + ' ' + (+a0[1] - lift) + ' ' + a1[0] + ' ' + a1[1] + '" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="' + a0[0] + '" cy="' + a0[1] + '" r="9" fill="#111" stroke="#fff" stroke-width="4"/><circle cx="' + a1[0] + '" cy="' + a1[1] + '" r="8" fill="#' + (o.offC || '4da3ff') + '" stroke="#fff" stroke-width="3"/>';
+  }
+  // the ball pin, over the line of scrimmage
+  var pb = P(T(o.los), 0.5).split(','), px = +pb[0], py = +pb[1];
+  svg += '<g class="pin"><path d="M' + px + ' ' + py + ' L' + (px - 16) + ' ' + (py - 44) + ' A30 30 0 1 1 ' + (px + 16) + ' ' + (py - 44) + ' Z" fill="rgba(255,255,255,0.55)"/>' +
+    '<ellipse cx="' + px + '" cy="' + (py - 62) + '" rx="20" ry="12" fill="#8b4a22" stroke="#fff" stroke-width="2.5"/>' +
+    '<path d="M' + (px - 8) + ' ' + (py - 62) + ' L' + (px + 8) + ' ' + (py - 62) + ' M' + (px - 4) + ' ' + (py - 66) + ' L' + (px - 4) + ' ' + (py - 58) + ' M' + px + ' ' + (py - 66) + ' L' + px + ' ' + (py - 58) + ' M' + (px + 4) + ' ' + (py - 66) + ' L' + (px + 4) + ' ' + (py - 58) + '" stroke="#fff" stroke-width="2"/></g>';
+  // yard numbers along the near edge
+  var nums = [10, 20, 30, 40, 50, 40, 30, 20, 10];
+  for (k = 0; k < nums.length; k++) svg += '<text x="' + P(T((k + 1) * 10), 1).split(',')[0] + '" y="' + (BY + SIDE + 24) + '" text-anchor="middle" font-size="22" font-weight="700" fill="rgba(255,255,255,0.8)">' + nums[k] + '</text>';
+  svg += '<text x="' + BL + '" y="' + (BY + SIDE + 24) + '" font-size="22" font-weight="800" fill="#fff">' + esc(o.awayAb) + '</text>' +
+         '<text x="' + BR + '" y="' + (BY + SIDE + 24) + '" text-anchor="end" font-size="22" font-weight="800" fill="#fff">' + esc(o.homeAb) + '</text>';
+  return svg + '</svg>';
 }
 function compOf(g) { return g.raw && g.raw.competitions && g.raw.competitions[0]; }
 function sideComp(c, side) {
@@ -3789,6 +3861,16 @@ function ptHTML(g, kind, lg) {
       var toGo = +s.distance || 0, fdL = offAway ? fromLeft + toGo : fromLeft - toGo;
       var X = function (y) { return (8 + Math.max(0, Math.min(100, y)) * 0.84).toFixed(1) + '%'; };
       var yls = ''; for (var y = 10; y < 100; y += 10) yls += '<div class="yl" style="left:' + X(y) + '"></div>';
+      if (CONFIG.field3d) {
+        var ls = det.lastSpots, arc = null, lpS = s.lastPlay || {};
+        if (ls && ls.s !== undefined && ls.e !== undefined && (!lpS.id || String(ls.id) === String(lpS.id))) {      // the play's start / end spots
+          arc = offAway ? [100 - ls.s, 100 - ls.e] : [ls.s, ls.e];
+        } else if (lpS.statYardage && !/punt|kick|penalty|no play|intercept|fumble|touchdown|field goal|extra point/i.test(String(lpS.text || '') + ' ' + ((lpS.type || {}).text || ''))) {
+          arc = [offAway ? fromLeft - +lpS.statYardage : fromLeft + +lpS.statYardage, fromLeft];   // same drive: back up by the gain
+        }
+        field = '<div class="field3' + (s.isRedZone ? ' rz' : '') + '">' + fieldSVG({ awayC: homeColor(a, lg), homeC: hc, los: fromLeft, fd: toGo && !/goal/i.test(s.downDistanceText || '') ? fdL : null,
+          tgt: offAway ? 'home' : 'away', arc: arc, offC: homeColor(offAway ? a : h, lg), awayAb: a.abbreviation, homeAb: h.abbreviation }) + '</div>';
+      } else
       field = '<div class="field' + (s.isRedZone ? ' rz' : '') + '"><div class="ez' + (offAway ? '' : ' tgt') + '" style="left:0;background:#' + (homeColor(a, lg) || '33405c') + '"></div>' +
               '<div class="ez' + (offAway ? ' tgt' : '') + '" style="right:0;background:#' + (hc || '33405c') + '"></div>' + yls +
               '<div class="los" style="left:' + X(fromLeft) + '"></div>' + (toGo && !/goal/i.test(s.downDistanceText || '') ? '<div class="fd" style="left:' + X(fdL) + '"></div>' : '') +
@@ -3796,6 +3878,14 @@ function ptHTML(g, kind, lg) {
               '</div><div class="lab" style="right:9%">' + esc(h.abbreviation) + '</div></div>';
     }
     var who = abbrById[s.possession] || '';
+    if (CONFIG.field3d && field) {
+      var di = det.driveInfo || {}, offT = offAway ? a : h, ballOn = String(s.possessionText || '').replace(/^\s+|\s+$/g, '');
+      var dn = String(s.shortDownDistanceText || s.downDistanceText || '').replace(/ at .*$/i, '');
+      var cell = function (v, l) { return '<span class="dc"><b>' + esc(v === undefined || v === null || v === '' ? '–' : String(v)) + '</b><i>' + l + '</i></span>'; };
+      p2 = '<div class="drv">' + logoHTML(offT, lg) + '<div class="drt"><div class="ph">' + (s.isRedZone ? 'RED ZONE · ' : '') + 'CURRENT DRIVE</div>' +
+           cell(dn, 'DOWN') + cell(di.start, 'START') + cell(ballOn, 'BALL ON') + cell(di.plays, 'PLAYS') + '</div></div>' + field +
+           (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(wasReversed(s.lastPlay.text) ? 'After review: ' + finalText(s.lastPlay.text) : s.lastPlay.text) + '</span></div>' : '') + qtable;
+    } else
     p2 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
          '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
          (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(wasReversed(s.lastPlay.text) ? 'After review: ' + finalText(s.lastPlay.text) : s.lastPlay.text) + '</span></div>' : '') + qtable;
