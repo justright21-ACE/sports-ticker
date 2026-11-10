@@ -552,6 +552,20 @@
   @keyframes ptBanner { 0% { transform: scaleX(0); opacity: 1; } 12% { transform: scaleX(1); } 82% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
   @-webkit-keyframes ptText { 0%, 10% { opacity: 0; -webkit-transform: scale(1.6); } 22% { opacity: 1; -webkit-transform: scale(1); } 100% { opacity: 1; } }
   @keyframes ptText { 0%, 10% { opacity: 0; transform: scale(1.6); } 22% { opacity: 1; transform: scale(1); } 100% { opacity: 1; } }
+  /* player spotlight: photo + name card that pops in under the banner, then fades */
+  @-webkit-keyframes spotIn { 0% { opacity: 0; -webkit-transform: translateY(3vh) scale(0.85); } 12% { opacity: 1; -webkit-transform: none; } 86% { opacity: 1; -webkit-transform: none; } 100% { opacity: 0; -webkit-transform: translateY(-1vh); } }
+  @keyframes spotIn { 0% { opacity: 0; transform: translateY(3vh) scale(0.85); } 12% { opacity: 1; transform: none; } 86% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-1vh); } }
+  .ptv .spot { position: absolute; left: 50%; top: 40%; width: 80vh; margin-left: -40vh; z-index: 7; text-align: left; white-space: nowrap;
+    -webkit-animation: spotIn 3.4s ease-out 1 both; animation: spotIn 3.4s ease-out 1 both; }
+  .ptv .spot .sp { display: inline-block; vertical-align: middle; position: relative; width: 17vh; height: 17vh; border-radius: 50%; overflow: hidden;
+    border: 0.6vh solid #fff; box-shadow: 0 1vh 3vh rgba(0,0,0,0.6); }
+  .ptv .spot .sp img { position: absolute; left: 50%; bottom: 0; height: 100%; -webkit-transform: translateX(-50%) scale(1.25); transform: translateX(-50%) scale(1.25);
+    -webkit-transform-origin: 50% 100%; transform-origin: 50% 100%; z-index: 2; }
+  .ptv .spot .sp .spn { position: absolute; left: 0; right: 0; top: 50%; margin-top: -4.5vh; text-align: center; font-size: 8vh; line-height: 9vh; font-weight: 800; color: #fff; z-index: 1; }
+  .ptv .spot .spt { display: inline-block; vertical-align: middle; margin-left: -2vh; padding: 1.2vh 2vw 1.2vh 4vh; background: rgba(8,12,24,0.94);
+    border-left: 0.8vh solid #fff; border-radius: 0 1vh 1vh 0; max-width: 58vh; overflow: hidden; text-overflow: ellipsis; }
+  .ptv .spot .spt b { display: block; font-size: 3.6vh; line-height: 4.4vh; font-weight: 800; color: #fff; letter-spacing: 0.1vw; overflow: hidden; text-overflow: ellipsis; }
+  .ptv .spot .spt i { display: block; font-style: normal; font-size: 2.3vh; line-height: 3vh; color: #c9d1e3; }
   .ptv .pop { position: absolute; left: 0; right: 0; top: 50%; height: 11vh; margin-top: -5.5vh; z-index: 6; text-align: center; color: #ffffff;
     -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%; -webkit-animation: ptBanner 3.6s ease-out 1 both; animation: ptBanner 3.6s ease-out 1 both; }
   .ptv .pop b { display: block; font-size: 7vh; line-height: 7.4vh; letter-spacing: 0.6vw; font-weight: 800; -webkit-animation: ptText 3.6s ease-out 1 both; animation: ptText 3.6s ease-out 1 both; }
@@ -1271,6 +1285,7 @@ var CONFIG = {
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
   soundVolume: 70,       // 0-100 (?volume=)
   soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
+  spotlight: true,       // the player's photo, name and number with TOUCHDOWN / INTERCEPTION / FUMBLE / BIG PLAY (?spotlight=0 off)
   celebrate: true,       // Bears / USC / Wisconsin win: full-screen celebration on their big screen (?celebrate=0 off)
   celebrateSec: 15,      // how long it stays up (?celebratesec=20)
   redZone: true,         // red-zone glow + tag on cards, badge and entry alert on the big screens (?redzone=0 off)
@@ -1397,6 +1412,7 @@ function readParams() {
     if (k === 'winprob') CONFIG.winProb = v !== '0';
     if (k === 'halftime') CONFIG.halftime = v !== '0';
     if (k === 'upset') CONFIG.upsetAlert = v !== '0';
+    if (k === 'spotlight') CONFIG.spotlight = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
     if (k === 'highlights') CONFIG.highlights = v !== '0';
     if (k === 'hd') CONFIG.highlightsHD = v !== '0';
@@ -3441,6 +3457,7 @@ function loadPtDetails(cb) {
         }
         if (data.drives && data.drives.current) det.drive = data.drives.current.description || '';
         det.tos = timeoutPlays(data, g);
+        det.roster = rosterOf(data); det.scoring = data.scoringPlays || [];
         det.videos = parseVideos(data);
         det.leaders = {};
         var tl = data.leaders || [];
@@ -3778,6 +3795,64 @@ setInterval(function () {
   }
 }, 4000);
 /* ---- big plays: 20+ yard runs and passes ---- */
+/* ---- player spotlight: the photo of who scored / picked it off / made the big play ----
+   Names come from the play ("Khalil Shakir 12 Yd pass from Josh Allen", "INTERCEPTED by K.Joseph");
+   photos and numbers from the game's box score (every player who has a stat). */
+function normName(x) { return String(x || '').toLowerCase().replace(/\b(jr|sr|ii|iii|iv)\.?$/, '').replace(/[^a-z]/g, ''); }
+function rosterOf(data) {
+  var out = { full: {}, short: {}, last: {} }, P = (data && data.boxscore && data.boxscore.players) || [];
+  for (var i = 0; i < P.length; i++) {
+    var tid = String((P[i].team && P[i].team.id) || ''), S = P[i].statistics || [];
+    for (var j = 0; j < S.length; j++) {
+      var A = S[j].athletes || [];
+      for (var k = 0; k < A.length; k++) {
+        var at = A[k].athlete || {};
+        if (!at.displayName && !at.shortName) continue;
+        var rec = { id: at.id, name: at.displayName || at.fullName || at.shortName, jersey: at.jersey || '', hs: at.headshot, tid: tid };
+        out.full[normName(rec.name)] = rec;
+        if (at.shortName) out.short[normName(at.shortName)] = rec;                 // "J. Allen"
+        var ln = normName(String(rec.name).split(' ').slice(1).join(' '));
+        out.last[ln] = out.last[ln] && out.last[ln].id !== rec.id ? 'many' : rec;  // a last name two players share doesn't count
+      }
+    }
+  }
+  return out;
+}
+function findPlayer(det, name, tid) {
+  var R = det && det.roster, n = normName(name);
+  if (!R || !n) return null;
+  var hit = R.full[n] || R.short[n];
+  if (!hit) {                                                     // "J.Allen" / "Allen"
+    var m = String(name).match(/^([A-Z])\.? ?([A-Za-z'\- ]+)$/), ln = normName(m ? m[2] : name);
+    var c = R.last[ln];
+    if (c && c !== 'many' && (!m || normName(c.name).charAt(0) === m[1].toLowerCase())) hit = c;
+  }
+  if (hit && tid && hit.tid && String(hit.tid) !== String(tid)) return null;
+  return hit || null;
+}
+/* who scored the touchdown: the game's newest scoring play for that team, if it's this score */
+function tdScorer(g, det, side, prevPts) {
+  var sc = (det && det.scoring) || [], t = g.teams[side], tid = String(t.tid || ''), pts = num(scoreOf(g, side));
+  for (var i = sc.length - 1; i >= 0; i--) {
+    var sp = sc[i], spT = String((sp.team && sp.team.id) || ''), spPts = +(side === 'home' ? sp.homeScore : sp.awayScore);
+    if (tid && spT && spT !== tid) continue;
+    if (!(spPts > prevPts && Math.abs(spPts - pts) <= 2)) break;   // the summary hasn't caught up yet
+    var tx = String(sp.text || ''), m = tx.match(/^(.+?) \d+ (?:Yd|Yard)s? (pass from (.+?)(?: \(|$)|run|interception return|fumble return|fumble recovery|punt return|kickoff return|blocked)/i);
+    if (!m) return null;
+    var how = /pass from/i.test(m[2]) ? 'catch from ' + m[3] : m[2].toLowerCase();
+    var yd = (tx.match(/ (\d+) (?:Yd|Yard)/i) || [])[1];
+    return { name: m[1], line: (yd ? yd + '-yard ' : '') + how, tid: tid };
+  }
+  return null;
+}
+function spotlightHTML(p, name, t, lg, line, delay) {
+  var col = homeColor(t, lg) || 'e23d3d', url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
+  var num = p && p.jersey ? '#' + p.jersey + ' ' : '', st = delay ? ' style="-webkit-animation-delay:' + delay + 's;animation-delay:' + delay + 's"' : '';
+  var face = url ? '<img src="' + esc(url) + '" alt="" onerror="this.parentNode.className+=\' nopic\';this.parentNode.removeChild(this)">' : '';
+  return '<div class="spot"' + st + '><div class="sp" style="border-color:#' + col + ';background:' + rgba(col, 0.35) + '">' + face +
+    '<span class="spn">' + esc(p && p.jersey ? p.jersey : String(name).charAt(0)) + '</span></div>' +
+    '<div class="spt" style="border-color:#' + col + '"><b>' + esc((num + (p ? p.name : name)).toUpperCase()) + '</b>' + (line ? '<i>' + esc(line) + '</i>' : '') + '</div></div>';
+}
 function bigPlayOf(g) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
   if (!lp || !lp.text) return null;
@@ -4262,6 +4337,8 @@ function jumpTo(hit) {
   for (var i = 0; i < state.pages.length; i++) {
     var pg = state.pages[i];
     if (!pg.pt || !pg.game || pg.game.id !== hit.id) continue;
+    if (state.pages[state.pageIndex] && state.pages[state.pageIndex].pt && state.pages[state.pageIndex].game && state.pages[state.pageIndex].game.id === hit.id &&
+        state.animUntil && new Date().getTime() < state.animUntil) return false;   // already on it and its banner is playing: don't redraw over it
     var g = pg.game, seen = ptSeen[hit.id], bp = bigPlayOf(g);
     // the screen must remember what it looked like before, so the big play / banner plays
     if (!seen || (seen.a === num(scoreOf(g, 'away')) && seen.h === num(scoreOf(g, 'home')) && seen.play === (bp && bp.id)))
@@ -4453,9 +4530,15 @@ function refreshRender(jumped) {
   if (!jumped && pg && pg.pt && state.animUntil && now < state.animUntil) {
     var key = pg.key;
     if (state.redrawTimer) clearTimeout(state.redrawTimer);
-    state.redrawTimer = setTimeout(function () { var p2 = state.pages[state.pageIndex]; if (p2 && p2.key === key) renderPage(); }, state.animUntil - now + 80);
+    state.redrawTimer = setTimeout(function () {
+      var p2 = state.pages[state.pageIndex];
+      if (!p2 || p2.key !== key) return;
+      if (state.animUntil && new Date().getTime() < state.animUntil) return refreshRender(false);   // a newer banner is playing: wait for it too
+      renderPage();
+    }, state.animUntil - now + 80);
     return;
   }
+  if (state.redrawTimer) { clearTimeout(state.redrawTimer); state.redrawTimer = 0; }   // this redraw replaces any that was waiting
   renderPage();
 }
 var fastBusy = false;
@@ -4813,7 +4896,7 @@ function ptAnimate(pg) {
   var entering = ptLastKey !== key;
   ptLastKey = key;
   if (entering) root.className += ' enter';
-  var rzEnd = 0;
+  var rzEnd = 0, spotEnd = 0;
   var fb = root.querySelector('.field .fb'), los = root.querySelector('.field .los'), fd = root.querySelector('.field .fd');
   var bp = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? bigPlayOf(g) : null;
   var sitN = (compOf(g) || {}).situation || {};
@@ -4829,6 +4912,11 @@ function ptAnimate(pg) {
     var cc0 = compOf(g) || {}, sit0 = cc0.situation || {}, pid = String(sit0.possession || ''), aw0 = sideComp(cc0, 'away') || {};
     var gain = a > prev.a ? 'away' : (h > prev.h ? 'home' : (String((aw0.team || {}).id) === pid ? 'away' : 'home'));   // who has it now
     var toHtml = turnoverHTML(to, g.teams[gain], pg.lg), w0 = entering ? 1.0 : 0;
+    if (CONFIG.spotlight && to.who) {
+      var tp = findPlayer(ptDetail[g.eid], to.who, g.teams[gain].tid);
+      toHtml += spotlightHTML(tp, to.who, g.teams[gain], pg.lg, to.kind === 'INTERCEPTION!' ? 'Interception' : (to.kind === 'FUMBLE!' ? 'Fumble recovery' : ''), 0.6);
+      spotEnd = Math.max(spotEnd, (entering ? 1.0 : 0) + 4.1);
+    }
     if (w0) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', toHtml); }, w0 * 1000);
     else root.insertAdjacentHTML('beforeend', toHtml);
     delay = 3.0 + w0;
@@ -4853,6 +4941,11 @@ function ptAnimate(pg) {
     if (a > prev.a) offSide = 'away'; else if (h > prev.h) offSide = 'home';     // scoring play: the scorers had the ball
     if (!offSide) offSide = 'away';
     var bpHtml = bigPlayHTML(bp, g.teams[offSide], pg.lg, offSide === 'home'), wait = entering ? 1.0 : 0;   // after the arrival wipe
+    if (CONFIG.spotlight && bp.who && !(a > prev.a || h > prev.h)) {     // a scoring play gets the TOUCHDOWN spotlight instead
+      var bpp = findPlayer(ptDetail[g.eid], bp.who, g.teams[offSide].tid);
+      bpHtml += spotlightHTML(bpp, bp.who, g.teams[offSide], pg.lg, bp.yd + '-yard ' + (bp.kind === 'pass' ? 'catch' : 'run'), 0.6);
+      spotEnd = Math.max(spotEnd, (entering ? 1.0 : 0) + 4.1);
+    }
     if (wait) setTimeout(function () { if (root.parentNode) root.insertAdjacentHTML('beforeend', bpHtml); }, wait * 1000);
     else root.insertAdjacentHTML('beforeend', bpHtml);
     delay = 2.5 + wait;
@@ -4902,6 +4995,13 @@ function ptAnimate(pg) {
       if (delay) { pop.style.webkitAnimationDelay = delay + 's'; pop.style.animationDelay = delay + 's'; }
       if (band) band.appendChild(pop);
       if (delay) { var pb2 = pop.getElementsByTagName('b')[0]; if (pb2) { pb2.style.webkitAnimationDelay = delay + 's'; pb2.style.animationDelay = delay + 's'; } }
+      if (CONFIG.spotlight && lab === 'TOUCHDOWN' && (pg.lg === 'nfl' || pg.lg === 'ncaaf')) {
+        var dt = ptDetail[g.eid], ts = tdScorer(g, dt, side, side === 'away' ? prev.a : prev.h);
+        if (!ts && bigPlayOf(g) && /touchdown/i.test(((compOf(g) || {}).situation || {}).lastPlay ? ((compOf(g) || {}).situation.lastPlay.text || '') : '')) {
+          var lbp = bigPlayOf(g); if (lbp.who) ts = { name: lbp.who, line: (lbp.yd ? lbp.yd + '-yard ' : '') + (lbp.kind === 'pass' ? 'catch' : 'run') };
+        }
+        if (ts) { root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid), ts.name, t, pg.lg, ts.line, (delay || 0) + 0.5)); spotEnd = Math.max(spotEnd, (delay || 0) + 4.0); }
+      }
       var num1 = root.querySelector(side === 'away' ? '.bigsc .sa' : '.bigsc .sh');
       if (num1) { num1.className += ' flip'; if (delay) { num1.style.webkitAnimationDelay = (2.4 + delay) + 's'; num1.style.animationDelay = (2.4 + delay) + 's'; } }
     }
@@ -4928,6 +5028,7 @@ function ptAnimate(pg) {
     setTimeout(function () { var z = root.querySelectorAll('.rza'); for (var zi = 0; zi < z.length; zi++) if (z[zi].parentNode) z[zi].parentNode.removeChild(z[zi]); }, (rzEnd + 0.4) * 1000);   // slid off: tidy up
   }
   if (bwEnd) animEnd = Math.max(animEnd, bwEnd);
+  if (spotEnd) animEnd = Math.max(animEnd, spotEnd);
   if (/stampnow/.test(root.className)) animEnd = Math.max(animEnd, 2.0);
   state.animUntil = animEnd ? new Date().getTime() + animEnd * 1000 : 0;
   ptSeen[id] = now;
