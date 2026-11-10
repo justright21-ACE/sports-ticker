@@ -1650,11 +1650,13 @@ function espnDay(lg, dateStr, cb) {
   });
 }
 /* Good college hoops matchups outside the Top 25 feed: games with a team receiving AP votes, and
-   games on national TV (ESPN, ESPN2, ABC, FS1, FOX, CBS, NBC, TNT, truTV) where both teams have
+   games on national TV (ESPN, ESPN2, ESPNU, ABC, FS1, FOX, CBS, NBC, TNT, truTV, TBS, SEC / ACC / Big Ten
+   Network) where both teams have
    winning records; until both teams have played 6 games, national TV alone is enough. They join the
    scores page with a gold tag saying why. Found with one look at every Division I game (every 30 min,
    15 while one of them is on); their scores then come from just their conferences' feeds. */
-var GOOD_TV = /^(ESPN|ESPN2|ABC|FS1|FOX|CBS|NBC|TNT|TRUTV|TBS)$/i;
+var GOOD_TV = /^(ESPN|ESPN2|ESPNU|ABC|FS1|FOX|CBS|NBC|TNT|TRUTV|TBS|SECN|SECNETWORK|ACCN|ACCNETWORK|BTN|BIGTENNETWORK)$/i;
+var GOOD_TV_SHORT = { SECNETWORK: 'SECN', ACCNETWORK: 'ACCN', BIGTENNETWORK: 'BTN', TRUTV: 'truTV' };
 var goodCbb = { day: {}, ev: {}, confAt: {} };
 function goodWhy(ev, votes) {
   var c = ev.competitions && ev.competitions[0];
@@ -1674,7 +1676,10 @@ function goodWhy(ev, votes) {
   for (i = 0; i < B.length && !tv; i++) {
     if (B[i].market && B[i].market !== 'national') continue;
     var nm = B[i].names || [];
-    for (var k = 0; k < nm.length; k++) if (GOOD_TV.test(String(nm[k]).replace(/\s+/g, ''))) { tv = String(nm[k]).toUpperCase(); break; }
+    for (var k = 0; k < nm.length; k++) {
+      var key = String(nm[k]).replace(/\s+/g, '').toUpperCase();
+      if (GOOD_TV.test(key)) { tv = GOOD_TV_SHORT[key] || key; break; }
+    }
   }
   if (!tv) return '';
   var early = !rec[0] || !rec[1] || rec[0].w + rec[0].l < 6 || rec[1].w + rec[1].l < 6;
