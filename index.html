@@ -3462,6 +3462,7 @@ function loadPtDetails(cb) {
         if (data.drives && data.drives.current) det.drive = data.drives.current.description || '';
         det.tos = timeoutPlays(data, g);
         det.roster = rosterOf(data); det.scoring = data.scoringPlays || [];
+        det.recent = recentPlays(data);
         det.videos = parseVideos(data);
         det.leaders = {};
         var tl = data.leaders || [];
@@ -4322,7 +4323,10 @@ function detectJump() {
     if (lg !== 'nfl' && lg !== 'ncaaf') continue;
     var bp = bigPlayOf(g), was = evTrack[g.id];
     var tov = turnoverOf(g, was && was.poss);
-    if (!hit && was && tov && tov.id !== was.play && (g.live || isFinal(g))) hit = { id: g.id, was: was, why: 'turnover' };
+    if (!was && tov) tovJumped[g.id] = tovShown[g.id] = tov.id;          // already there the first time we see the game
+    if (!hit && was && tov && tov.id !== was.play && tovShown[g.id] !== tov.id && tovJumped[g.id] !== tov.id && (g.live || isFinal(g))) {
+      tovJumped[g.id] = tov.id; hit = { id: g.id, was: was, why: 'turnover' };   // jump once per turnover
+    }
     if (!hit && was && bp && bp.id !== was.play && bp.yd >= CONFIG.bigPlayYds && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
     if (!hit && was && !was.fin && CONFIG.celebrate && winFor(g, lg)) hit = { id: g.id, was: was, why: 'win' };
     next[g.id] = { lg: lg, fin: isFinal(g), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
@@ -4447,9 +4451,31 @@ function injHTML(g, cp, pre, right) {
 /* ---- turnovers: interceptions, lost fumbles, turnover on downs ---- */
 var NAME_RE = /^([A-Z][a-zA-Z'\-]*\.? ?[A-Z][a-zA-Z'\-]+(?:\.[A-Z][a-zA-Z'\-]+)?(?: [A-Z][a-z][a-zA-Z'\-]*)?)/;   // "L.Van Ness", not "C.Watson INTERCEPTED"
 /* prevPoss: team id that had the ball before the play (so a fumble the offense falls on isn't a turnover) */
+function recentPlays(data) {                                     // the last several plays of the game, oldest first
+  var dr = data && data.drives, out = [], L = [], i, j;
+  if (!dr) return out;
+  var prevD = dr.previous || [];
+  for (i = Math.max(0, prevD.length - 2); i < prevD.length; i++) L.push(prevD[i]);
+  if (dr.current) L.push(dr.current);
+  for (i = 0; i < L.length; i++) { var P = L[i].plays || []; for (j = 0; j < P.length; j++) out.push({ id: P[j].id, text: P[j].text, type: P[j].type }); }
+  return out.slice(-12);
+}
+/* a turnover: the last play, or (if the ticker looked after the next snap / a review) one of the last
+   few plays in the game's play-by-play */
+var tovShown = {}, tovJumped = {};
 function turnoverOf(g, prevPoss) {
   var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay;
-  if (!lp || !lp.text) return null;
+  var t = lp && lp.text ? turnoverFromPlay(lp, c, prevPoss) : null;
+  if (t) return t;
+  var det = g.eid && ptDetail[g.eid], R = (det && det.recent) || [];
+  for (var i = R.length - 1; i >= Math.max(0, R.length - 4); i--) {
+    if (!R[i] || !R[i].text) continue;
+    t = turnoverFromPlay(R[i], c, prevPoss);
+    if (t) return t;
+  }
+  return null;
+}
+function turnoverFromPlay(lp, c, prevPoss) {
   var tx = String(lp.text), ty = String((lp.type && (lp.type.text || lp.type.abbreviation)) || ''), all = ty + ' ' + tx, kind = '', who = '';
   if (/no play|penalty.*(declined|offsetting)/i.test(tx) && !/intercept|recovered/i.test(tx)) return null;
   if (/intercept/i.test(all)) {
@@ -4914,7 +4940,9 @@ function ptAnimate(pg) {
     setTimeout(function () { wpa.style.width = now.wp; }, 60);
   }
   var delay = 0, to = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? turnoverOf(g, prev && prev.poss) : null;
-  if (prev && to && to.id !== prev.play) {                              // a turnover since we last looked
+  if (to && !prev) tovShown[id] = to.id;                                // already there the first time we see the game
+  if (prev && to && to.id !== prev.play && tovShown[id] !== to.id) {    // a turnover since we last looked
+    tovShown[id] = to.id;
     var cc0 = compOf(g) || {}, sit0 = cc0.situation || {}, pid = String(sit0.possession || ''), aw0 = sideComp(cc0, 'away') || {};
     var gain = a > prev.a ? 'away' : (h > prev.h ? 'home' : (String((aw0.team || {}).id) === pid ? 'away' : 'home'));   // who has it now
     var toHtml = turnoverHTML(to, g.teams[gain], pg.lg), w0 = entering ? 1.0 : 0;
