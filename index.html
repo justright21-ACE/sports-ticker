@@ -578,8 +578,8 @@
   .ptv .rvw .rb b { display: block; font-size: 5vh; line-height: 6vh; font-weight: 800; letter-spacing: 0.4vw; }
   .ptv .rvw .rb i { display: block; font-style: normal; font-size: 2.2vh; line-height: 2.8vh; font-weight: 700; letter-spacing: 0.15vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* penalty line in the leaders panels */
-  .ptv .pen { margin-top: 0.8vh; font-size: 2vh; color: #c9d1e3; } .ptv .pen b { color: #ffd400; letter-spacing: 0.15vw; margin-right: 0.6vw; font-size: 1.7vh; }
-  .ptv .panel:last-child .pen { text-align: right; }
+  .ptv .tst.pen { margin-top: 0; padding-top: 0; border-top: 0; }   /* same size as YARDS / PASS / RUSH / TURNOVERS, on its own line */
+  .ptv .tst.pen span { width: 100%; }
   /* big-penalty flag: a yellow flag drops and lands, the call slides in under it */
   @-webkit-keyframes flagDrop { 0% { -webkit-transform: translateY(-40vh) rotate(-40deg); opacity: 0; } 30% { -webkit-transform: translateY(0) rotate(12deg); opacity: 1; } 38% { -webkit-transform: translateY(-2vh) rotate(-4deg); }
     46% { -webkit-transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
@@ -3737,7 +3737,7 @@ function ptHTML(g, kind, lg) {
       for (var k = 0; k < cells.length; k++) if (cells[k][1] !== undefined) c2 += '<span>' + cells[k][0] + '<b>' + esc(cells[k][1]) + '</b></span>';
       if (c2) html += '<div class="tst">' + c2 + '</div>';
       var pen = foot ? String(st.totalPenaltiesYards || '').match(/(\d+)\s*-\s*(\d+)/) : null;
-      if (pen) html += '<div class="pen"><b>PENALTIES</b>' + pen[1] + ' for ' + pen[2] + ' yds</div>';
+      if (pen) html += '<div class="tst pen"><span>PENALTIES<b>' + pen[1] + ' for ' + pen[2] + ' yds</b></span></div>';
     }
     return html + injHTML(g, cp, pre, cp === ch);
   }
@@ -3888,6 +3888,52 @@ function tdScorer(g, det, side, prevPts) {
     return { name: m[1], line: (yd ? yd + '-yard ' : '') + how, tid: tid };
   }
   return null;
+}
+/* the scorer from the play text: "C.Williams pass short right to R.Odunze for 12 yards, TOUCHDOWN." /
+   "J.Gibbs left tackle for 3 yards, TOUCHDOWN." / "J.Bates 41 yard field goal is GOOD" — the last play, else the
+   game's last few plays (the extra point has usually been kicked by the time the ticker looks) */
+var SNAME = "([A-Z][a-zA-Z'\\-]*\\.? ?[A-Z][a-zA-Z'\\-]+)";
+function scorerFromText(tx, lab) {
+  tx = finalText(String(tx || '')).replace(/^\s*\([^)]*\)\s*/, '');
+  if (lab === 'FIELD GOAL') {
+    var f = tx.match(new RegExp(SNAME + ' (\\d+) (?:yard|yd) field goal is good', 'i'));
+    return f ? { name: f[1], line: f[2] + '-yard field goal' } : null;
+  }
+  if (!/touchdown/i.test(tx)) return null;
+  var yd = (tx.match(/for (\d+) (?:yds?|yards?)/i) || [])[1], ps = tx.match(new RegExp('^' + SNAME + ' pass .*?\\bto ' + SNAME));
+  if (ps) return { name: ps[2], line: (yd ? yd + '-yard ' : '') + 'catch from ' + ps[1] };
+  var ret = tx.match(new RegExp('(?:intercepted|recovered) by (?:[A-Z]{2,4}-)?' + SNAME, 'i'));
+  if (ret) return { name: ret[1], line: 'return touchdown' };
+  var rn = tx.match(new RegExp('^' + SNAME));
+  return rn ? { name: rn[1], line: (yd ? yd + '-yard ' : '') + 'run' } : null;
+}
+var spotUsed = {};                                                // plays already named, per game
+function scorerFromPlays(g, det, lab, seenPlay) {
+  var used = spotUsed[g.id] || (spotUsed[g.id] = {});
+  var lp = ((compOf(g) || {}).situation || {}).lastPlay, r = lp && lp.text && !used[lp.id] ? scorerFromText(lp.text, lab) : null;
+  if (r) { used[lp.id] = 1; return r; }
+  var R = (det && det.recent) || [], from = Math.max(0, R.length - 5);
+  for (var k = R.length - 1; k >= 0; k--) if (seenPlay && R[k] && String(R[k].id) === String(seenPlay)) { from = Math.max(from, k + 1); break; }   // only plays after the one we last saw
+  for (var i = R.length - 1; i >= from; i--) {
+    if (!R[i] || !R[i].text || used[R[i].id]) continue;
+    if ((r = scorerFromText(R[i].text, lab))) { used[R[i].id] = 1; return r; }
+  }
+  return null;
+}
+/* a scorer the ticker couldn't name in time: once ESPN has it (and the screen is still on that game), the card pops in */
+var spotWait = {};
+function lateSpot(id) {
+  var w = spotWait[id], now = new Date().getTime();
+  if (!w) return;
+  if (now > w.until) { delete spotWait[id]; return; }
+  var pg = state.pages[state.pageIndex], root = document.querySelector && document.querySelector('#cards .ptv');
+  if (!pg || !pg.pt || !pg.game || pg.game.id !== id || !root) return;
+  var g = pg.game, dt = ptDetail[g.eid], ts = tdScorer(g, dt, w.side, w.prevPts) || scorerFromPlays(g, dt, w.lab, w.seen);
+  if (!ts) return;
+  delete spotWait[id];
+  var wait = Math.max(0, w.notBefore - now) / 1000, t = g.teams[w.side];
+  root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid), ts.name, t, pg.lg, ts.line, wait));
+  state.animUntil = Math.max(state.animUntil || 0, now + (wait + 3.6) * 1000);
 }
 function spotlightHTML(p, name, t, lg, line, delay) {
   var col = homeColor(t, lg) || 'e23d3d', url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
@@ -5177,14 +5223,13 @@ function ptAnimate(pg) {
       if (delay) { var pb2 = pop.getElementsByTagName('b')[0]; if (pb2) { pb2.style.webkitAnimationDelay = delay + 's'; pb2.style.animationDelay = delay + 's'; } }
       if (CONFIG.spotlight && (lab === 'TOUCHDOWN' || lab === 'FIELD GOAL') && (pg.lg === 'nfl' || pg.lg === 'ncaaf')) {
         var dt = ptDetail[g.eid], ts = tdScorer(g, dt, side, side === 'away' ? prev.a : prev.h);
-        if (!ts && lab === 'FIELD GOAL') {                            // the summary hasn't caught up: the play itself ("J.Bates 41 yard field goal is GOOD")
-          var flp = ((compOf(g) || {}).situation || {}).lastPlay, fm = flp && String(flp.text || '').match(/([A-Z][a-zA-Z'\-]*\.? ?[A-Z][a-zA-Z'\-]+) (\d+) (?:yard|yd) field goal is good/i);
-          if (fm) ts = { name: fm[1], line: fm[2] + '-yard field goal' };
-        }
-        if (!ts && bigPlayOf(g) && /touchdown/i.test(((compOf(g) || {}).situation || {}).lastPlay ? ((compOf(g) || {}).situation.lastPlay.text || '') : '')) {
-          var lbp = bigPlayOf(g); if (lbp.who) ts = { name: lbp.who, line: (lbp.yd ? lbp.yd + '-yard ' : '') + (lbp.kind === 'pass' ? 'catch' : 'run') };
-        }
+        if (!ts) ts = scorerFromPlays(g, dt, lab, prev.play);         // the summary's scoring list is behind: the plays themselves
         if (ts) { root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid), ts.name, t, pg.lg, ts.line, (delay || 0) + 0.5)); spotEnd = Math.max(spotEnd, (delay || 0) + 4.0); }
+        else {                                                        // still no name: ask ESPN again now, show the card when it comes
+          spotWait[id] = { side: side, prevPts: side === 'away' ? prev.a : prev.h, lab: lab, seen: prev.play, until: new Date().getTime() + 90000, notBefore: new Date().getTime() + ((delay || 0) + 2.2) * 1000 };
+          if (dt) dt.at = 0;
+          setTimeout(function () { loadPtDetails(function () { lateSpot(id); }); }, 1500);
+        }
       }
       var num1 = root.querySelector(side === 'away' ? '.bigsc .sa' : '.bigsc .sh');
       if (num1) { num1.className += ' flip'; if (delay) { num1.style.webkitAnimationDelay = (2.4 + delay) + 's'; num1.style.animationDelay = (2.4 + delay) + 's'; } }
@@ -6811,6 +6856,7 @@ function refreshAll() {
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
     loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
+      for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
       var jumped = jumpTo(hit);
