@@ -1,0 +1,111 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Draft mock</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1224; color: #f2f4f8; font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; overflow: hidden; }
+  .top { height: 7vh; display: flex; align-items: center; padding: 0 2vw; border-bottom: 0.3vh solid #c8102e; background: #0a1020; }
+  .top .tab { font-size: 2.2vh; font-weight: 800; letter-spacing: 0.2vw; color: #9aa4ba; margin-right: 2.4vw; }
+  .top .tab.on { color: #f5b800; border-bottom: 0.4vh solid #f5b800; padding-bottom: 0.4vh; }
+  .head { padding: 2vh 2vw 1vh; display: flex; align-items: baseline; }
+  .head h1 { margin: 0; font-size: 4.4vh; letter-spacing: 0.3vw; }
+  .head .sub { margin-left: 1.4vw; font-size: 2.2vh; color: #9aa4ba; }
+  .head .rd { margin-left: auto; font-size: 2.2vh; color: #f5b800; font-weight: 700; letter-spacing: 0.15vw; }
+  .grid { display: flex; padding: 0 2vw; height: 76vh; }
+  .col { background: #121a30; border: 0.15vh solid #222c47; border-radius: 1vh; padding: 1.6vh 1.2vw; box-sizing: border-box; }
+  .ph { font-size: 1.9vh; font-weight: 800; letter-spacing: 0.3vw; color: #f5b800; margin-bottom: 1.2vh; }
+  /* on the clock */
+  .clock { width: 38%; margin-right: 1.2vw; position: relative; overflow: hidden; }
+  .clock .band { position: absolute; left: 0; right: 0; top: 0; height: 100%; opacity: 0.32; background: linear-gradient(135deg, var(--c1), rgba(0,0,0,0) 70%); }
+  .clock .in { position: relative; }
+  .tm { display: flex; align-items: center; margin-top: 1vh; }
+  .badge { width: 13vh; height: 13vh; border-radius: 1.4vh; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 4.6vh; letter-spacing: 0.2vw;
+           box-shadow: 0 0 0 0.4vh rgba(255,255,255,0.15) inset; }
+  .tm .nm { margin-left: 1.4vw; }
+  .tm .nm b { display: block; font-size: 4.4vh; line-height: 5vh; }
+  .tm .nm i { display: block; font-style: normal; color: #c9d1e3; font-size: 2.2vh; margin-top: 0.4vh; }
+  .pickno { margin-top: 2.4vh; font-size: 2.2vh; color: #c9d1e3; letter-spacing: 0.1vw; }
+  .pickno b { font-size: 3.4vh; color: #fff; margin-right: 0.6vw; }
+  .timer { margin-top: 1.8vh; font-size: 13vh; line-height: 13vh; font-weight: 900; letter-spacing: 0.4vw; font-variant-numeric: tabular-nums; }
+  .timer small { display: block; font-size: 1.8vh; line-height: 2.4vh; letter-spacing: 0.3vw; color: #9aa4ba; font-weight: 700; }
+  .bar { margin-top: 1.4vh; height: 1vh; border-radius: 1vh; background: #2a3553; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 62%; background: #f5b800; }
+  .needs { margin-top: 2.6vh; font-size: 2vh; color: #c9d1e3; } .needs b { color: #f5b800; letter-spacing: 0.15vw; margin-right: 0.6vw; font-size: 1.7vh; }
+  .needs span { display: inline-block; background: #24304f; border-radius: 0.6vh; padding: 0.3vh 0.7vw; margin: 0.6vh 0.4vw 0 0; color: #fff; font-weight: 700; }
+  /* picks list */
+  .picks { width: 34%; margin-right: 1.2vw; }
+  .pk { display: flex; align-items: center; padding: 1vh 0; border-bottom: 0.15vh solid #222c47; }
+  .pk .no { width: 4vh; font-size: 2.6vh; font-weight: 800; color: #9aa4ba; text-align: right; margin-right: 1vw; }
+  .pk .bd { width: 5.6vh; height: 5.6vh; border-radius: 0.8vh; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.8vh; margin-right: 1vw; }
+  .pk .pl b { display: block; font-size: 2.7vh; line-height: 3.2vh; } .pk .pl i { display: block; font-style: normal; font-size: 1.9vh; color: #9aa4ba; }
+  .pk .pos { margin-left: auto; font-weight: 800; font-size: 2.2vh; background: #24304f; border-radius: 0.6vh; padding: 0.4vh 0.7vw; }
+  .pk.new { background: linear-gradient(90deg, rgba(245,184,0,0.18), rgba(245,184,0,0)); }
+  .pk.new .no { color: #f5b800; }
+  .pk.fav .pl b::after { content: '★'; color: #f5b800; margin-left: 0.6vw; font-size: 2vh; }
+  /* up next + your teams */
+  .side { flex: 1; display: flex; flex-direction: column; }
+  .side .col + .col { margin-top: 1.2vh; }
+  .nx { display: flex; align-items: center; padding: 0.7vh 0; font-size: 2.3vh; }
+  .nx .no { width: 4vh; color: #9aa4ba; font-weight: 800; text-align: right; margin-right: 1vw; }
+  .nx .bd { width: 4.4vh; height: 4.4vh; border-radius: 0.6vh; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5vh; margin-right: 0.9vw; }
+  .nx.fav { color: #f5b800; font-weight: 800; }
+  .yt { display: flex; font-size: 2.2vh; line-height: 3.6vh; white-space: nowrap; } .yt b { color: #fff; margin-right: 0.4vw; } .yt .t { width: 8.6vw; color: #f5b800; font-weight: 800; flex: none; }
+  .crawl { position: absolute; left: 0; right: 0; bottom: 0; height: 7vh; background: #0a1020; border-top: 0.3vh solid #f5b800; display: flex; align-items: center; font-size: 2.4vh; white-space: nowrap; overflow: hidden; }
+  .crawl .lb { background: #f5b800; color: #0a1020; font-weight: 900; padding: 0 1.4vw; height: 100%; display: flex; align-items: center; letter-spacing: 0.2vw; }
+  .crawl .it { margin-left: 2vw; color: #c9d1e3; } .crawl .it b { color: #fff; }
+  /* the pick is in */
+  .pin { position: absolute; left: 0; right: 0; top: 30vh; text-align: center; display: none; }
+  .pin .lbl { display: inline-block; background: #f5b800; color: #0a1020; font-weight: 900; font-size: 4vh; letter-spacing: 0.6vw; padding: 1vh 3vw; border-radius: 1vh; }
+  .pin .card { margin: 2vh auto 0; width: 70vw; background: #121a30; border: 0.4vh solid #f5b800; border-radius: 1.6vh; padding: 3vh 3vw; display: flex; align-items: center; box-shadow: 0 2vh 6vh rgba(0,0,0,0.6); }
+  .pin .card .bd { width: 18vh; height: 18vh; border-radius: 1.6vh; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 6vh; }
+  .pin .card .tx { margin-left: 3vw; text-align: left; }
+  .pin .card .tx i { display: block; font-style: normal; color: #f5b800; font-weight: 800; letter-spacing: 0.3vw; font-size: 2.4vh; }
+  .pin .card .tx b { display: block; font-size: 8vh; line-height: 9vh; }
+  .pin .card .tx span { display: block; font-size: 3vh; color: #c9d1e3; margin-top: 0.6vh; }
+  body.picked .grid, body.picked .head { opacity: 0.18; } body.picked .pin { display: block; }
+</style></head><body>
+<div class="top"><span class="tab">NFL</span><span class="tab">NBA</span><span class="tab on">DRAFT</span><span class="tab">NHL</span><span class="tab">MLB</span></div>
+<div class="head"><h1>NFL DRAFT</h1><span class="sub">Sample · prospects are made up</span><span class="rd">ROUND 1 · PICK 9 OF 32</span></div>
+<div class="grid">
+  <div class="col clock" style="--c1:#0b162a">
+    <div class="band" style="background:linear-gradient(135deg,#c83803,rgba(0,0,0,0) 70%)"></div>
+    <div class="in">
+      <div class="ph">ON THE CLOCK</div>
+      <div class="tm"><div class="badge" style="background:#0b162a;color:#c83803">CHI</div>
+        <div class="nm"><b>Chicago Bears</b><i>7-10 · from the season standings</i></div></div>
+      <div class="pickno"><b>#9</b>Round 1 · Pick 9</div>
+      <div class="timer">6:12<small>LEFT ON THE CLOCK</small></div>
+      <div class="bar"><i></i></div>
+      <div class="needs"><b>TEAM NEEDS</b><br><span>EDGE</span><span>OT</span><span>S</span><span>WR</span></div>
+    </div>
+  </div>
+  <div class="col picks">
+    <div class="ph">LATEST PICKS</div>
+    <div class="pk new"><span class="no">8</span><span class="bd" style="background:#002244;color:#a5acaf">SEA</span><span class="pl"><b>Marcus Delaney</b><i>Oregon · just picked</i></span><span class="pos">OT</span></div>
+    <div class="pk"><span class="no">7</span><span class="bd" style="background:#002a5c;color:#fff">TEN</span><span class="pl"><b>Jalen Whitfield</b><i>Ohio State</i></span><span class="pos">WR</span></div>
+    <div class="pk"><span class="no">6</span><span class="bd" style="background:#311d00;color:#ff3c00">CLE</span><span class="pl"><b>Tre Holloway</b><i>Texas</i></span><span class="pos">QB</span></div>
+    <div class="pk"><span class="no">5</span><span class="bd" style="background:#03202f;color:#a71930">HOU</span><span class="pl"><b>Damon Carter</b><i>Georgia</i></span><span class="pos">EDGE</span></div>
+    <div class="pk"><span class="no">4</span><span class="bd" style="background:#008e97;color:#fc4c02">MIA</span><span class="pl"><b>Isaiah Brooks</b><i>LSU</i></span><span class="pos">CB</span></div>
+    <div class="pk"><span class="no">3</span><span class="bd" style="background:#0b2265;color:#a71930">NYG</span><span class="pl"><b>Caleb Monroe</b><i>Alabama</i></span><span class="pos">DT</span></div>
+  </div>
+  <div class="side">
+    <div class="col">
+      <div class="ph">UP NEXT</div>
+      <div class="nx fav"><span class="no">9</span><span class="bd" style="background:#0b162a;color:#c83803">CHI</span>Chicago Bears · now</div>
+      <div class="nx"><span class="no">10</span><span class="bd" style="background:#000;color:#a5acaf">LV</span>Las Vegas Raiders</div>
+      <div class="nx"><span class="no">11</span><span class="bd" style="background:#002244;color:#fff">NE</span>New England Patriots</div>
+      <div class="nx"><span class="no">12</span><span class="bd" style="background:#9f8958;color:#fff">NO</span>New Orleans Saints</div>
+      <div class="nx"><span class="no">13</span><span class="bd" style="background:#0085ca;color:#101820">CAR</span>Carolina Panthers</div>
+    </div>
+    <div class="col">
+      <div class="ph">YOUR TEAMS</div>
+      <div class="yt"><span class="t">BEARS</span><span><b>#9</b>now · #41 · #73</span></div>
+      <div class="yt"><span class="t">EAGLES</span><span><b>#27</b>· #59 · #91</span></div>
+      <div class="yt"><span class="t">USC</span><span>none picked yet</span></div>
+      <div class="yt"><span class="t">WISCONSIN</span><span>none picked yet</span></div>
+    </div>
+  </div>
+</div>
+<div class="pin"><div class="lbl">THE PICK IS IN</div>
+  <div class="card"><div class="bd" style="background:#0b162a;color:#c83803">CHI</div>
+    <div class="tx"><i>ROUND 1 · PICK 9 · CHICAGO BEARS</i><b>Andre Lacy</b><span>EDGE · Penn State · 6'4" 258</span></div></div></div>
+<div class="crawl"><span class="lb">DRAFT</span><span class="it"><b>3 NYG</b> C. Monroe DT</span><span class="it"><b>4 MIA</b> I. Brooks CB</span><span class="it"><b>5 HOU</b> D. Carter EDGE</span><span class="it"><b>6 CLE</b> T. Holloway QB</span><span class="it"><b>7 TEN</b> J. Whitfield WR</span><span class="it"><b>8 SEA</b> M. Delaney OT</span></div>
+<script>if (/picked/.test(location.hash)) document.body.className = 'picked';</script>
+</body></html>
