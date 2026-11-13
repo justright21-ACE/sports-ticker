@@ -1370,6 +1370,12 @@ var CONFIG = {
   cbbClosePts: 5,
   cbbHoldSec: 25,        // basketball moves fast: a college hoops CLOSE screen stays up 25 s a time (?cbbsec=)
   cbbUpsetHoldSec: 45,   // ...and an UPSET screen 45 s (football: 45 / 90)
+  nbaClose: true,        // NBA: a nationally televised game within nbaClosePts in the last nbaCloseMin minutes of the 4th or OT gets a CLOSE screen (?nbaclose=0 off)
+  nbaCloseMin: 5,
+  nbaClosePts: 5,
+  nbaCloseMax: 2,        // ...at most this many at once (the closest, then the least time left)
+  nbaHoldSec: 25,        // ...25 s a time (?nbasec=)
+  nbaNationalTv: ['ESPN', 'ESPN2', 'ABC', 'NBC', 'Peacock', 'Prime Video', 'NBA TV'],   // the national networks that count
   bigScreenLeadHrs: 4,   // games other than football: their big screen (countdown) starts this many hours before the start
   closeHoldSec: 45,      // ...seconds that screen stays up (returns after every other screen while it's close)
   primetimeDetail: true, // ESPN's full game feed (team stats, drive). Very large: turn off (?detail=0) if the TV browser struggles
@@ -1447,6 +1453,8 @@ function readParams() {
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
     if (k === 'closemajor') CONFIG.closeMajorConf = v !== '0';
     if (k === 'cbbclose') CONFIG.cbbClose = v !== '0';
+    if (k === 'nbaclose') CONFIG.nbaClose = v !== '0';
+    if (k === 'nbasec') CONFIG.nbaHoldSec = Math.max(10, +v || 25);
     if (k === 'cbbsec') { CONFIG.cbbHoldSec = Math.max(10, +v || 25); CONFIG.cbbUpsetHoldSec = Math.max(15, Math.round(CONFIG.cbbHoldSec * 1.8)); }
     if (k === 'close') CONFIG.closeGames = v !== '0';                  // ?close=0 turns off the one-score 4th-quarter screen
     if (k === 'ended') CONFIG.hideEnded = v !== '1';                   // ?ended=1 keeps tabs for leagues whose season is over
@@ -1730,6 +1738,26 @@ function espnDay(lg, dateStr, cb) {
    15 while one of them is on); their scores then come from just their conferences' feeds. */
 var GOOD_TV = /^(ESPN|ESPN2|ESPNU|ABC|FS1|FOX|CBS|NBC|TNT|TRUTV|TBS|SECN|SECNETWORK|ACCN|ACCNETWORK|BTN|BIGTENNETWORK)$/i;
 var GOOD_TV_SHORT = { SECNETWORK: 'SECN', ACCNETWORK: 'ACCN', BIGTENNETWORK: 'BTN', TRUTV: 'truTV' };
+/* NBA: the national network a game is on ('' for local-only games). ESPN marks each broadcast's
+   market (national / home / away); local channels never count, even ones named like a network. */
+function nbaNationalTv(c) {
+  var B = (c && c.broadcasts) || [], G = (c && c.geoBroadcasts) || [], want = {}, i, k, L = CONFIG.nbaNationalTv || [];
+  function key(x) { return String(x || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
+  for (i = 0; i < L.length; i++) want[key(L[i])] = L[i];
+  want.AMAZONPRIMEVIDEO = want.PRIMEVIDEO; want.PRIME = want.PRIMEVIDEO; want.ESPNABC = want.ABC;
+  for (i = 0; i < B.length; i++) {
+    if (B[i].market && String(B[i].market).toLowerCase() !== 'national') continue;
+    var nm = B[i].names || [];
+    for (k = 0; k < nm.length; k++) if (want[key(nm[k])]) return want[key(nm[k])];
+  }
+  for (i = 0; i < G.length; i++) {
+    var mk = G[i].market && (G[i].market.type || G[i].market);
+    if (mk && String(mk).toLowerCase() !== 'national') continue;
+    var sn = G[i].media && G[i].media.shortName;
+    if (want[key(sn)]) return want[key(sn)];
+  }
+  return '';
+}
 var goodCbb = { day: {}, ev: {}, confAt: {} };
 function goodWhy(ev, votes) {
   var c = ev.competitions && ev.competitions[0];
@@ -1926,9 +1954,10 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in')) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg))) ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in')) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg)) || (lg === 'nba' && state === 'in' && nbaNationalTv(c))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '', serDone: !!(ser && ser.completed),
-    tv: (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || '', venue: (c.venue && c.venue.fullName) || '',
+    ntv: lg === 'nba' ? nbaNationalTv(c) : '',
+    tv: (lg === 'nba' && nbaNationalTv(c)) || (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || '', venue: (c.venue && c.venue.fullName) || '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
   };
@@ -3246,17 +3275,32 @@ function loadMajorCfb(cb) {
 /* Same for college hoops: the Top 25 feed misses unranked ACC / Big East / Big Ten / Big 12 / SEC
    games, so in season (November to early April) also check those five conferences' games. */
 var majorCbb = { at: 0, live: false, games: [] };
+/* seconds left on the game clock ('4:12' or, in the last minute, '45.2'); -1 if unknown */
+function clockSecs(g) {
+  var ck = String((g.raw && g.raw.status && g.raw.status.displayClock) || g.clk || g.detail || ''), mm = ck.match(/^\s*(\d+):(\d+)/);
+  if (mm) return +mm[1] * 60 + +mm[2];
+  mm = ck.match(/^\s*(\d+(?:\.\d+)?)(\s|$|-)/);
+  return mm ? +mm[1] : -1;
+}
 function cbbCloseCond(g) {
   if (!CONFIG.cbbClose || !g.live || isHalftime(g)) return false;
   var q = quarterOf(g);
   if (q < 2) return false;
   if (q === 2) {                                                   // 2nd half: the last few minutes
-    var ck = String((g.raw && g.raw.status && g.raw.status.displayClock) || g.detail || ''), mm = ck.match(/^\s*(\d+):(\d+)/);
-    if (!mm || +mm[1] * 60 + +mm[2] > CONFIG.cbbCloseMin * 60) return false;
+    var cs = clockSecs(g);
+    if (cs < 0 || cs > CONFIG.cbbCloseMin * 60) return false;
   }
   var ra = apRank(g.teams.away, 'ncaab'), rh = apRank(g.teams.home, 'ncaab');
   if (!((ra && ra <= 25) || (rh && rh <= 25) || majorConf(g.teams.away, 'ncaab') || majorConf(g.teams.home, 'ncaab'))) return false;
   return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= CONFIG.cbbClosePts;
+}
+/* NBA: a game on national TV within nbaClosePts in the last nbaCloseMin minutes of the 4th, or OT */
+function nbaCloseCond(g) {
+  if (!CONFIG.nbaClose || !g.live || isHalftime(g) || !g.ntv) return false;
+  var q = quarterOf(g) || g.per || 0;
+  if (q < 4) return false;
+  if (q === 4) { var cs = clockSecs(g); if (cs < 0 || cs > CONFIG.nbaCloseMin * 60) return false; }
+  return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= CONFIG.nbaClosePts;
 }
 function loadMajorCbb(cb) {
   var now = new Date(), t = now.getTime(), mo = now.getMonth();
@@ -3290,7 +3334,7 @@ function loadMajorCbb(cb) {
 }
 function closeGames(lg) {
   lg = lg || 'ncaaf';
-  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : cfbGames(), ownIds = {}, fvs = favScreenGames();
+  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : (lg === 'ncaaf' ? cfbGames() : []), ownIds = {}, fvs = favScreenGames();
   for (var fz = 0; fz < fvs.length; fz++) if (fvs[fz].lg === lg) own.push(fvs[fz].g);
   if (!d || !CONFIG.closeGames || !inList(CONFIG.leagues, lg)) return out;
   for (var j = 0; j < own.length; j++) ownIds[own[j].id] = 1;
@@ -3304,7 +3348,8 @@ function closeGames(lg) {
   }
   for (var i = 0; i < list.length; i++) {
     var g = list[i];
-    if (ownIds[g.id]) continue;
+    if (ownIds[g.id]) continue;                                          // (Bulls / Spurs keep their own screen)
+    if (lg === 'nba') { if (nbaCloseCond(g)) out.push(g); continue; }   // NBA: national TV, within 5 in the last 5 minutes / OT
     if (closeGrace[g.id] && closeGrace[g.id] > new Date().getTime()) { out.push(g); continue; }   // just scored: stays a moment
     if (upsetOf(g, lg)) { out.push(g); continue; }                       // an upset in the 2nd half, any margin (own UPSET screen)
     if (lg === 'ncaab') { if (cbbCloseCond(g)) out.push(g); continue; }  // hoops: within 5 in the last 5 minutes / OT
@@ -3314,6 +3359,16 @@ function closeGames(lg) {
     }
     if (Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8) continue;
     out.push(g);
+  }
+  if (lg === 'nba' && out.length > 1) {                                  // the closest first, then the least time left
+    out.sort(function (x, y) {
+      var dx = Math.abs(num(scoreOf(x, 'home')) - num(scoreOf(x, 'away'))), dy = Math.abs(num(scoreOf(y, 'home')) - num(scoreOf(y, 'away')));
+      if (dx !== dy) return dx - dy;
+      var qx = quarterOf(x) || x.per || 0, qy = quarterOf(y) || y.per || 0;
+      if (qx !== qy) return qy - qx;
+      return clockSecs(x) - clockSecs(y);
+    });
+    out = out.slice(0, CONFIG.nbaCloseMax || 2);
   }
   return out;
 }
@@ -3393,6 +3448,7 @@ function closeCond(g, lg) {
 function closeKind(g, lg) {
   var up = upsetOf(g, lg);
   var QN = ['', '1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'];
+  if (lg === 'nba') return ['CLOSE', 'NBA · ' + (quarterOf(g) > 4 ? (quarterOf(g) > 5 ? (quarterOf(g) - 4) + 'OT' : 'Overtime') : '4th Quarter') + ' · Close Game'];   // the network shows next to it
   if (lg === 'ncaab') {
     if (!up) return ['CLOSE', 'College Basketball · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half') + ' · Close Game'];
     return ['UPSET', 'College Basketball · Upset ' + (isFinal(g) ? 'Final · #' + up.favRank + ' ' + schoolName(up.fav) + ' falls' :
@@ -3457,6 +3513,7 @@ function favKind(g, lg) {
 /* an UPSET gets the primetime treatment: 90 s a time while live (back after every other screen), then
    once per loop for a few minutes after the final; a CLOSE game 45 s */
 function closeHold(g, kind, lg) {
+  if (lg === 'nba') return CONFIG.nbaHoldSec;
   var hoops = lg === 'ncaab';
   if (kind[0] !== 'UPSET') return hoops ? CONFIG.cbbHoldSec : CONFIG.closeHoldSec;
   return g.live ? (hoops ? CONFIG.cbbUpsetHoldSec : CONFIG.upsetHoldSec) : CONFIG.primetimeHoldPre;
@@ -3467,9 +3524,10 @@ function featuredGames() {
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
   for (i = 0; i < fv.length; i++) out.push(fv[i]);
   for (i = 0; i < cn.length; i++) { var nk = closeKind(cn[i], 'nfl'); out.push({ g: cn[i], lg: 'nfl', kind: nk, hold: closeHold(cn[i], nk, 'nfl') }); }
-  var cb2 = closeGames('ncaab'), ck;
+  var cb2 = closeGames('ncaab'), nb = closeGames('nba'), ck;
   for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck, 'ncaaf') }); }
   for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck, 'ncaab'), upset: true }); }
+  for (i = 0; i < nb.length; i++) { ck = closeKind(nb[i], 'nba'); out.push({ g: nb[i], lg: 'nba', kind: ck, hold: closeHold(nb[i], ck, 'nba') }); }
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i].g, lg: ws[i].lg, kind: ws[i].kind });
   return out;
 }
@@ -3494,6 +3552,8 @@ function loadPtDetails(cb) {
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   var cbb = closeGames('ncaab');
   for (var jb = 0; jb < cbb.length; jb++) { games.push(cbb[jb]); path[cbb[jb].id] = 'basketball/mens-college-basketball'; }
+  var nbc = closeGames('nba');
+  for (var jn = 0; jn < nbc.length; jn++) { games.push(nbc[jn]); path[nbc[jn].id] = 'basketball/nba'; }
   var fvd = favScreenGames(), FAVPATH = { nfl: 'football/nfl', nba: 'basketball/nba', nhl: 'hockey/nhl' };
   for (var fk = 0; fk < fvd.length; fk++) if (FAVPATH[fvd[fk].lg]) { games.push(fvd[fk].g); path[fvd[fk].g.id] = FAVPATH[fvd[fk].lg]; }
   var closeIds = {}, cg = closeGames('nfl').concat(closeGames('ncaaf'));
