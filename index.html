@@ -137,6 +137,7 @@
   .status .tag { float: right; max-width: 60%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
                  font-size: 2.2vh; letter-spacing: 0.12vw; color: #f5b800; font-weight: 700; }
   .status .tag b { font-weight: 700; } .status .tag .ts { display: none; }
+  .live .status .tag { max-width: 40%; } .narrow .live .status .tag { display: none; }   /* squarer screens: no room beside the clock */ .live .status .tag .tl { display: none; } .live .status .tag .ts { display: inline; }   /* live: the clock needs the room */
   .t-bears .status .tag { color: #FF8C3A; } .t-usc .status .tag { color: #FFC72C; }
   .score { position: absolute; right: 1.2vw; top: 0; font-size: 7.6vh; font-weight: 700; }
   .lose .score, .lose .abbr { color: #6f7a94; }
@@ -1228,6 +1229,31 @@
   .t-wis #foot { color: #7a4a46; }
   /* everyday house colors: navy + gold, with the Bears orange lines under the header and above the bottom bar */
   .t-house #top, .t-house #crawlbar { border-color: #C83803; }
+  /* scores not updating: covers the bottom bar (its scores are old too) */
+  #stale { display: none; position: absolute; left: 0; right: 0; bottom: 4vh; height: 9vh; z-index: 40; background: #f5b800; color: #05070d;
+           border-top: 0.35vh solid #ff2a2a; padding: 0 2.5vw; white-space: nowrap; overflow: hidden; line-height: 9vh; }
+  #stale b { font-size: 3.6vh; font-weight: 800; letter-spacing: 0.15vw; margin-right: 1.4vw; }
+  #stale span { font-size: 2.6vh; font-weight: 600; }
+  #stale svg { width: 4.4vh; height: 4.4vh; vertical-align: -0.9vh; margin-right: 1vw; }
+  .narrow #stale b { font-size: 2.8vh; } .narrow #stale span { font-size: 2vh; }
+  /* BREAKING news for your teams: slides down over the top of the screen */
+  #breaking { display: none; position: absolute; left: 1.6vw; right: 1.6vw; top: 10.4vh; z-index: 45; height: 15vh; border-radius: 1.2vh; overflow: hidden;
+              background: #0b1020; border: 0.35vh solid #ff2a2a; box-shadow: 0 1.4vh 4vh rgba(0,0,0,0.65);
+              -webkit-animation: brkIn 0.6s ease-out 1 both; animation: brkIn 0.6s ease-out 1 both; }
+  #breaking .bl { position: absolute; left: 0; top: 0; bottom: 0; width: 24%; text-align: center; padding-top: 1.5vh; }
+  #breaking .bl b { display: block; font-size: 4vh; line-height: 4.8vh; font-weight: 800; letter-spacing: 0.3vw; color: #ffffff; }
+  #breaking .bl i { display: block; font-style: normal; font-size: 2.4vh; line-height: 3.2vh; font-weight: 700; letter-spacing: 0.2vw; }
+  #breaking .bl .bk { display: inline-block; margin-bottom: 0.8vh; padding: 0 1vw; background: #ff2a2a; color: #ffffff; border-radius: 0.5vh; font-size: 2.2vh; line-height: 3.2vh; font-weight: 800; letter-spacing: 0.15vw;
+                      -webkit-animation: brkPulse 1.2s ease-in-out infinite; animation: brkPulse 1.2s ease-in-out infinite; }
+  #breaking .bh { position: absolute; left: 26%; right: 2vw; top: 0; bottom: 0; display: -webkit-box; display: -webkit-flex; display: flex;
+                  -webkit-box-align: center; -webkit-align-items: center; align-items: center; }
+  #breaking .bh span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 4vh; line-height: 5.2vh; font-weight: 700; color: #ffffff; }
+  .narrow #breaking .bl b { font-size: 3.2vh; line-height: 4.8vh; } .narrow #breaking .bl i { font-size: 2.1vh; } .narrow #breaking .bh span { font-size: 3vh; line-height: 4.2vh; }
+  @-webkit-keyframes brkIn { from { -webkit-transform: translateY(-140%); opacity: 0; } to { -webkit-transform: translateY(0); opacity: 1; } }
+  @keyframes brkIn { from { transform: translateY(-140%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @-webkit-keyframes brkPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  @keyframes brkPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  .nomotion #breaking, .nomotion #breaking .bl .bk { -webkit-animation: none; animation: none; }
 </style>
 </head>
 <body>
@@ -1249,6 +1275,8 @@
     <div id="crawllabel">SCORES</div>
   </div>
 
+  <div id="stale"></div>
+  <div id="breaking"></div>
   <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Lines: DraftKings</span></div>
 </div>
 
@@ -1298,6 +1326,12 @@ var CONFIG = {
   refreshLiveSec: 30,    // how often to refresh scores while any game is live
   refreshIdleSec: 30,    // how often to refresh scores when nothing is live
   newsEveryMin: 10,      // how often to refresh headlines
+  staleMin: 10,          // a SCORES NOT UPDATING banner when nothing has refreshed for this many minutes (?stale=0 off)
+  autoReload: true,      // check for a new version of the ticker every 5 minutes and reload between screens (?autoreload=0 off)
+  breaking: true,        // BREAKING banner for your teams: trades, signings, big injuries, coaches fired / hired (?breaking=0 off)
+  breakingSec: 20,       // ...seconds it stays up
+  breakingMaxHrs: 3,     // ...only stories posted within this many hours
+  bowls: true,           // bowl season: every bowl game on the NCAAF scores screens, and a big screen for CFP games, New Year's Six bowls and bowls with a Top 25 team (?bowls=0 off)
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
@@ -1486,6 +1520,10 @@ function readParams() {
     if (k === 'field3d') CONFIG.field3d = v !== '0';
     if (k === 'flags') CONFIG.bigPenalties = v !== '0';
     if (k === 'reviews') CONFIG.reviews = v !== '0';
+    if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
+    if (k === 'autoreload') CONFIG.autoReload = v !== '0';
+    if (k === 'breaking') CONFIG.breaking = v !== '0';
+    if (k === 'bowls') CONFIG.bowls = v !== '0';
     if (k === 'injury') CONFIG.injuries = v !== '0';
     if (k === 'bigplay') CONFIG.bigPlayYds = Math.max(5, +v || 15);
     if (k === 'crawlall') CONFIG.crawlAllCollege = v !== '0';
@@ -1907,7 +1945,8 @@ function roundLabel(t) {
            [/Eastern Conference First Round/i, 'EAST RD 1'], [/Western Conference First Round/i, 'WEST RD 1'],
            [/Eastern Conference/i, 'EAST'], [/Western Conference/i, 'WEST'],
            [/College Football Playoff/i, 'CFP'], [/National Championship/i, 'NATL CHAMPIONSHIP'],
-           [/\s*-\s*/g, ' · '], [/\bGame\s+(\d+)/i, 'GM $1'], [/\bPresented by.*$/i, '']];
+           [/\s*\bPresented by [^-]*/i, ' '], [/\bBowl Game\b/i, 'Bowl'],             // "Rose Bowl Game Presented by X - CFP Quarterfinal"
+           [/\s+-\s+/g, ' · '], [/\bGame\s+(\d+)/i, 'GM $1']];                       // spaced dashes only: "Pop-Tarts Bowl" keeps its hyphen
   for (var i = 0; i < R.length; i++) s = s.replace(R[i][0], R[i][1]);
   return s.replace(/^\s+|\s+$/g, '').toUpperCase();
 }
@@ -1919,6 +1958,7 @@ function shortRound(t) {
            [/NATL CHAMPIONSHIP/, 'NATL CHAMP'], [/QUARTERFINAL/, 'QTR'], [/SEMIFINAL/, 'SEMI']];
   var s = String(t || '');
   for (var i = 0; i < S.length; i++) s = s.replace(S[i][0], S[i][1]);
+  if (!/SUPER BOWL/.test(s)) s = s.replace(/ BOWL\b/, '');                       // "ROSE BOWL · CFP QTR" -> "ROSE · CFP QTR"
   return s;
 }
 /* ESPN's live win probability, when the feed includes it */
@@ -1965,9 +2005,9 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in')) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg)) || (lg === 'nba' && state === 'in' && nbaNationalTv(c))) ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in' || post)) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg)) || (lg === 'nba' && state === 'in' && nbaNationalTv(c))) ? ev : null,
     tag: tag, series: ser ? (ser.summary || '') : '', serDone: !!(ser && ser.completed),
-    ntv: lg === 'nba' ? nbaNationalTv(c) : '',
+    ntv: lg === 'nba' ? nbaNationalTv(c) : '', post: post,
     tv: (lg === 'nba' && nbaNationalTv(c)) || (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || '', venue: (c.venue && c.venue.fullName) || '',
     per: +st.period || 0, clk: st.displayClock || '', wp: winProb(c),
     scores: (live || fin) ? { total: total } : null
@@ -3003,6 +3043,48 @@ function windowGames(lg) {
   if (!d) return out;
   var now = new Date().getTime(), today = ymd(new Date());
   for (var i = 0; i < d.games.length; i++) if (inWindow(d.games[i], now, today)) out.push(d.games[i]);
+  if (lg === 'ncaaf') {                                              // bowl season: every bowl game, not just ranked teams'
+    var xb = bowlExtra(d.games);
+    for (var j = 0; j < xb.length; j++) if (inWindow(xb[j], now, today)) out.push(xb[j]);
+  }
+  return out;
+}
+/* ---- Bowl season ----
+   A college postseason game (ESPN season type 3). The Top 25 feed misses unranked bowls, so they come
+   from the all-FBS list the bottom bar loads. */
+var NY6_RE = /\b(ROSE|SUGAR|ORANGE|COTTON|FIESTA|PEACH) BOWL/;
+function isBowl(g) { return !!(g && g.post && g.tag); }
+function bowlExtra(base) {
+  var cf = crawlFull.ncaaf, out = [], have = {}, i;
+  if (!CONFIG.bowls || !cf || !cf.games) return out;
+  for (i = 0; i < base.length; i++) have[base[i].id] = 1;
+  for (i = 0; i < cf.games.length; i++) if (isBowl(cf.games[i]) && !have[cf.games[i].id]) out.push(cf.games[i]);
+  return out;
+}
+function bowlKind(g) {
+  var t = String(g.tag || '');
+  if (/CFP|PLAYOFF|NATL CHAMP/.test(t)) return ['CFP', 'NCAAF', 1];
+  return ['BOWLS', 'NCAAF', 1];                                    // the heading adds the bowl's full name
+}
+/* the bowls that get a big screen: the Playoff, the New Year's Six, any bowl with a Top 25 team
+   (USC / Wisconsin bowls already have their game-day screen) */
+function bowlGames() {
+  var out = [], d = state.data.ncaaf, now = new Date().getTime(), today = ymd(new Date()), own = {}, i;
+  if (!CONFIG.bowls || !d || !inList(CONFIG.leagues, 'ncaaf')) return out;
+  var cg = cfbGames();
+  for (i = 0; i < cg.length; i++) own[cg[i].id] = 1;
+  var all = d.games.concat(bowlExtra(d.games));
+  for (i = 0; i < all.length; i++) {
+    var g = all[i];
+    if (!isBowl(g) || own[g.id] || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+    var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf');
+    if (!(/CFP|PLAYOFF|NATL CHAMP/.test(g.tag) || NY6_RE.test(g.tag) || (ra && ra <= 25) || (rh && rh <= 25))) continue;
+    if (isFinal(g)) {
+      if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
+    } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
+    out.push(g);
+  }
+  out.sort(function (x, y) { return parseDate(x.date).getTime() - parseDate(y.date).getTime(); });
   return out;
 }
 function windowLabel(lg, games) {
@@ -3346,7 +3428,7 @@ function loadMajorCbb(cb) {
 }
 function closeGames(lg) {
   lg = lg || 'ncaaf';
-  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : (lg === 'ncaaf' ? cfbGames() : []), ownIds = {}, fvs = favScreenGames();
+  var d = state.data[lg], out = [], own = lg === 'nfl' ? primetimeGames() : (lg === 'ncaaf' ? cfbGames().concat(bowlGames()) : []), ownIds = {}, fvs = favScreenGames();
   for (var fz = 0; fz < fvs.length; fz++) if (fvs[fz].lg === lg) own.push(fvs[fz].g);
   if (!d || !CONFIG.closeGames || !inList(CONFIG.leagues, lg)) return out;
   for (var j = 0; j < own.length; j++) ownIds[own[j].id] = 1;
@@ -3534,6 +3616,8 @@ function featuredGames() {
   var out = [], i, nfl = primetimeGames(), ws = wsGames(), cfb = cfbGames(), cl = closeGames('ncaaf'), cn = closeGames('nfl'), fv = favScreenGames();
   for (i = 0; i < nfl.length; i++) out.push({ g: nfl[i], lg: 'nfl', kind: ptKind(nfl[i]) });
   for (i = 0; i < cfb.length; i++) out.push({ g: cfb[i], lg: 'ncaaf', kind: cfbKind(cfb[i]) });
+  var bw = bowlGames(), bk;
+  for (i = 0; i < bw.length; i++) { bk = bowlKind(bw[i]); out.push({ g: bw[i], lg: 'ncaaf', kind: bk, hold: bw[i].live ? (bk[0] === 'CFP' ? CONFIG.primetimeHoldLive : CONFIG.closeHoldSec) : CONFIG.primetimeHoldPre }); }
   for (i = 0; i < fv.length; i++) out.push(fv[i]);
   for (i = 0; i < cn.length; i++) { var nk = closeKind(cn[i], 'nfl'); out.push({ g: cn[i], lg: 'nfl', kind: nk, hold: closeHold(cn[i], nk, 'nfl') }); }
   var cb2 = closeGames('ncaab'), nb = closeGames('nba'), ck;
@@ -3560,7 +3644,7 @@ function primetimeGames() {
 }
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
-  var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')), i = 0, path = {};
+  var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')).concat(bowlGames()), i = 0, path = {};
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   var cbb = closeGames('ncaab');
   for (var jb = 0; jb < cbb.length; jb++) { games.push(cbb[jb]); path[cbb[jb].id] = 'basketball/mens-college-basketball'; }
@@ -3984,7 +4068,7 @@ function ptHTML(g, kind, lg) {
   }
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
   var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
-             '<b>' + esc(kind[1] + (g.tag ? ' · ' + shortRound(g.tag) : '')) + '</b>' + (rv ? '<b class="rvh">' + trophyIcon(rv, 'tri') + esc(rv.name) + '</b>' : '') +
+             '<b>' + esc(kind[1] + (g.tag ? ' · ' + (kind[2] ? g.tag : shortRound(g.tag)) : '')) + '</b>' + (rv ? '<b class="rvh">' + trophyIcon(rv, 'tri') + esc(rv.name) + '</b>' : '') +
              esc((ln || rv ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   var half = halfHTML(g, lg, det, ca, ch);
   return '<div class="ptv' + (g.live ? ' is-live' : '') + (twoMinute(g, lg) ? ' urgent' : '') + (fin ? ' done' : '') + '">' + head + band +
@@ -7057,7 +7141,7 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
@@ -7067,13 +7151,14 @@ function refreshAll() {
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
 
 function rotate() {
   if (hl.playing) return;                                 // a highlight is on: it restarts the rotation when it ends
+  if (reloadIfWanted()) return;                           // a new version of the ticker: load it between screens
   if (state.pages.length > 1) { state.pageIndex = (state.pageIndex + 1) % state.pages.length; renderPage(); }
   scheduleRotate();
 }
@@ -7381,6 +7466,141 @@ if (!FRAMED) window.addEventListener('resize', function () {   // turned the scr
   if (!OUTER && needsFrame()) window.location.reload();
 });
 
+/* =================== SCORES NOT UPDATING ===================
+   Nothing has refreshed for CONFIG.staleMin minutes (Wi-Fi down, ESPN not answering, or the refresh got
+   stuck): a yellow bar over the bottom bar says so, with the time of the last good update. */
+var PAGE_START = new Date().getTime();
+var WARN_SVG = '<svg viewBox="0 0 24 24"><path d="M12 2 L23 21 H1 Z" fill="#05070d"/><path d="M12 9 V14 M12 17 V17.5" stroke="#f5b800" stroke-width="2.6" stroke-linecap="round"/></svg>';
+function isStale(now) {
+  if (DEMO || !CONFIG.staleMin) return false;
+  now = now || new Date().getTime();
+  var last = state.lastOk ? state.lastOk.getTime() : 0;
+  return last ? now - last > CONFIG.staleMin * 60000 : now - PAGE_START > 3 * 60000;
+}
+function staleCheck() {
+  var el = $('stale');
+  if (!el) return;
+  if (!isStale()) { if (el.style.display !== 'none') el.style.display = 'none'; return; }
+  var txt = state.lastOk ? 'Last update ' + timeStr(state.lastOk) : 'Can’t reach the score feeds';
+  var html = WARN_SVG + '<b>SCORES NOT UPDATING</b><span>' + esc(txt) + ' · check the Wi-Fi · retrying automatically</span>';
+  if (el.innerHTML !== html) el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+/* =================== NEW VERSION: RELOAD ===================
+   Every 5 minutes the ticker fetches its own page. Once a changed version has been seen twice in a row
+   (so a half-updated web cache can't bounce it), it reloads at the next screen change. It also gives a
+   stuck screen a fresh start: scores stale for 15 minutes while the page itself can be reached. */
+var ver = { base: '', next: '', seen: 0, want: false, at: 0 };
+function textHash(t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+function verCheck() {
+  if (!CONFIG.autoReload || DEMO || !/^https?:/.test(window.location.protocol)) return;
+  try {
+    var x = new XMLHttpRequest();
+    x.open('GET', window.location.pathname + '?vcheck=' + new Date().getTime(), true);
+    try { x.timeout = 20000; } catch (t) {}
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4 || x.status < 200 || x.status >= 300 || !/FanCave/.test(x.responseText || '')) return;
+      var h = textHash(x.responseText), now = new Date().getTime();
+      if (!ver.base) { ver.base = h; return; }
+      if (h !== ver.base) {
+        if (h === ver.next) ver.seen++; else { ver.next = h; ver.seen = 1; }
+        if (ver.seen >= 2) ver.want = 'new';
+      } else { ver.next = ''; ver.seen = 0; }
+      var healAt = 0; try { healAt = +window.localStorage.getItem('fcw_heal') || 0; } catch (e) {}
+      if (!ver.want && isStale(now) && (state.lastOk ? now - state.lastOk.getTime() : now - PAGE_START) > 15 * 60000 && now - healAt > 30 * 60000) {
+        try { window.localStorage.setItem('fcw_heal', String(now)); } catch (e) {}
+        ver.want = 'stuck';
+      }
+    };
+    x.send();
+  } catch (e) {}
+}
+function reloadNow() {
+  var u = window.location.href.replace(/#.*$/, '').replace(/([?&])v=[^&]*&?/, '$1').replace(/[?&]$/, '');
+  window.location.replace(u + (u.indexOf('?') < 0 ? '?' : '&') + 'v=' + (ver.next || ver.base || new Date().getTime()));
+}
+function reloadIfWanted() {
+  if (!ver.want || hl.playing || bnews.on) return false;
+  if (state.animUntil && new Date().getTime() < state.animUntil) return false;
+  reloadNow();
+  return true;
+}
+
+/* =================== BREAKING NEWS (your teams) ===================
+   ESPN's news for each of your teams, every 10 minutes. A story from the last few hours about a trade,
+   signing, release, big injury, suspension or a coach fired / hired slides a BREAKING banner over the
+   top of the screen for CONFIG.breakingSec seconds, once per story (remembered across reloads). */
+var NEWS_TEAMS = [['nfl', 'football/nfl', '3', 'Bears', '#0B162A', '#C83803'], ['nfl', 'football/nfl', '21', 'Eagles', '#004C54', '#A5ACAF'],
+                  ['ncaaf', 'football/college-football', '30', 'USC', '#990000', '#FFC72C'], ['ncaaf', 'football/college-football', '275', 'Wisconsin', '#C5050C', '#FFFFFF'],
+                  ['nba', 'basketball/nba', '4', 'Bulls', '#CE1141', '#000000'], ['nba', 'basketball/nba', '24', 'Spurs', '#000000', '#C4CED4'],
+                  ['mlb', 'baseball/mlb', '4', 'White Sox', '#27251F', '#C4CED4'], ['nhl', 'hockey/nhl', '4', 'Blackhawks', '#CF0A2C', '#FFD100']];
+var BREAK_RE = /\b(trade[sd]?|trading|acquir(e|es|ed|ing)|deal(s)? (for|with|to)|signed|signings?\b|\bsigns? (?!of\b|that\b|point\b|are\b|were\b|the times\b)|agree(s|d)? to|extension|re-?sign|contract|releas(e|es|ed)|waive[sd]?|cut[s]?\b|claim(s|ed)? off|fire[sd]?|dismiss(es|ed)?|part(s|ed)? ways|hire[sd]?|hiring|names? .{0,40}(coach|coordinator|manager|president|general manager|gm)\b|interim|resign(s|ed)?|retire[sd]?|out for (the )?season|season-ending|torn|tears (his|her|an?)\b|ACL|Achilles|surgery|injured reserve|placed on (the )?IR|suspend(s|ed)?|suspension|transfer(s|ring)?|commit(s|ted)?|decommit|declares?|enter(s|ing)? (the )?(transfer portal|draft))/i;
+var BREAK_SKIP = /fantasy|odds|betting|prediction|pick'?em|power rankings?|takeaways|grades?|mock draft|what we learned|best bets|\bDFS\b|preview|podcast|watch:|by the numbers|ranking the|injury report|depth chart|schedule release|uniforms?\b|tickets?\b/i;
+var bnews = { at: 0, queue: [], on: false, seen: {}, primed: false, timer: 0 }, BNEWS_KEY = 'fcw_brk';
+try { var bk0 = JSON.parse(window.localStorage.getItem(BNEWS_KEY)); if (bk0 && typeof bk0 === 'object') { bnews.seen = bk0; bnews.primed = true; } } catch (e) {}
+function bnewsSave() {
+  var now = new Date().getTime(), keep = {};
+  for (var k in bnews.seen) if (now - bnews.seen[k] < 4 * 86400000) keep[k] = bnews.seen[k];
+  bnews.seen = keep;
+  try { window.localStorage.setItem(BNEWS_KEY, JSON.stringify(keep)); } catch (e) {}
+}
+function breakingOf(a, T) {
+  var hd = String(a.headline || ''), ty = String(a.type || '');
+  if (!hd || /^(Media|Recap|Preview|Video)$/i.test(ty) || BREAK_SKIP.test(hd) || !BREAK_RE.test(hd)) return null;
+  var cats = a.categories || [], teamCats = 0, mine = false;
+  for (var i = 0; i < cats.length; i++) {
+    var tid = cats[i].teamId || (cats[i].team && cats[i].team.id);
+    if (cats[i].type === 'team' || tid) { teamCats++; if (String(tid) === T[2]) mine = true; }
+  }
+  if (teamCats && !mine) return null;                                // about another team
+  var pub = parseDate(a.published || a.lastModified || '').getTime();
+  if (!pub || new Date().getTime() - pub > CONFIG.breakingMaxHrs * 3600000) return null;
+  return { id: String(a.id || a.dataSourceIdentifier || hd), h: hd, team: T, at: pub };
+}
+function loadBreaking(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !CONFIG.breaking || now - bnews.at < 10 * 60000) return cb();
+  bnews.at = now;
+  var k = 0, found = [], any = false;
+  (function next() {
+    if (k >= NEWS_TEAMS.length) {
+      found.sort(function (x, y) { return x.at - y.at; });
+      for (var f = 0; f < found.length; f++) {
+        if (bnews.seen[found[f].id]) continue;
+        bnews.seen[found[f].id] = now;
+        if (bnews.primed) bnews.queue.push(found[f]);                       // no memory of what was shown: don't replay old news
+      }
+      if (any) { bnews.primed = true; bnewsSave(); }
+      breakingNext();
+      return cb();
+    }
+    var T = NEWS_TEAMS[k++];
+    if (!inList(CONFIG.leagues, T[0])) return next();
+    getJSON(ESPN_API + T[1] + '/news?team=' + T[2], function (err, data) {
+      var arts = (!err && data && data.articles) || [];
+      if (!err) any = true;
+      for (var j = 0; j < arts.length; j++) { var b = breakingOf(arts[j], T); if (b) found.push(b); }
+      next();
+    });
+  })();
+}
+function breakingNext() {
+  if (bnews.on || !bnews.queue.length || hl.playing) return;
+  var b = bnews.queue.shift(), T = b.team, el = $('breaking');
+  if (!el) return;
+  el.style.borderColor = T[5] === '#FFFFFF' || T[5] === '#C4CED4' || T[5] === '#A5ACAF' ? T[4] : T[5];
+  el.innerHTML = '<div class="bl" style="background:' + T[4] + '"><span class="bk">BREAKING</span><b>' + esc(T[3].toUpperCase()) + '</b>' +
+    '<i style="color:' + T[5] + '">' + esc(timeStr(new Date(b.at))) + '</i></div><div class="bh"><span>' + esc(b.h) + '</span></div>';
+  el.style.display = 'none'; void el.offsetWidth; el.style.display = 'block';    // replay the slide-in
+  bnews.on = true;
+  clearTimeout(bnews.timer);
+  bnews.timer = setTimeout(function () {
+    el.style.display = 'none'; bnews.on = false;
+    bnews.timer = setTimeout(breakingNext, 1500);                          // the next story, if several came in
+  }, CONFIG.breakingSec * 1000);
+}
+
 /* ---------- start ---------- */
 if (OUTER) buildFrame(); else {
 readParams();
@@ -7399,6 +7619,8 @@ if (CONFIG.sound) {
 refreshAll();
 scheduleRotate();
 setInterval(antiBurn, 10 * 60000);
+setInterval(staleCheck, 15000);
+verCheck(); setInterval(verCheck, 5 * 60000);
 if (CONFIG.fastRefreshSec) setInterval(fastRefresh, CONFIG.fastRefreshSec * 1000);   // Bears / USC live: every 10 s
 setTimeout(function () { window.location.reload(); }, 6 * 3600000); // fresh start every 6 hours
 }
