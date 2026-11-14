@@ -713,6 +713,15 @@
   .status .rzb { float: right; margin: 0.9vh 0 0 0.6vw; padding: 0 0.7vw; height: 3.4vh; line-height: 3.4vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff;
     font-size: 2vh; font-weight: 800; letter-spacing: 0.12vw; -webkit-animation: rzSoft 1.6s ease-in-out infinite; animation: rzSoft 1.6s ease-in-out infinite; }
   .narrow .status .rzb { font-size: 1.6vh; padding: 0 0.5vw; }
+  /* injury stoppage: a white tag with a red cross */
+  .status .injb, .ptv .injp, .ptv .injc { display: inline-block; background: #ffffff; color: #c8102e; font-weight: 800; border-radius: 0.5vh; white-space: nowrap; }
+  .status .injb { margin-right: 0.6vw; padding: 0 0.6vw; height: 3.4vh; line-height: 3.4vh; font-size: 2vh; letter-spacing: 0.12vw; vertical-align: 0.4vh; }
+  .narrow .status .injb { font-size: 1.6vh; padding: 0 0.5vw; }
+  .row .injr { display: inline-block; background: #ffffff; border-radius: 0.5vh; padding: 0.35vh 0.2vw 0.35vh 0.45vw; margin-left: 0.4vw; line-height: 0; vertical-align: middle; }
+  .row .injr .injx { width: 2vh; height: 2vh; margin: 0; vertical-align: top; }
+  .ptv .injp { margin-top: 0.6vh; padding: 0 0.8vw; line-height: 3.2vh; font-size: 2vh; letter-spacing: 0.1vw; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
+  .ptv .injc { padding: 0 0.6vw; line-height: 3.4vh; font-size: 2.2vh; letter-spacing: 0.1vw; margin-right: 0.6vw; }
+  .injx { display: inline-block; width: 1.7vh; height: 1.7vh; margin: 0 0.45vw 0 0; vertical-align: -0.15vh; }
   .ptv .rzp { display: inline-block; margin-top: 0.6vh; padding: 0 0.8vw; line-height: 3.2vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff; font-size: 2vh;
     font-weight: 800; letter-spacing: 0.15vw; -webkit-animation: rzSoft 1.6s ease-in-out infinite; animation: rzSoft 1.6s ease-in-out infinite; }
   /* red-zone badges breathe gently instead of blinking */
@@ -1332,6 +1341,7 @@ var CONFIG = {
   sound: false,          // ?sound=1 on the screen that should make noise (it needs one click / OK press after it loads)
   soundVolume: 70,       // 0-100 (?volume=)
   soundQuiet: [23, 8],   // silent from 11pm to 8am (?quiet=23-8, ?quiet=0 for never quiet)
+  injuries: true,        // injury stoppage: while the newest play says a player was hurt, an INJURY tag on the game's card and on its big screen, until the next snap (?injury=0 off)
   reviews: true,         // replay reviews: OVERTURNED (touchdown / turnover / catch / spot) or a failed coach's challenge, CALL STANDS (?reviews=0 off)
   bigPenalties: true,    // a yellow FLAG banner for big penalties: 15+ yards, pass interference, personal fouls, or one that wipes out a TD / big gain (?flags=0 off)
   field3d: true,         // the angled field with goalposts, ball pin, last-play arc and a CURRENT DRIVE row (?field3d=0: the flat field)
@@ -1476,6 +1486,7 @@ function readParams() {
     if (k === 'field3d') CONFIG.field3d = v !== '0';
     if (k === 'flags') CONFIG.bigPenalties = v !== '0';
     if (k === 'reviews') CONFIG.reviews = v !== '0';
+    if (k === 'injury') CONFIG.injuries = v !== '0';
     if (k === 'bigplay') CONFIG.bigPlayYds = Math.max(5, +v || 15);
     if (k === 'crawlall') CONFIG.crawlAllCollege = v !== '0';
     if (k === 'sound') CONFIG.sound = v !== '0';
@@ -2957,24 +2968,25 @@ function cardHTML(e, lg) {
   var fin = isFinal(e), loseA = fin && +sa < +sh, loseH = fin && +sh < +sa;
   if (e.ufc) { loseA = fin && e.winner === 'home'; loseH = fin && e.winner === 'away'; }
   var rzc = CONFIG.redZone ? redZoneOf(e, lg) : null;
+  var inj = injuryOf(e, lg);
   var riv = rivalryOf(e, lg);
   var cls = 'card' + (riv ? ' rival' : '') + (e.live ? ' live' : '') + (isFinal(e) ? ' done' : '') + (isFav(e, lg) ? ' fav' : '') + (e.ufc ? ' fight' : '') + (e.wwe ? ' show' : '') + (rzc ? ' rz' : '');
   var hc = e.ufc ? '' : homeColor(h, lg);
-  function row(t, s, lose, tint) {
+  function row(t, s, lose, tint, which) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
       (e.ufc ? '' : logoHTML(t, lg)) + '<span class="abbr">' + esc(t.abbreviation) +
-      '</span><span class="name"><span class="nn">' + (apRank(t, lg) ? '<b class="rk">' + apRank(t, lg) + '</b>' : '') +
+      '</span>' + (inj && inj.side === which ? '<span class="injr">' + INJ_X + '</span>' : '') + '<span class="name"><span class="nn">' + (apRank(t, lg) ? '<b class="rk">' + apRank(t, lg) + '</b>' : '') +
       esc(t.short || nickname(t.name)) + '</span>' + recHTML(t, apRank(t, lg)) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
   return '<div class="' + cls + '">' + (riv ? '<div class="cardtro">' + trophyArt(riv, 'ctr') + '</div>' : '') +
     (hc ? '<div class="stripe" style="background:#' + hc + '"></div>' : '') +
     (e.wwe ? '<div class="showbox"><div class="sn">' + esc(e.show) + '</div><div class="sv">' + esc(h.name || '') + '</div></div>'
-           : row(a, sa, loseA, '') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '')) +
+           : row(a, sa, loseA, '', 'away') + row(h, sh, loseH, hc ? rgba(hc, 0.24) : '', 'home')) +
     lineHTML(e, lg) +
     '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
       '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
-    (rzc ? '<span class="rzb">' + esc(rzc.team.abbreviation) + ' RED ZONE</span>' : '') +
-    (e.live ? '<span class="lvb">LIVE</span>' : '') + esc(statusText(e, lg)) + '</div></div>';
+    (rzc && !inj ? '<span class="rzb">' + esc(rzc.team.abbreviation) + ' RED ZONE</span>' : '') +
+    (inj ? '<span class="injb">' + INJ_X + 'INJURY</span>' : (e.live ? '<span class="lvb">LIVE</span>' : '')) + esc(statusText(e, lg)) + '</div></div>';
 }
 
 /* The main screens only show what's happening now or soon: live games, games starting
@@ -3811,6 +3823,7 @@ function ptHTML(g, kind, lg) {
     var o = ''; for (var i = 0; i < 3; i++) o += '<span class="to' + (i < n ? '' : ' used') + '"></span>';
     return o;
   }
+  var inj = g.live ? injuryOf(g, lg) : null;
   function side(t, cp, which) {
     var poss = g.live && s.possession && String(s.possession) === String((cp.team || {}).id);
     var rec = recOf(cp, 'total'), split = pre ? recOf(cp, which === 'home' ? 'home' : 'road') : '';
@@ -3823,13 +3836,14 @@ function ptHTML(g, kind, lg) {
       '<div class="nm">' + (which === 'home' && poss ? '<span class="ball"><b></b><i></i></span>' : '') + (which === 'away' ? rkh : '') + esc(t.abbreviation) + (which === 'home' ? rkh : '') +
       (which === 'away' && poss ? '<span class="ball"><b></b><i></i></span>' : '') + '</div>' +
       '<div class="sub">' + (which === 'home' ? (tos ? tos + ' &nbsp; ' : '') + subTxt : subTxt + (tos ? ' &nbsp; ' + tos : '')) + '</div>' +
-      (poss && foot && CONFIG.redZone && redZoneOf(g, lg) ? '<div class="rzp">RED ZONE</div>' : '') + '</div></div>';
+      (inj && inj.side === which ? '<div class="injp">' + INJ_X + 'INJURY' + (inj.name ? ' · ' + esc(String(inj.name).toUpperCase()) : '') + '</div>' :
+       poss && foot && CONFIG.redZone && redZoneOf(g, lg) ? '<div class="rzp">RED ZONE</div>' : '') + '</div></div>';
   }
   var center = pre
     ? '<div class="clk" style="margin-top:2.4vh;letter-spacing:0.3vw">' + startWord + '</div><div class="kick">' + esc(timeStr(parseDate(g.date))) +
       '</div><div class="clk">' + esc([bc, wx].join(' · ').replace(/^ · | · $/g, '')) + '</div>'
     : '<div class="bigsc' + (Math.max(num(scoreOf(g, 'away')), num(scoreOf(g, 'home'))) >= 100 ? ' b3' : '') + '"><b class="sa">' + esc(scoreOf(g, 'away')) + '</b><span>–</span><b class="sh">' + esc(scoreOf(g, 'home')) + '</b></div><div class="clk">' +
-      (g.live ? '<span class="dot"></span>' + esc(clockText(g, lg)) : 'FINAL' + (/OT/i.test(g.detail) ? ' / OT' : '')) + '</div>';
+      (g.live ? (inj && !inj.side ? '<span class="injc">' + INJ_X + 'INJURY</span>' : '<span class="dot"></span>') + esc(clockText(g, lg)) : 'FINAL' + (/OT/i.test(g.detail) ? ' / OT' : '')) + '</div>';
   var band = '<div class="band">' + (hc ? '<div class="bstripe" style="background:#' + hc + '"></div>' : '') +
     side(a, ca, 'away') + '<div class="center">' + center + '</div>' + side(h, ch, 'home') +
     winBarHTML(g, lg, det) +
@@ -4765,6 +4779,45 @@ function reviewOf(g) {
   for (var i = R.length - 1; i >= Math.max(0, R.length - 4); i--) if (R[i] && R[i].text && (r = reviewFromPlay(R[i]))) return r;
   return null;
 }
+/* ---- injury stoppage: the newest play says a player was hurt. Shows until the next snap (a timeout
+   called during the stoppage doesn't end it). Football mostly: the basketball / hockey feeds rarely say. ---- */
+var INJ_NAME = "([A-Z][a-zA-Z'\\-]*\\.? ?[A-Z][a-zA-Z'\\-]+\\.?(?: [A-Z][a-zA-Z'\\-]+)?)";
+var INJ_RE1 = new RegExp('(?:\\b([A-Z]{2,4})-)?' + INJ_NAME + ' (?:was|is|has been) (?:injured|hurt)');
+var INJ_RE2 = new RegExp('injur(?:y|ed)(?: timeout)?[:,]? (?:to |on |for )?(?:([A-Z]{2,4})-)?' + INJ_NAME);
+var INJ_RE3 = new RegExp('(?:\\b([A-Z]{2,4})-)?' + INJ_NAME + ' \\(?injured\\)?');
+var STOPPAGE_RE = /^\s*(?:\(\d+:\d+\)\s*)?(?:timeout|official timeout|tv timeout|two[- ]minute warning)|timeout #\d/i;
+function injuryFromPlay(p) {
+  var tx = finalText((p && p.text) || '');
+  if (!/\binjur(?:y|ed|ies)\b/i.test(tx)) return null;
+  if (/returned to the game|has returned|returns? to (?:the )?(?:game|field|action)|is back in|injury report/i.test(tx)) return null;
+  var m = tx.match(INJ_RE1) || tx.match(INJ_RE2) || tx.match(INJ_RE3);
+  return { id: p.id || tx, who: m ? m[2] : '', abbr: m && m[1] ? m[1] : '' };
+}
+function injuryOf(g, lg) {
+  if (!CONFIG.injuries || !g.live || isHalftime(g)) return null;
+  var c = compOf(g), s = c && c.situation, lp = s && s.lastPlay, det = g.eid && ptDetail[g.eid], R = (det && det.recent) || [];
+  var cur = lp && lp.text ? lp : R[R.length - 1];
+  if (!cur || !cur.text) return null;
+  var inj = injuryFromPlay(cur);
+  if (!inj && STOPPAGE_RE.test(cur.text)) {                      // a timeout during the stoppage: the play before it
+    var k = -1;
+    for (var i = R.length - 1; i >= 0; i--) if (R[i] && (R[i].id === cur.id || (!cur.id && R[i].text === cur.text))) { k = i; break; }
+    for (var j = k - 1; k > 0 && j >= Math.max(0, k - 3) && !inj; j--) {
+      if (!R[j] || !R[j].text) break;
+      inj = injuryFromPlay(R[j]);
+      if (!inj && !STOPPAGE_RE.test(R[j].text)) break;
+    }
+  }
+  if (!inj) return null;
+  var a = g.teams.away, h = g.teams.home, pl = inj.who ? findPlayer(det, inj.who) : null, side = '';
+  if (pl && pl.tid) side = String(pl.tid) === String(a.tid || '') ? 'away' : (String(pl.tid) === String(h.tid || '') ? 'home' : '');
+  if (!side && pl && pl.tid && c) { var aw = sideComp(c, 'away') || {}, hm = sideComp(c, 'home') || {};
+    side = String((aw.team || {}).id) === String(pl.tid) ? 'away' : (String((hm.team || {}).id) === String(pl.tid) ? 'home' : ''); }
+  if (!side && inj.abbr) side = inj.abbr === a.abbreviation ? 'away' : (inj.abbr === h.abbreviation ? 'home' : '');
+  inj.side = side; inj.name = pl ? (pl.name || inj.who) : inj.who;
+  return inj;
+}
+var INJ_X = '<svg class="injx" viewBox="0 0 10 10"><path d="M3.6 0.5h2.8v3.1h3.1v2.8H6.4v3.1H3.6V6.4H0.5V3.6h3.1z" fill="#c8102e"/></svg>';
 var MONITOR = '<svg viewBox="0 0 60 60"><rect x="6" y="10" width="48" height="32" rx="3" fill="#0a1020" stroke="#ffffff" stroke-width="3"/>' +
   '<path d="M26 19 L38 26 L26 33 Z" fill="#ffffff"/><path d="M22 50 L38 50 M30 42 L30 50" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>';
 function reviewHTML(rv, g, lg) {
