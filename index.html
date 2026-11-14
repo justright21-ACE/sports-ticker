@@ -2319,7 +2319,9 @@ function loadUfc(cb) { loadCombat(cb); }
 function loadPromo(slug, promo, cb) {
   getJSON(ESPN_API + 'mma/' + slug + '/scoreboard', function (err, data) {
     if (err) return cb(err, []);
-    var evs = (data && data.events) || [], now = new Date().getTime(), best = null, bestT = 0, i;
+    var evs0 = (data && data.events) || [], evs = [], now = new Date().getTime(), best = null, bestT = 0, i;
+    var other = promo === 'PFL' ? /\bUFC\b|Fight Night|Noche UFC/i : /\bPFL\b|Professional Fighters/i;   // only this promotion's own cards
+    for (i = 0; i < evs0.length; i++) if (!other.test((evs0[i].name || '') + ' ' + (evs0[i].shortName || ''))) evs.push(evs0[i]);
     for (i = 0; i < evs.length; i++) {             // live event first
       var st = evs[i].status && evs[i].status.type && evs[i].status.type.state;
       if (st === 'in') { best = evs[i]; break; }
@@ -2872,7 +2874,9 @@ function combatKind(e) {
   if (e.box) return 'box';
   return e.promo === 'PFL' ? 'pfl' : 'ufc';
 }
-function combatNow() {                                    // the kind of combat card that's on now / next
+function combatNow() {                                    // the kind of combat card on screen, else the one on now / next
+  var cp = state.pages && state.pages[state.pageIndex];
+  if (cp && cp.lg === 'ufc' && cp.games && cp.games.length) return combatKind(cp.games[0]);
   var d = state.data && state.data.ufc, g = (d && d.games) || [], now = new Date().getTime(), best = null, bestT = 0, i, t;
   for (i = 0; i < g.length; i++) if (g[i].live) return combatKind(g[i]);
   for (i = 0; i < g.length; i++) { t = parseDate(g[i].date).getTime(); if (!isFinal(g[i]) && t >= now - 6 * 3600000 && (!best || t < bestT)) { best = g[i]; bestT = t; } }
@@ -2886,16 +2890,16 @@ function combatIcon(kind) {
   return COMBAT_ICONS.octagon(kind === 'pfl' ? 'PFL' : 'UFC');
 }
 /* logo in place of the league's name; the name (class lalt) only appears if the logo can't load */
-function leagueMarkHTML(lg, name, cls, noTag) {
-  var logo = leagueLogoHTML(lg, cls);
+function leagueMarkHTML(lg, name, cls, noTag, kind) {
+  var logo = leagueLogoHTML(lg, cls, kind);
   if (!logo) return '<span class="lname">' + esc(name) + '</span>';
   return logo + '<span class="lalt">' + esc(name) + '</span>' + (LEAGUE_LOGO_TAG[lg] && !noTag ? '<span class="ltag">' + LEAGUE_LOGO_TAG[lg] + '</span>' : '');
 }
 /* pro leagues: the logo named in the league's own scoreboard feed first, then ESPN's league logo folder */
 var feedLeagueLogo = {};
-function leagueLogoHTML(lg, cls) {
+function leagueLogoHTML(lg, cls, kind) {
   var keys = LEAGUE_LOGOS[lg], urls = [], i;
-  if (lg === 'ufc' && CONFIG.leagueLogos) return '<span class="' + (cls || 'llg') + ' cmb">' + combatIcon(combatNow()) + '</span>';
+  if (lg === 'ufc' && CONFIG.leagueLogos) return '<span class="' + (cls || 'llg') + ' cmb">' + combatIcon(kind || combatNow()) + '</span>';
   if (!keys || !CONFIG.leagueLogos) return '';
   if (COLLEGE_LOGO_FILES[lg]) return '<span class="' + (cls || 'llg') + ' coll"><img src="' + COLLEGE_LOGO_FILES[lg] + '" data-icon="' + lg + '" onerror="collegeLogoErr(this)" alt=""></span>';
   if (SPORT_ICONS[lg]) return '<span class="' + (cls || 'llg') + '">' + SPORT_ICONS[lg] + '</span>';
@@ -6949,9 +6953,10 @@ function renderCrawl() {
     for (var j = 0; j < all.length; j++) if (crawlRelevant(all[j], lg, today)) games.push(all[j]);
     if (!crawlFull[lg]) games = games.slice(0, CONFIG.crawlMaxPerLeague);   // college with the full list: every game
     var name = LEAGUE_NAMES[lg] || lg.toUpperCase();
-    for (var k = 0; k < games.length; k += CONFIG.crawlPerSegment) {
-      var html = '';
-      for (var m = k; m < k + CONFIG.crawlPerSegment && m < games.length; m++) {
+    for (var k = 0; k < games.length; ) {
+      var html = '', sk = lg === 'ufc' ? combatKind(games[k]) : '', m;
+      for (m = k; m < k + CONFIG.crawlPerSegment && m < games.length; m++) {
+        if (sk && combatKind(games[m]) !== sk) break;                   // COMBAT: UFC, PFL, boxing each get their own label
         var e = games[m], sx = '';
         if (CONFIG.crawlStats) {
           if (isFav(e, lg) && (e.live || isFinal(e))) sx = e.extra;   // your teams: full stats
@@ -6959,7 +6964,8 @@ function renderCrawl() {
         }
         html += crawlGameHTML(e, lg, sx);
       }
-      segs.push({ label: name, lg: lg, html: html });
+      segs.push({ label: name, lg: lg, html: html, kind: sk });
+      k = m;
     }
     if (segs.length) groups.push(segs);
   }
@@ -7020,7 +7026,7 @@ function playSegment(i) {
   state.crawlIdx = i;
   var seg = segs[i];
   var lnm = seg.lg && LEAGUE_NAMES[seg.lg], lab = esc(seg.label);
-  if (lnm && seg.label.indexOf(lnm) === 0) lab = leagueMarkHTML(seg.lg, lnm, seg.label === lnm ? 'llg lone' : 'llg') + esc(seg.label.slice(lnm.length));
+  if (lnm && seg.label.indexOf(lnm) === 0) lab = leagueMarkHTML(seg.lg, lnm, seg.label === lnm ? 'llg lone' : 'llg', false, seg.kind) + esc(seg.label.slice(lnm.length));
   $('crawllabel').innerHTML = lab;
   el.innerHTML = seg.html;
   var start = $('crawlbar').offsetWidth, w = el.offsetWidth;
