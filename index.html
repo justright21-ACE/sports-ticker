@@ -72,7 +72,7 @@
 
   /* ---------- main board ---------- */
   #board { position: absolute; top: 9vh; left: 0; right: 0; bottom: 13vh; padding: 1.6vh 1.6vw 0 1.6vw; }
-  #heading { height: 6vh; line-height: 6vh; padding: 0 0.6vw; }
+  #heading { height: 6vh; line-height: 6vh; padding: 0 0.6vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* one line, never into the cards */
   #heading .lg { font-size: 5vh; font-weight: 700; letter-spacing: 0.2vw; }
   #heading .sub { font-size: 3vh; color: #9BA3B8; margin-left: 1.2vw; font-weight: 500; }
   #heading .page { float: right; font-size: 2.6vh; color: #6f7a94; }
@@ -2348,7 +2348,13 @@ function loadPromo(slug, promo, cb) {
     if (main.length) main[0].mainEvent = true;
     var d = parseDate(best.date), day = ymd(d) === ymd(new Date()) ? 'Tonight' : DAYS[d.getDay()].charAt(0) + DAYS[d.getDay()].substr(1).toLowerCase();
     var label = (best.shortName || best.name || promo) + ' · Main card · ' + day;
-    for (i = 0; i < main.length; i++) main[i].evLabel = label;
+    // the headline name: "UFC 334" / "PFL Dubai", and its main event: "Gane vs. Hokit"
+    var full = String(best.name || ''), ci = full.indexOf(':');
+    var title = String(best.shortName || (ci > 0 ? full.slice(0, ci) : full) || promo).replace(/^\s+|\s+$/g, '');
+    var head = ci > 0 ? full.slice(ci + 1).replace(/^\s+|\s+$/g, '') : '';
+    if (title.indexOf(':') > 0) { head = head || title.slice(title.indexOf(':') + 1).replace(/^\s+/, ''); title = title.slice(0, title.indexOf(':')); }
+    if (!head && main.length) head = lastName(main[0].teams.away.name) + ' vs. ' + lastName(main[0].teams.home.name);
+    for (i = 0; i < main.length; i++) { main[i].evLabel = label; main[i].evTitle = title; main[i].evShort = title; main[i].evSub = (head ? head + ' · ' : '') + 'Main card · ' + day; }
     cb(null, main);
   });
 }
@@ -2411,7 +2417,9 @@ function fromBoxing(ev, idx) {
     date: d.toISOString(), live: false, status: fin ? 'Final' : 'Scheduled',
     detail: fin ? (res ? (res.length > 30 ? res.substr(0, 29) + '…' : res) : 'FINAL') : '',
     wclass: ev.strVenue || '', order: idx + 1, mainEvent: true, winner: '', scores: null,
-    evLabel: 'Boxing · ' + m[0].replace(/^\s+|\s+$/g, '') + ' vs ' + m[1].replace(/^\s+|\s+$/g, '') + ' · ' + day
+    evLabel: 'Boxing · ' + m[0].replace(/^\s+|\s+$/g, '') + ' vs ' + m[1].replace(/^\s+|\s+$/g, '') + ' · ' + day,
+    evTitle: fighter(m[0]).name + ' vs ' + fighter(m[1]).name, evShort: lastName(fighter(m[0]).name) + ' vs ' + lastName(fighter(m[1]).name),
+    evSub: 'Boxing' + (ev.strVenue ? ' · ' + ev.strVenue : '') + ' · ' + day
   };
 }
 /* WWE premium live events (PLEs) plus Saturday Night's Main Event; the weekly TV shows are skipped */
@@ -2438,8 +2446,13 @@ function fromWrestling(ev, idx) {
     teams: { away: { abbreviation: 'WWE', name: show, short: show, rank: 0 }, home: { abbreviation: '', name: place, short: place, rank: 0 } },
     date: d.toISOString(), live: false, status: fin ? 'Final' : 'Scheduled', detail: fin ? 'ENDED' : '',
     wclass: 'PREMIUM LIVE EVENT', order: idx + 1, mainEvent: true, winner: '', scores: null,
-    evLabel: 'WWE · ' + show + ' · ' + day
+    evLabel: 'WWE · ' + show + ' · ' + day, evTitle: show, evShort: show, evSub: 'WWE · Premium live event · ' + day
   };
+}
+var KNOWN_AS = { 'canelo alvarez': 'Canelo', 'saul alvarez': 'Canelo', 'saul canelo alvarez': 'Canelo' };   // fighters known by one name
+function lastName(n) {
+  var t = String(n || '').replace(/["']/g, '').replace(/^\s+|\s+$/g, ''), w = t.split(/\s+/);
+  return KNOWN_AS[t.toLowerCase()] || w[w.length - 1] || '';
 }
 function fromFight(c, idx, count) {
   var cps = (c.competitors || []).slice(0);
@@ -6872,8 +6885,9 @@ function renderPage() {
   renderTabs(pg.lg);
   var live = 0;
   for (var i = 0; i < pg.games.length; i++) if (pg.games[i].live) live++;
-  var sub = pg.label + (live ? ' · ' + live + ' live' : '');
-  $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span>' +
+  var sub = pg.label + (live ? ' · ' + live + ' live' : ''), big = LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase(), g0 = pg.games[0];
+  if (pg.lg === 'ufc' && g0 && g0.evTitle) { big = String(g0.evTitle.length > 22 && g0.evShort ? g0.evShort : g0.evTitle).toUpperCase(); sub = (g0.evSub || pg.label) + (live ? ' · ' + live + ' live' : ''); }   // COMBAT: the event's own name
+  $('heading').innerHTML = '<span class="lg">' + esc(big) + '</span>' +
     '<span class="sub">' + esc(sub) + '</span>' +
     (pg.of > 1 ? '<span class="page">' + pg.num + ' / ' + pg.of + '</span>' : '');
   var html = '';
@@ -6954,9 +6968,9 @@ function renderCrawl() {
     if (!crawlFull[lg]) games = games.slice(0, CONFIG.crawlMaxPerLeague);   // college with the full list: every game
     var name = LEAGUE_NAMES[lg] || lg.toUpperCase();
     for (var k = 0; k < games.length; ) {
-      var html = '', sk = lg === 'ufc' ? combatKind(games[k]) : '', m;
+      var html = '', sk = lg === 'ufc' ? combatKind(games[k]) : '', se = lg === 'ufc' ? (games[k].evShort || '') : '', m;
       for (m = k; m < k + CONFIG.crawlPerSegment && m < games.length; m++) {
-        if (sk && combatKind(games[m]) !== sk) break;                   // COMBAT: UFC, PFL, boxing each get their own label
+        if (sk && (combatKind(games[m]) !== sk || (games[m].evShort || '') !== se)) break;   // COMBAT: each event gets its own label
         var e = games[m], sx = '';
         if (CONFIG.crawlStats) {
           if (isFav(e, lg) && (e.live || isFinal(e))) sx = e.extra;   // your teams: full stats
@@ -6964,7 +6978,7 @@ function renderCrawl() {
         }
         html += crawlGameHTML(e, lg, sx);
       }
-      segs.push({ label: name, lg: lg, html: html, kind: sk });
+      segs.push({ label: name + (se ? ' ' + String(se).toUpperCase() : ''), lg: lg, html: html, kind: sk });
       k = m;
     }
     if (segs.length) groups.push(segs);
