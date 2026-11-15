@@ -392,6 +392,24 @@
   .narrow .rkrow .rt { max-width: 14vw; font-size: 2.5vh; } .narrow .rkrow .rn { font-size: 2.6vh; }
   .narrow .rkrow .rr { font-size: 2vh; width: 5.4vw; } .narrow .rkrow .cp { font-size: 2.1vh; width: 7.4vw; } .narrow .rkrow .mvt { font-size: 1.9vh; width: 4.6vw; }
   .narrow .rkh .cp, .narrow .rkh .rr, .narrow .rkh .mvt, .narrow .rkh .rt, .narrow .rkh .rn { font-size: 1.5vh; }
+  /* golf leaderboard / soccer table: built on the rankings rows */
+  .rank.pr .rkrow .gt { display: inline-block; width: 4.8vw; text-align: right; font-size: 2.7vh; font-weight: 800; }
+  .rank.pr .rkrow .gt.u { color: #ff6b6b; } .rank.pr .rkrow .gt.e { color: #dfe4ee; } .rank.pr .rkrow .gt.o { color: #7bd88f; }
+  .rank.pr .rkrow .gd { display: inline-block; width: 4.4vw; text-align: right; font-size: 2.3vh; color: #c9d0e0; }
+  .rank.pr .rkrow .gth { display: inline-block; width: 4vw; text-align: right; font-size: 2.2vh; color: #9FA9BD; }
+  .rank.pr .rkh .gt, .rank.pr .rkh .gd, .rank.pr .rkh .gth { font-size: 1.9vh; color: #9FA9BD; font-weight: 600; }
+  .rank.pr .rkrow .fl { display: inline-block; width: 3vh; height: 2vh; margin-right: 0.6vw; vertical-align: middle; border-radius: 0.3vh; background-size: cover; background-position: center; }
+  .rank.pr.golf .rkrow .rt { max-width: 17vw; }
+  .rank.pr .rkrow.cutl { border-bottom: 0.35vh dashed #ff6b6b; }
+  .narrow .rank.pr .rkrow .gt { width: 6vw; font-size: 2.2vh; } .narrow .rank.pr .rkrow .gd { width: 5.6vw; font-size: 1.9vh; } .narrow .rank.pr .rkrow .gth { width: 5vw; font-size: 1.8vh; }
+  .narrow .rank.pr.golf .rkrow .rt { max-width: 13vw; }
+  .rank.pr.golf .rkrow .gd { width: 5.6vw; } .rank.pr.golf .rkrow .gth { width: 4.6vw; }
+  .rank.pr.golf .rkrow .rn { width: 4.2vw; font-size: 2.5vh; } .rank.pr.golf .rkh .rn { font-size: 1.9vh; }
+  .narrow .rank.pr.golf .rkrow .rn { width: 5.4vw; font-size: 2.1vh; } .narrow .rank.pr.golf .rkh .rn { font-size: 1.5vh; }
+  .narrow .rank.pr.tbl .rkrow .gd { width: 4.1vw; font-size: 1.8vh; } .narrow .rank.pr.tbl .rkrow .gt { width: 4.6vw; }
+  .narrow .rank.pr.tbl .rkrow .rt { max-width: 11vw; font-size: 2.1vh; } .narrow .rank.pr.tbl .rkh .gd { font-size: 1.5vh; }
+  .rank .rkvotes.gnote { padding-top: 0.8vh; }
+  .gteam { text-align: center; padding-top: 10vh; } .gteam div { display: inline-block; width: 40%; } .gteam b { display: block; font-size: 5vh; } .gteam i { display: block; font-style: normal; font-size: 14vh; font-weight: 800; color: #f5b800; }
   /* NFL power rankings: all 32 teams, 16 a column */
   .rank.pr .rkrow { height: 3.85vh; line-height: 3.85vh; }
   .rank.pr .rkrow.rkh { height: 3vh; line-height: 3vh; }
@@ -1316,11 +1334,13 @@ var CONFIG = {
   //   From SportsBlaze: nfl, nba, mlb, wnba
   //   From ESPN:        ncaaf (college football), ncaab (men's college basketball), nhl,
   //                     ufc = COMBAT tab: UFC + PFL main cards, plus major boxing and WWE premium live events (TheSportsDB)
-  leagues: ['nfl', 'ncaaf', 'nba', 'nhl', 'mlb', 'wnba', 'ufc'],
+  leagues: ['nfl', 'ncaaf', 'nba', 'ncaab', 'nhl', 'mlb', 'wnba', 'ufc', 'epl', 'ucl'],
 
   // Season change: starting on this date, WNBA comes off and men's college basketball
   // goes on (right after the NBA). Happens by itself; no update needed that day.
-  seasonSwitch: { on: '2026-11-01', remove: 'wnba', add: 'ncaab', after: 'nba' },
+  // leagues that only belong on the board part of the year (months 1-12): college hoops Nov-Apr, the WNBA May-Oct
+  leagueMonths: { ncaab: [11, 12, 1, 2, 3, 4], wnba: [5, 6, 7, 8, 9, 10] },
+  wnbaCloseOnly: true,   // WNBA regular season: no tab, cards or bottom bar, only a CLOSE screen for a game within 5 in the last 5 minutes / OT; the full league shows in the playoffs (?wnba=all)
 
   // Men's college basketball: 'top25' = games with a ranked team, 'all' = every Division I game
   cbb: 'top25',
@@ -1368,6 +1388,8 @@ var CONFIG = {
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
+  golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
+  eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
   nflPower: true,        // NFL power rankings screen (ESPN's Football Power Index, all 32 teams) in the NFL rotation (?power=0 off)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   headshots: true,       // player photos on the leaders, inactives and bottom-bar injuries (?headshots=0 off)
@@ -1474,10 +1496,12 @@ var CONFIG = {
 var API = 'https://cache.sportsblaze.com';
 var ESPN_API = 'https://site.api.espn.com/apis/site/v2/sports/';
 var ESPN_PATHS = { ncaaf: 'football/college-football', ncaab: 'basketball/mens-college-basketball', nhl: 'hockey/nhl',
-                   nfl: 'football/nfl', nba: 'basketball/nba', mlb: 'baseball/mlb', wnba: 'basketball/wnba' };
+                   nfl: 'football/nfl', nba: 'basketball/nba', mlb: 'baseball/mlb', wnba: 'basketball/wnba',
+                   epl: 'soccer/eng.1', ucl: 'soccer/uefa.champions' };
 /* Leagues SportsBlaze also carries: used as a backup only if ESPN can't be reached. */
 var SB_LEAGUES = { nfl: true, nba: true, mlb: true, wnba: true };
-var LEAGUE_NAMES = { nfl: 'NFL', nba: 'NBA', mlb: 'MLB', wnba: 'WNBA', ncaaf: 'NCAAF', ncaab: 'NCAAB', nhl: 'NHL', ufc: 'COMBAT' };
+var LEAGUE_NAMES = { nfl: 'NFL', nba: 'NBA', mlb: 'MLB', wnba: 'WNBA', ncaaf: 'NCAAF', ncaab: 'NCAAB', nhl: 'NHL', ufc: 'COMBAT', epl: 'EPL', ucl: 'UCL' };
+var SOCCER = { epl: 1, ucl: 1 };
 var DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 var MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -1521,7 +1545,8 @@ function readParams() {
   for (var i = 0; i < q.length; i++) {
     var kv = q[i].split('='), k = kv[0], v = decodeURIComponent(kv[1] || '');
     if (!k) continue;
-    if (k === 'leagues' && v) { CONFIG.leagues = v.toLowerCase().split(','); CONFIG.seasonSwitch = null; }
+    if (k === 'leagues' && v) { CONFIG.leagues = v.toLowerCase().split(','); CONFIG.leagueMonths = null; }
+    if (k === 'wnba') CONFIG.wnbaCloseOnly = v !== 'all';
     if (k === 'cbb' && v) CONFIG.cbb = v.toLowerCase();
     if (k === 'cbbgood') CONFIG.cbbGood = v !== '0';
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
@@ -1555,6 +1580,8 @@ function readParams() {
     if (k === 'flags') CONFIG.bigPenalties = v !== '0';
     if (k === 'reviews') CONFIG.reviews = v !== '0';
     if (k === 'power') CONFIG.nflPower = v !== '0';
+    if (k === 'golf') CONFIG.golf = v !== '0';
+    if (k === 'epltable') CONFIG.eplTable = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
     if (k === 'specialdays') CONFIG.specialDays = v !== '0';
     if (k === 'h2h') CONFIG.h2h = v !== '0';
@@ -2044,7 +2071,7 @@ function fromEspn(ev, lg) {
   return {
     id: 'espn' + ev.id, teams: teams, date: ev.date, live: live,
     status: live ? (desc || 'In Progress') : (fin ? 'Final' : (desc || 'Scheduled')),
-    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in' || post)) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg)) || (lg === 'nba' && state === 'in' && nbaNationalTv(c))) ? ev : null,
+    detail: ty.shortDetail || '', espn: true, eid: ev.id, raw: (lg === 'nfl' || (lg === 'mlb' && /WORLD SERIES/.test(tag)) || (lg === 'ncaaf' && (favEv(ev) || state === 'in' || post)) || (lg === 'ncaab' && state === 'in' && rankedEv(ev)) || ((lg === 'nba' || lg === 'nhl' || lg === 'mlb') && favEv(ev, lg)) || (lg === 'nba' && state === 'in' && nbaNationalTv(c)) || (lg === 'wnba' && state === 'in')) ? ev : null, wnba: lg === 'wnba',
     tag: tag, series: ser ? (ser.summary || '') : '', serDone: !!(ser && ser.completed),
     ntv: lg === 'nba' ? nbaNationalTv(c) : '', post: post,
     tv: (lg === 'nba' && nbaNationalTv(c)) || (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || '', venue: (c.venue && c.venue.fullName) || '',
@@ -2907,7 +2934,8 @@ function patternLogo(t, lg) {
   return 'https://a.espncdn.com/i/teamlogos/' + dir + '/500/' + (LOGO_ABBR[ab] || ab.toLowerCase()) + '.png';
 }
 /* league logos for the bottom bar (from ESPN, like the team logos); hidden if none loads */
-var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaaf'], ncaab: ['ncaab'] };   // COMBAT gets a drawn icon (combatIcon)
+var LEAGUE_LOGOS = { nfl: ['nfl'], nba: ['nba'], mlb: ['mlb'], nhl: ['nhl'], wnba: ['wnba'], ncaaf: ['ncaaf'], ncaab: ['ncaab'], epl: [], ucl: [] };
+var SOCCER_LOGOS = { epl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/23.png', ucl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2.png' };   // COMBAT gets a drawn icon (combatIcon)
 /* college gets a football / basketball icon plus CFB / CBB, so it isn't mistaken for the NFL or NBA */
 var LEAGUE_LOGO_TAG = { ncaaf: 'CFB', ncaab: 'CBB' };
 /* college: the NCAA football / basketball logos saved with the site (img/), and if one of those can't
@@ -2974,6 +3002,7 @@ function leagueLogoHTML(lg, cls, kind) {
   if (COLLEGE_LOGO_FILES[lg]) return '<span class="' + (cls || 'llg') + ' coll"><img src="' + COLLEGE_LOGO_FILES[lg] + '" data-icon="' + lg + '" onerror="collegeLogoErr(this)" alt=""></span>';
   if (SPORT_ICONS[lg]) return '<span class="' + (cls || 'llg') + '">' + SPORT_ICONS[lg] + '</span>';
   if (feedLeagueLogo[lg]) urls.push(feedLeagueLogo[lg]);
+  if (SOCCER_LOGOS[lg]) { urls.push('https://a.espncdn.com/combiner/i?img=' + SOCCER_LOGOS[lg].replace('https://a.espncdn.com', '') + '&w=80&h=80'); urls.push(SOCCER_LOGOS[lg]); }
   for (i = 0; i < keys.length; i++) { var path = '/i/teamlogos/leagues/500/' + keys[i] + '.png'; urls.push('https://a.espncdn.com/combiner/i?img=' + path + '&w=80&h=80'); urls.push('https://a.espncdn.com' + path); }
   return '<span class="' + (cls || 'llg') + '"><img src="' + esc(urls[0]) + '" data-next="' + esc(urls.slice(1).join('|')) + '" onerror="leagueLogoErr(this)" onload="if (this.naturalWidth < 8) leagueLogoErr(this)" alt=""></span>';
 }
@@ -3176,6 +3205,7 @@ function buildPages() {
   var pages = [], order = leagueOrder();
   for (var i = 0; i < order.length; i++) {
     var lg = order[i], wg = windowGames(lg);
+    if (hiddenLeague(lg)) continue;                    // WNBA regular season: close games only (they have their own screen)
     if (lg === 'nfl' && singleNflNight()) {          // one primetime game: it has its own screen; this tab = standings + leaders
       pages = pages.concat(nflPowerPage()).concat(standingsPages(lg));
       var lgrp = ['off', 'def'];
@@ -3191,6 +3221,7 @@ function buildPages() {
       else if (rankingsFor(lg) && !seasonOver(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
         pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
       if (lg === 'nfl') pages = pages.concat(nflPowerPage());
+      if (lg === 'epl') pages = pages.concat(eplTablePage());
       pages = pages.concat(standingsPages(lg));
       continue;
     }
@@ -3235,14 +3266,17 @@ function buildPages() {
     else if (rankingsFor(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
       pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
     if (lg === 'nfl') pages = pages.concat(nflPowerPage());
+    if (lg === 'epl') pages = pages.concat(eplTablePage());
     pages = pages.concat(standingsPages(lg));
   }
+  var gmaj = golfFeatured() ? golfPages() : [];                  // golf: a major while play is on comes back like a primetime game
+  if (!gmaj.length) pages = pages.concat(golfPages());
   for (var q = 0; q < pages.length; q++) if (!pages[q].key) pages[q].key = pages[q].lg + ':' + pages[q].num;
   // featured games (NFL primetime, World Series): during the game they come back after every other
   // screen; otherwise once per loop
   var ftg = featuredGames();
-  if (ftg.length) {
-    var ptPages = [], live = false;
+  if (ftg.length || gmaj.length) {
+    var ptPages = [], live = gmaj.length > 0;
     for (var r = 0; r < ftg.length; r++) {
       if (ftg[r].g.live) live = true;
       ptPages.push({ pt: true, lg: ftg[r].lg, game: ftg[r].g, kind: ftg[r].kind,
@@ -3252,8 +3286,9 @@ function buildPages() {
     var mixed = [], n = 0;
     var inxIds = {}, ig = inactivesGames();
     for (var ii = 0; ii < ig.length; ii++) inxIds[ig[ii].id] = 1;
-    var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = 'pt:' + ptPages[z].game.id + ':' + (n++); mixed.push(c);
-        if (inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
+    for (var gz = 0; gz < gmaj.length; gz++) ptPages.push(gmaj[gz]);
+    var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = (ptPages[z].game ? 'pt:' + ptPages[z].game.id : 'golf') + ':' + (n++); mixed.push(c);
+        if (ptPages[z].game && inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
     addPt();
     for (var x = 0; x < pages.length; x++) { mixed.push(pages[x]); if (live && x % 2 === 1 && x < pages.length - 1) addPt(); }
     pages = mixed;
@@ -3293,14 +3328,17 @@ function renderTabs(activeLg) {
   for (var c2 = 0; c2 < codes.length; c2++) {
     html += '<span class="tab pt' + (activeLg === 'pt:' + codes[c2] ? ' on' : '') + '">' + (liveBy[codes[c2]] ? '<i></i>' : '') + codes[c2] + '</span>';
   }
+  var gtab = golfOn() ? '<span class="tab' + (golf.ev.major ? ' pt' : '') + (activeLg === 'golf' ? ' on' : '') + '">' + (golf.ev.state === 'in' ? '<i></i>' : '') + esc(golfTab()) + '</span>' : '';
+  if (gtab && golf.ev.major) { html += gtab; gtab = ''; }          // a major sits up front with the big games
   var order = leagueOrder();
   for (var i = 0; i < order.length; i++) {
     var lg = order[i];
-    if (seasonOver(lg)) continue;
+    if (seasonOver(lg) || hiddenLeague(lg) || quietLeague(lg)) continue;
     var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length && !(lg === 'ncaab' && bracketPages().length) ? ' empty' : '');
     var tnm = LEAGUE_NAMES[lg] || lg.toUpperCase();
     html += '<span class="' + cls + (CONFIG.leagueLogos ? ' lgo' : '') + '">' + (CONFIG.leagueLogos ? leagueMarkHTML(lg, tnm, 'tl', true) : tnm) + '</span>';
   }
+  html += gtab;
   $('tabs').innerHTML = html;
   fitTabs();
 }
@@ -3487,6 +3525,13 @@ function nbaCloseCond(g) {
   if (q === 4) { var cs = clockSecs(g); if (cs < 0 || cs > CONFIG.nbaCloseMin * 60) return false; }
   return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= CONFIG.nbaClosePts;
 }
+function wnbaCloseCond(g) {
+  if (!CONFIG.nbaClose || !g.live || isHalftime(g)) return false;
+  var q = quarterOf(g) || g.per || 0;
+  if (q < 4) return false;
+  if (q === 4) { var cs = clockSecs(g); if (cs < 0 || cs > CONFIG.nbaCloseMin * 60) return false; }
+  return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= CONFIG.nbaClosePts;
+}
 function loadMajorCbb(cb) {
   var now = new Date(), t = now.getTime(), mo = now.getMonth();
   if (DEMO || !CONFIG.cbbClose || CONFIG.cbb === 'all' || !inList(CONFIG.leagues, 'ncaab') ||
@@ -3535,6 +3580,7 @@ function closeGames(lg) {
     var g = list[i];
     if (ownIds[g.id]) continue;                                          // (Bulls / Spurs keep their own screen)
     if (lg === 'nba') { if (nbaCloseCond(g)) out.push(g); continue; }   // NBA: national TV, within 5 in the last 5 minutes / OT
+    if (lg === 'wnba') { if (wnbaCloseCond(g)) out.push(g); continue; } // WNBA: any game, within 5 in the last 5 minutes / OT
     if (closeGrace[g.id] && closeGrace[g.id] > new Date().getTime()) { out.push(g); continue; }   // just scored: stays a moment
     if (upsetOf(g, lg)) { out.push(g); continue; }                       // an upset in the 2nd half, any margin (own UPSET screen)
     if (lg === 'ncaab') { if (cbbCloseCond(g)) out.push(g); continue; }  // hoops: within 5 in the last 5 minutes / OT
@@ -3545,7 +3591,7 @@ function closeGames(lg) {
     if (Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) > 8) continue;
     out.push(g);
   }
-  if (lg === 'nba' && out.length > 1) {                                  // the closest first, then the least time left
+  if ((lg === 'nba' || lg === 'wnba') && out.length > 1) {                                  // the closest first, then the least time left
     out.sort(function (x, y) {
       var dx = Math.abs(num(scoreOf(x, 'home')) - num(scoreOf(x, 'away'))), dy = Math.abs(num(scoreOf(y, 'home')) - num(scoreOf(y, 'away')));
       if (dx !== dy) return dx - dy;
@@ -3633,6 +3679,7 @@ function closeCond(g, lg) {
 function closeKind(g, lg) {
   var up = upsetOf(g, lg);
   var QN = ['', '1st Quarter', '2nd Quarter', '3rd Quarter', '4th Quarter'];
+  if (lg === 'wnba') return ['CLOSE', 'WNBA · ' + (quarterOf(g) > 4 ? 'Overtime' : '4th Quarter') + ' · Close Game'];
   if (lg === 'nba') return ['CLOSE', 'NBA · ' + (quarterOf(g) > 4 ? (quarterOf(g) > 5 ? (quarterOf(g) - 4) + 'OT' : 'Overtime') : '4th Quarter') + ' · Close Game'];   // the network shows next to it
   if (lg === 'ncaab') {
     if (!up) return ['CLOSE', 'College Basketball · ' + (quarterOf(g) > 2 ? 'Overtime' : '2nd Half') + ' · Close Game'];
@@ -3698,7 +3745,7 @@ function favKind(g, lg) {
 /* an UPSET gets the primetime treatment: 90 s a time while live (back after every other screen), then
    once per loop for a few minutes after the final; a CLOSE game 45 s */
 function closeHold(g, kind, lg) {
-  if (lg === 'nba') return CONFIG.nbaHoldSec;
+  if (lg === 'nba' || lg === 'wnba') return CONFIG.nbaHoldSec;
   var hoops = lg === 'ncaab';
   if (kind[0] !== 'UPSET') return hoops ? CONFIG.cbbHoldSec : CONFIG.closeHoldSec;
   return g.live ? (hoops ? CONFIG.cbbUpsetHoldSec : CONFIG.upsetHoldSec) : CONFIG.primetimeHoldPre;
@@ -3711,10 +3758,10 @@ function featuredGames() {
   for (i = 0; i < bw.length; i++) { bk = bowlKind(bw[i]); out.push({ g: bw[i], lg: 'ncaaf', kind: bk, hold: bw[i].live ? (bk[0] === 'CFP' ? CONFIG.primetimeHoldLive : CONFIG.closeHoldSec) : CONFIG.primetimeHoldPre }); }
   for (i = 0; i < fv.length; i++) out.push(fv[i]);
   for (i = 0; i < cn.length; i++) { var nk = closeKind(cn[i], 'nfl'); out.push({ g: cn[i], lg: 'nfl', kind: nk, hold: closeHold(cn[i], nk, 'nfl') }); }
-  var cb2 = closeGames('ncaab'), nb = closeGames('nba'), ck;
+  var cb2 = closeGames('ncaab'), nb = closeGames('nba').concat(closeGames('wnba')), ck;
   for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck, 'ncaaf') }); }
   for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck, 'ncaab'), upset: true }); }
-  for (i = 0; i < nb.length; i++) { ck = closeKind(nb[i], 'nba'); out.push({ g: nb[i], lg: 'nba', kind: ck, hold: closeHold(nb[i], ck, 'nba') }); }
+  for (i = 0; i < nb.length; i++) { var nlg = nb[i].wnba ? 'wnba' : 'nba'; ck = closeKind(nb[i], nlg); out.push({ g: nb[i], lg: nlg, kind: ck, hold: closeHold(nb[i], ck, nlg) }); }
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i].g, lg: ws[i].lg, kind: ws[i].kind });
   return out;
 }
@@ -3739,7 +3786,8 @@ function loadPtDetails(cb) {
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   var cbb = closeGames('ncaab');
   for (var jb = 0; jb < cbb.length; jb++) { games.push(cbb[jb]); path[cbb[jb].id] = 'basketball/mens-college-basketball'; }
-  var nbc = closeGames('nba');
+  var nbc = closeGames('nba'), wbc = closeGames('wnba');
+  for (var jw = 0; jw < wbc.length; jw++) { games.push(wbc[jw]); path[wbc[jw].id] = 'basketball/wnba'; }
   for (var jn = 0; jn < nbc.length; jn++) { games.push(nbc[jn]); path[nbc[jn].id] = 'basketball/nba'; }
   var fvd = favScreenGames(), FAVPATH = { nfl: 'football/nfl', nba: 'basketball/nba', nhl: 'hockey/nhl' };
   for (var fk = 0; fk < fvd.length; fk++) if (FAVPATH[fvd[fk].lg]) { games.push(fvd[fk].g); path[fvd[fk].g.id] = FAVPATH[fvd[fk].lg]; }
@@ -6233,6 +6281,167 @@ function nflPowerHTML() {
   }
   return '<div class="rank pr"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
 }
+/* =================== PREMIER LEAGUE TABLE =================== */
+var eplTable = { at: 0, rows: [] };
+function loadEplTable(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !CONFIG.eplTable || !inList(CONFIG.leagues, 'epl') || now - eplTable.at < 3 * 3600000) return cb();
+  eplTable.at = now;
+  getJSON('https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings?_=' + Math.floor(now / 3600000), function (err, data) {
+    var rows = [];
+    (function walk(n) {
+      if (!n || typeof n !== 'object') return;
+      var en = (n.standings && n.standings.entries) || [];
+      for (var i = 0; i < en.length; i++) {
+        var t = en[i].team || {}, st = en[i].stats || [], v = {};
+        for (var j = 0; j < st.length; j++) v[st[j].name || st[j].type] = st[j].value !== undefined ? st[j].value : st[j].displayValue;
+        rows.push({ team: { abbreviation: t.abbreviation || '', name: t.shortDisplayName || t.displayName || t.name || '', tid: String(t.id || ''),
+                            logo: (t.logos && t.logos[0] && t.logos[0].href) || '' },
+                    p: v.gamesPlayed, w: v.wins, d: v.ties, l: v.losses, gd: v.pointDifferential, pts: v.points, rk: +v.rank || 0 });
+      }
+      var ch = n.children || [];
+      for (var c = 0; c < ch.length; c++) walk(ch[c]);
+    })(err ? null : data);
+    if (rows.length >= 10) {
+      rows.sort(function (a, b) { return (a.rk && b.rk) ? a.rk - b.rk : (+b.pts - +a.pts) || (+b.gd - +a.gd); });
+      eplTable.rows = rows;
+    }
+    cb();
+  });
+}
+function eplTablePage() {
+  var mo = new Date().getMonth();
+  return CONFIG.eplTable && eplTable.rows.length >= 10 && mo !== 5 && mo !== 6 ? [{ lg: 'epl', table: true, hold: CONFIG.rankHoldSec, num: 'table', of: 1, games: [] }] : [];
+}
+function eplTableHTML() {
+  var L = eplTable.rows, half = Math.ceil(L.length / 2), cols = ['', ''];
+  var head = '<div class="rkrow rkh"><span class="rn">#</span><span class="rt">CLUB</span><span class="rkr"><span class="gd">P</span><span class="gd">W</span><span class="gd">D</span><span class="gd">L</span>' +
+             '<span class="gd">GD</span><span class="gt">PTS</span></span></div>';
+  for (var i = 0; i < L.length; i++) {
+    var r = L[i], gd = +r.gd;
+    cols[i < half ? 0 : 1] += '<div class="rkrow' + (i === 3 || i === L.length - 4 ? ' cutl' : '') + '"><span class="rn">' + (i + 1) + '</span>' + logoHTML(r.team, 'epl') +
+      '<span class="rt">' + esc(r.team.name) + '</span><span class="rkr"><span class="gd">' + esc(r.p) + '</span><span class="gd">' + esc(r.w) + '</span><span class="gd">' + esc(r.d) + '</span>' +
+      '<span class="gd">' + esc(r.l) + '</span><span class="gd">' + (gd > 0 ? '+' : '') + esc(isNaN(gd) ? r.gd : gd) + '</span><span class="gt e">' + esc(r.pts) + '</span></span></div>';
+  }
+  return '<div class="rank pr tbl"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div>' +
+         '<div class="rkvotes gnote"><b>TOP 4</b>Champions League &nbsp;&middot;&nbsp; <b>BOTTOM 3</b>relegated</div></div>';
+}
+/* soccer tabs only while there's something to show: games in the next day, or (Premier League) the table in season */
+function quietLeague(lg) {
+  if (!SOCCER[lg] || windowGames(lg).length) return false;
+  return !(lg === 'epl' && eplTablePage().length);
+}
+
+/* =================== GOLF (PGA Tour) ===================
+   ESPN's PGA Tour scoreboard: the tournament that's on (Thursday to Sunday), its leaderboard (top 20: place,
+   player, total to par, today's round, holes played) on the GOLF tab, and the leaders in the bottom bar.
+   The majors and the Ryder Cup get their own tab (MASTERS, PGA CHAMP, U.S. OPEN, THE OPEN, RYDER CUP) and,
+   while play is on, come back after every other screen like a primetime game. */
+var golf = { at: 0, ev: null };
+var GOLF_MAJORS = [[/masters/i, 'MASTERS', 'The Masters'], [/^pga championship/i, 'PGA CHAMP', 'PGA Championship'],
+                   [/^u\.?\s?s\.? open/i, 'U.S. OPEN', 'U.S. Open'], [/^(the )?open( championship)?$|^the \d+\w* open( championship)?$/i, 'THE OPEN', 'The Open'],
+                   [/ryder cup/i, 'RYDER CUP', 'Ryder Cup']];
+function golfMajorOf(name) { for (var i = 0; i < GOLF_MAJORS.length; i++) if (GOLF_MAJORS[i][0].test(String(name || '').replace(/^\s+|\s+$/g, ''))) return GOLF_MAJORS[i]; return null; }
+function parNum(v) { v = String(v == null ? '' : v).replace(/^\s+|\s+$/g, ''); if (/^(E|even)$/i.test(v)) return 0; var n = parseFloat(v); return isNaN(n) ? null : n; }
+function parTxt(n) { return n === null || n === undefined ? '' : (n === 0 ? 'E' : (n > 0 ? '+' + n : String(n))); }
+function golfParse(ev) {
+  var c = (ev.competitions && ev.competitions[0]) || {}, st = ev.status || c.status || {}, ty = st.type || {}, rd = +st.period || 0;
+  var cps = c.competitors || [], rows = [], i;
+  for (i = 0; i < cps.length; i++) {
+    var cp = cps[i], at = cp.athlete || {}, tm = cp.team || {}, cs = cp.status || {};
+    var sc = cp.score; if (sc && typeof sc === 'object') sc = sc.displayValue !== undefined ? sc.displayValue : sc.value;
+    var ls = cp.linescores || [], today = null, holes = '';
+    for (var j = 0; j < ls.length; j++) if ((+ls[j].period || j + 1) === rd) {
+      var dv = ls[j].displayValue;
+      today = parNum(dv);
+      if (today !== null && Math.abs(today) > 30) today = null;                // strokes, not to par
+    }
+    if (cs.thru !== undefined && cs.thru !== null && cs.thru !== '') holes = +cs.thru >= 18 ? 'F' : String(cs.thru);
+    else if (cs.displayValue && /^(F|\d{1,2}\*?)$/.test(cs.displayValue)) holes = cs.displayValue;
+    var out = /cut|wd|dq|mdf/i.test(String((cs.type && (cs.type.name || cs.type.description)) || '') + ' ' + (cs.displayValue || ''));
+    rows.push({ name: at.displayName || at.fullName || tm.displayName || '', last: at.lastName || '', flag: (at.flag && at.flag.href) || '',
+                tot: parNum(sc), totS: sc, today: today, thru: holes, pos: (cs.position && (cs.position.displayName || '')) || '', order: +cp.order || +cp.sortOrder || 0, out: out, team: !!cp.team && !cp.athlete });
+  }
+  rows.sort(function (a, b) {
+    if (a.out !== b.out) return a.out ? 1 : -1;
+    if (a.order && b.order) return a.order - b.order;
+    return (a.tot === null ? 999 : a.tot) - (b.tot === null ? 999 : b.tot);
+  });
+  for (i = 0; i < rows.length; i++) if (!rows[i].pos && !rows[i].out && rows[i].tot !== null) {   // place, with ties: T3
+    var first = i; while (first > 0 && rows[first - 1].tot === rows[i].tot) first--;
+    var tie = (i > 0 && rows[i - 1].tot === rows[i].tot) || (i + 1 < rows.length && rows[i + 1].tot === rows[i].tot);
+    rows[i].pos = (tie ? 'T' : '') + (first + 1);
+  }
+  var crs = (ev.courses && ev.courses[0]) || (c.venue) || {};
+  return { id: ev.id, name: ev.name || '', short: ev.shortName || ev.name || '', state: ty.state || '', detail: ty.detail || ty.shortDetail || ty.description || '',
+           round: rd, start: parseDate(ev.date).getTime(), end: parseDate(ev.endDate || ev.date).getTime() + (ev.endDate ? 0 : 4 * 86400000),
+           venue: crs.name || crs.fullName || '', major: golfMajorOf(ev.name || ev.shortName), rows: rows, teams: rows.length === 2 && rows[0].team };
+}
+function loadGolf(cb) {
+  var now = new Date().getTime(), live = golf.ev && golf.ev.state === 'in';
+  if (DEMO || !CONFIG.golf || now - golf.at < (live ? 3 : 30) * 60000) return cb();
+  golf.at = now;
+  getJSON(ESPN_API + 'golf/pga/scoreboard?_=' + Math.floor(now / 60000), function (err, data) {
+    if (err || !data) return cb();                                   // keep the last good copy
+    var evs = data.events || [], best = null, bestScore = -1;
+    for (var i = 0; i < evs.length; i++) {
+      var g = golfParse(evs[i]), sc = g.state === 'in' ? 3 : (g.state === 'post' ? 2 : 1);
+      if (g.major && sc === 3) sc = 4;
+      if (sc > bestScore) { best = g; bestScore = sc; }
+    }
+    golf.ev = best;
+    cb();
+  });
+}
+function golfOn() {
+  var e = golf.ev, now = new Date().getTime();
+  if (!CONFIG.golf || !e || !e.rows.length) return false;
+  if (e.state === 'in') return true;
+  if (e.state === 'post') return now - Math.max(e.end, e.start) < 30 * 3600000 && now - e.start < 6 * 86400000;   // the final leaderboard until the next morning
+  return e.start - now < 12 * 3600000 && e.start - now > -86400000;                                                  // the field, the morning it starts
+}
+function golfTab() { return golf.ev && golf.ev.major ? golf.ev.major[1] : 'GOLF'; }
+function golfPages() { return golfOn() ? [{ lg: 'golf', golf: true, hold: golf.ev.major ? 40 : 25, num: 'golf', of: 1, games: [], key: 'golf:board' }] : []; }
+function golfFeatured() { return golfOn() && golf.ev.major && golf.ev.state === 'in'; }
+function golfHeading() {
+  var e = golf.ev, rnd = e.round ? 'Round ' + e.round : '', det = String(e.detail || '');
+  var st = e.state === 'post' ? 'Final' : (/complete|suspend|delay/i.test(det) ? det.replace(/^Round \d+\s*-\s*/i, '') : (e.state === 'in' ? 'Live' : 'Starts ' + timeStr(new Date(e.start))));
+  var big = e.major ? e.major[2].toUpperCase() : 'GOLF';
+  var parts = [e.major ? '' : e.name, rnd && e.state !== 'pre' ? rnd + ' · ' + st : st, e.venue], keep = [];
+  for (var i = 0; i < parts.length; i++) if (parts[i]) keep.push(parts[i]);
+  return '<span class="lg">' + esc(big) + '</span><span class="sub">' + esc(keep.join(' · ')) + '</span>';
+}
+function golfHTML() {
+  var e = golf.ev, R = e.rows;
+  if (e.teams) {                                                   // Ryder Cup: two teams, one score each
+    var a = R[0], b = R[1];
+    return '<div class="rank pr golf"><div class="gteam"><div><b>' + esc(a.name) + '</b><i>' + esc(a.totS) + '</i></div><div><b>' + esc(b.name) + '</b><i>' + esc(b.totS) + '</i></div></div></div>';
+  }
+  var top = [], i, anyThru = false, anyToday = false;
+  for (i = 0; i < R.length && top.length < 20; i++) if (!R[i].out) { top.push(R[i]); if (R[i].thru) anyThru = true; if (R[i].today !== null) anyToday = true; }
+  var half = Math.ceil(top.length / 2), cols = ['', ''];
+  var head = '<div class="rkrow rkh"><span class="rn">POS</span><span class="rt">PLAYER</span><span class="rkr"><span class="gt">TOT</span>' +
+             (anyToday ? '<span class="gd">TODAY</span>' : '') + (anyThru ? '<span class="gth">THRU</span>' : '') + '</span></div>';
+  var cl = function (n) { return n === null ? '' : (n < 0 ? ' u' : (n === 0 ? ' e' : ' o')); };
+  for (i = 0; i < top.length; i++) {
+    var r = top[i];
+    cols[i < half ? 0 : 1] += '<div class="rkrow"><span class="rn">' + esc(r.pos) + '</span>' + (r.flag ? '<span class="fl" style="background-image:url(\'' + esc(r.flag).replace(/'/g, '%27') + '\')"></span>' : '') +
+      '<span class="rt">' + esc(r.name) + '</span><span class="rkr"><span class="gt' + cl(r.tot) + '">' + esc(r.tot === null ? (r.totS || '') : parTxt(r.tot)) + '</span>' +
+      (anyToday ? '<span class="gd">' + esc(parTxt(r.today)) + '</span>' : '') + (anyThru ? '<span class="gth">' + esc(r.thru) + '</span>' : '') + '</span></div>';
+  }
+  return '<div class="rank pr golf"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
+}
+function golfCrawlSeg() {
+  if (!golfOn()) return null;
+  var e = golf.ev, R = e.rows, html = '', n = 0;
+  if (e.teams) html = '<span class="g">' + esc(R[0].name + ' ' + R[0].totS + '  ' + R[1].name + ' ' + R[1].totS) + '</span>';
+  else for (var i = 0; i < R.length && n < 10; i++) if (!R[i].out) {
+    n++;
+    html += '<span class="g">' + esc(R[i].pos + ' ' + String(R[i].last || R[i].name.split(' ').pop()).toUpperCase() + ' ' + (R[i].tot === null ? (R[i].totS || '') : parTxt(R[i].tot))) +
+            (R[i].thru ? '<span class="st' + (e.state === 'in' && R[i].thru !== 'F' ? ' lv' : '') + '">' + esc(R[i].thru === 'F' ? 'F' : 'THRU ' + R[i].thru) + '</span>' : '') + '</span>';
+  }
+  return html ? { label: golfTab() === 'GOLF' ? 'GOLF ' + String(e.short || '').toUpperCase() : golfTab(), lg: 'golf', html: html } : null;
+}
 /* =================== STANDINGS (every day, between game windows) ===================
    A league's standings show only before its first game of the day starts, or after its last
    game of the day is final, never while its games are on (they'd be out of date).
@@ -7108,6 +7317,18 @@ function renderPage() {
     $('cards').innerHTML = rankHTML(pg.lg, rk);
     return;
   }
+  if (pg.golf) {
+    renderTabs('golf');
+    $('heading').innerHTML = golfHeading();
+    try { $('cards').innerHTML = golfHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
+  if (pg.table) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">EPL</span><span class="sub">Premier League table' + (eplTable.at ? ' · as of ' + esc(timeStr(new Date(eplTable.at))) : '') + '</span>';
+    try { $('cards').innerHTML = eplTableHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.power) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">Power Rankings · ESPN Football Power Index · as of ' + esc(timeStr(new Date(nflPower.at))) + '</span>';
@@ -7245,7 +7466,7 @@ function renderCrawl() {
   var groups = [], today = ymd(new Date());
   for (var i = 0; i < CONFIG.leagues.length; i++) {
     var lg = CONFIG.leagues[i], d = state.data[lg], cg = crawlGames(lg);
-    if (!cg.length || seasonOver(lg)) continue;
+    if (!cg.length || seasonOver(lg) || hiddenLeague(lg)) continue;
     var all = sortGames(cg, lg), games = [], segs = [];
     for (var j = 0; j < all.length; j++) if (crawlRelevant(all[j], lg, today)) games.push(all[j]);
     if (!crawlFull[lg]) games = games.slice(0, CONFIG.crawlMaxPerLeague);   // college with the full list: every game
@@ -7286,6 +7507,8 @@ function renderCrawl() {
     }
     if (isg.length) groups.push(isg);
   }
+  var gseg = golfCrawlSeg();
+  if (gseg) groups.push([gseg]);
   if (CONFIG.crawlNews && news.items.length) {
     var ns = [];
     for (var n = 0; n < news.items.length; n += 3) {
@@ -7394,21 +7617,26 @@ function renderFoot(errs) {
 }
 
 /* ---------- main loop ---------- */
-/* Swap leagues when the season-change date arrives (checked on every refresh). */
+/* Part-year leagues come and go by month (checked on every refresh): college hoops Nov-Apr, the WNBA May-Oct. */
+var ALL_LEAGUES = null;
 function applySeasonSwitch() {
-  var s = CONFIG.seasonSwitch;
-  if (!s || ymd(new Date()) < s.on) return;
-  var out = [], i, added = inList(CONFIG.leagues, s.add);
-  for (i = 0; i < CONFIG.leagues.length; i++) {
-    var lg = CONFIG.leagues[i];
-    if (lg === s.remove) continue;
+  var M = CONFIG.leagueMonths;
+  if (!M) return;
+  if (!ALL_LEAGUES) ALL_LEAGUES = CONFIG.leagues.slice(0);
+  var mo = new Date().getMonth() + 1, out = [];
+  for (var i = 0; i < ALL_LEAGUES.length; i++) {
+    var lg = ALL_LEAGUES[i];
+    if (M[lg] && !inList(M[lg], mo)) { delete state.data[lg]; continue; }
     out.push(lg);
-    if (lg === s.after && !added) { out.push(s.add); added = true; }
   }
-  if (!added) out.push(s.add);
   CONFIG.leagues = out;
-  delete state.data[s.remove];
-  CONFIG.seasonSwitch = null;                      // done
+}
+/* WNBA regular season: close games only. The full league (tab, cards, bottom bar) once the playoffs start. */
+function hiddenLeague(lg) {
+  if (lg !== 'wnba' || !CONFIG.wnbaCloseOnly) return false;
+  var d = state.data.wnba, g = (d && d.games) || [];
+  for (var i = 0; i < g.length; i++) if (g[i].post || /FINALS|SEMIFINAL|FIRST ROUND|PLAYOFF/i.test(g[i].tag || '')) return false;
+  return true;
 }
 
 function refreshAll() {
@@ -7444,7 +7672,7 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadH2h(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadH2h(function () { loadGolf(function () { loadEplTable(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
@@ -7454,7 +7682,7 @@ function refreshAll() {
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
