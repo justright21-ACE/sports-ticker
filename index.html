@@ -1364,6 +1364,7 @@ var CONFIG = {
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
+  specialDays: true,     // NFL games on any day but Sunday (Tue / Wed / Thu afternoon / Fri / Sat, holidays) get their own tab and big screen like MNF (?specialdays=0: just SNF / MNF / TNF)
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
@@ -1555,6 +1556,7 @@ function readParams() {
     if (k === 'reviews') CONFIG.reviews = v !== '0';
     if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
+    if (k === 'specialdays') CONFIG.specialDays = v !== '0';
     if (k === 'h2h') CONFIG.h2h = v !== '0';
     if (k === 'cardtos') CONFIG.cardTimeouts = v !== '0';
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
@@ -3342,9 +3344,23 @@ function seenFinal(id, now) {
   }
   return finalSeen[id];
 }
+/* NFL special games: anything not on a Sunday afternoon gets its own tab and big screen, like Monday night.
+   Sunday night, every Monday game, Thursday night, and any game on a Tuesday, Wednesday, Friday or Saturday
+   or on Thursday afternoon. Holidays get their own names (Thanksgiving, its Eve, Black Friday, Christmas). */
+var PT_DAYS = { 2: ['TUE', 'Tuesday'], 3: ['WED', 'Wednesday'], 4: ['THU', 'Thursday'], 5: ['FRI', 'Friday'], 6: ['SAT', 'Saturday'] };
+function thanksgivingOf(y) { var d = new Date(y, 10, 1); return 1 + ((4 - d.getDay() + 7) % 7) + 21; }   // 4th Thursday of November
 function ptKind(g) {
-  var d = parseDate(g.date), k = PT_NAMES[d.getDay()];
-  return (k && d.getHours() >= 18) ? k : null;
+  var d = parseDate(g.date), day = d.getDay(), night = d.getHours() >= 18, mo = d.getMonth(), dt = d.getDate(), tg = thanksgivingOf(d.getFullYear());
+  if (!CONFIG.specialDays) return PT_NAMES[day] && night ? PT_NAMES[day] : null;   // the old way: SNF / MNF / TNF only
+  if (mo === 10 && dt === tg) return ['THANKSGIVING', night ? 'Thanksgiving Night Football' : 'Thanksgiving Football'];
+  if (mo === 10 && dt === tg - 1) return ['WED', 'Thanksgiving Eve Football'];
+  if (mo === 10 && dt === tg + 1) return ['BLACK FRIDAY', 'Black Friday Football'];
+  if (mo === 11 && dt === 25) return ['CHRISTMAS', 'Christmas Day Football'];
+  if (mo === 11 && dt === 24 && day !== 0) return [PT_DAYS[day] ? PT_DAYS[day][0] : 'MNF', 'Christmas Eve Football'];
+  if (day === 0) return night ? PT_NAMES[0] : null;              // Sunday afternoon: the regular slate
+  if (day === 1) return PT_NAMES[1];                             // Monday, any kickoff
+  if (day === 4 && night) return PT_NAMES[4];
+  return [PT_DAYS[day][0], PT_DAYS[day][1] + (night ? ' Night Football' : ' Football')];
 }
 /* Featured games with their own tab + detailed screen: NFL primetime and World Series games */
 /* Championship series (World Series, NBA Finals, Stanley Cup Final, WNBA Finals): every game gets the
