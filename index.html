@@ -392,6 +392,19 @@
   .narrow .rkrow .rt { max-width: 14vw; font-size: 2.5vh; } .narrow .rkrow .rn { font-size: 2.6vh; }
   .narrow .rkrow .rr { font-size: 2vh; width: 5.4vw; } .narrow .rkrow .cp { font-size: 2.1vh; width: 7.4vw; } .narrow .rkrow .mvt { font-size: 1.9vh; width: 4.6vw; }
   .narrow .rkh .cp, .narrow .rkh .rr, .narrow .rkh .mvt, .narrow .rkh .rt, .narrow .rkh .rn { font-size: 1.5vh; }
+  /* NFL power rankings: all 32 teams, 16 a column */
+  .rank.pr .rkrow { height: 3.85vh; line-height: 3.85vh; }
+  .rank.pr .rkrow.rkh { height: 3vh; line-height: 3vh; }
+  .rank.pr .rkrow .rn { font-size: 2.7vh; }
+  .rank.pr .rkrow .rt { font-size: 2.6vh; max-width: 13vw; }
+  .rank.pr .rkrow .logo { width: 3.4vh; height: 3.4vh; } .rank.pr .rkrow .logo img { left: 0.3vh; top: 0.3vh; width: 2.8vh; height: 2.8vh; }
+  .rank.pr .rkrow .fp { display: inline-block; width: 4.4vw; text-align: right; font-size: 2.4vh; color: #c9d0e0; }
+  .rank.pr .rkrow .fp.neg { color: #8d97ad; }
+  .rank.pr .rkrow .cp { width: 6vw; }
+  .rank.pr .rkrow .cp i { font-style: normal; font-size: 1.8vh; color: #8d97ad; margin-left: 0.1vw; }
+  .rank.pr .rkh .fp { font-size: 1.9vh; color: #9FA9BD; }
+  .narrow .rank.pr .rkrow .rt { max-width: 10vw; font-size: 2.2vh; } .narrow .rank.pr .rkrow .fp { width: 5.4vw; font-size: 1.9vh; }
+  .narrow .rank.pr .rkrow .cp { width: 7vw; font-size: 1.9vh; } .narrow .rank.pr .rkh .fp { font-size: 1.5vh; }
 
   /* =========== STANDINGS SCREENS (Mon-Fri) =========== */
   .stand { padding: 0 0.6vw; }
@@ -1335,6 +1348,7 @@ var CONFIG = {
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
+  nflPower: true,        // NFL power rankings screen (ESPN's Football Power Index, all 32 teams) in the NFL rotation (?power=0 off)
   motion: true,          // animations on the big game screens (?motion=0 turns them off)
   headshots: true,       // player photos on the leaders, inactives and bottom-bar injuries (?headshots=0 off)
   linesScreen: true,     // college games before kickoff: sportsbook-style LINES screens (spread, moneyline, total) (?lines=0 off)
@@ -1520,6 +1534,7 @@ function readParams() {
     if (k === 'field3d') CONFIG.field3d = v !== '0';
     if (k === 'flags') CONFIG.bigPenalties = v !== '0';
     if (k === 'reviews') CONFIG.reviews = v !== '0';
+    if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
     if (k === 'autoreload') CONFIG.autoReload = v !== '0';
     if (k === 'breaking') CONFIG.breaking = v !== '0';
@@ -3119,7 +3134,7 @@ function buildPages() {
   for (var i = 0; i < order.length; i++) {
     var lg = order[i], wg = windowGames(lg);
     if (lg === 'nfl' && singleNflNight()) {          // one primetime game: it has its own screen; this tab = standings + leaders
-      pages = pages.concat(standingsPages(lg));
+      pages = pages.concat(nflPowerPage()).concat(standingsPages(lg));
       var lgrp = ['off', 'def'];
       for (var lq = 0; lq < lgrp.length; lq++) {
         var anyC = false;
@@ -3132,6 +3147,7 @@ function buildPages() {
       if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
       else if (rankingsFor(lg) && !seasonOver(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
         pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
+      if (lg === 'nfl') pages = pages.concat(nflPowerPage());
       pages = pages.concat(standingsPages(lg));
       continue;
     }
@@ -3175,6 +3191,7 @@ function buildPages() {
     if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
     else if (rankingsFor(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
       pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
+    if (lg === 'nfl') pages = pages.concat(nflPowerPage());
     pages = pages.concat(standingsPages(lg));
   }
   for (var q = 0; q < pages.length; q++) if (!pages[q].key) pages[q].key = pages[q].lg + ':' + pages[q].num;
@@ -5956,6 +5973,87 @@ function loadRankings(cb) {
   }
   step();
 }
+/* =================== NFL POWER RANKINGS (ESPN's Football Power Index) ===================
+   ESPN's weekly written power rankings aren't in a data feed, so this uses its Football Power Index:
+   all 32 teams ranked by how good they are (rating = points better than an average team on a neutral
+   field), with each team's record and its chance to make the playoffs. Refreshed every 3 hours.
+   The +/- column compares with the ranking from about a week earlier (kept on the TV), so it fills
+   in after the first week. */
+var nflPower = { at: 0, list: [] }, PR_KEY = 'fcw_nflpr';
+function prSnaps() { try { var o = JSON.parse(window.localStorage.getItem(PR_KEY)); return o && o.length ? o : []; } catch (e) { return []; } }
+function prStat(stats, re) {
+  for (var i = 0; i < stats.length; i++) {
+    var st = stats[i], nm = (st.name || '') + '|' + (st.abbreviation || '') + '|' + (st.displayName || '');
+    if (re.test(nm)) return st;
+  }
+  return null;
+}
+function loadNflPower(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !CONFIG.nflPower || !inList(CONFIG.leagues, 'nfl') || now - nflPower.at < 3 * 3600000) return cb();
+  nflPower.at = now;
+  var y = new Date().getFullYear(), season = new Date().getMonth() < 6 ? y - 1 : y, bust = '&_=' + Math.floor(now / 3600000);
+  getJSON('https://site.api.espn.com/apis/v2/sports/football/nfl/standings?season=' + season + bust, function (e1, sd) {
+    var teams = {};
+    (function walk(n) {                                           // every team's name, logo, colors and record
+      if (!n || typeof n !== 'object') return;
+      var en = (n.standings && n.standings.entries) || [];
+      for (var i = 0; i < en.length; i++) {
+        var t = en[i].team || {}, st = en[i].stats || [], rec = '';
+        for (var j = 0; j < st.length; j++) if ((st[j].name === 'overall' || st[j].type === 'total' || st[j].name === 'record') && st[j].summary) rec = st[j].summary;
+        if (!rec) { var w = prStat(st, /^wins\|/), l = prStat(st, /^losses\|/), tt = prStat(st, /^ties\|/);
+          if (w && l) rec = w.value + '-' + l.value + (tt && +tt.value ? '-' + tt.value : ''); }
+        if (t.id) teams[String(t.id)] = { abbreviation: t.abbreviation || '', name: t.shortDisplayName || t.name || t.displayName || '', tid: String(t.id),
+          logo: (t.logos && t.logos[0] && t.logos[0].href) || t.logo || '', color: t.color || '', alt: t.alternateColor || '', rec: rec };
+      }
+      var ch = n.children || [];
+      for (var c = 0; c < ch.length; c++) walk(ch[c]);
+    })(e1 ? null : sd);
+    getJSON('https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/' + season + '/powerindex?limit=50' + bust, function (e2, pd) {
+      var items = (!e2 && pd && pd.items) || [], list = [], i;
+      for (i = 0; i < items.length; i++) {
+        var it = items[i], ref = String((it.team && (it.team.$ref || it.team.id)) || ''), m = ref.match(/teams\/(\d+)/), tid = m ? m[1] : (/^\d+$/.test(ref) ? ref : '');
+        var st = it.stats || [];
+        if (!st.length && it.categories) for (var c2 = 0; c2 < it.categories.length; c2++) st = st.concat(it.categories[c2].stats || []);
+        var fpi = prStat(st, /^fpi\||\|FPI$/i), rk = prStat(st, /^fpi.?(r|rk|rank)\||^rank\|/i), pl = prStat(st, /playoff/i);
+        if (!tid || !fpi || !teams[tid]) continue;
+        var pc = pl ? +pl.value : NaN;
+        if (!isNaN(pc) && pc <= 1 && !/%/.test(pl.displayValue || '') && pc > 0) pc = pc * 100;   // a fraction, not a percent
+        list.push({ tid: tid, fpi: +fpi.value, rk: rk ? +rk.value : 0, po: isNaN(pc) ? null : pc, team: teams[tid] });
+      }
+      if (list.length >= 20) {
+        list.sort(function (a, b) { return (a.rk && b.rk && a.rk !== b.rk) ? a.rk - b.rk : b.fpi - a.fpi; });
+        for (i = 0; i < list.length; i++) list[i].rank = i + 1;
+        // last week's ranking, for the +/- column: keep a copy about once a week
+        var snaps = prSnaps(), prev = null, cur = {};
+        for (i = 0; i < list.length; i++) cur[list[i].tid] = list[i].rank;
+        for (var s2 = snaps.length - 1; s2 >= 0 && !prev; s2--) if (now - snaps[s2].at >= 4 * 86400000) prev = snaps[s2].r;
+        if (!snaps.length || now - snaps[snaps.length - 1].at >= 6 * 86400000) { snaps.push({ at: now, r: cur }); snaps = snaps.slice(-4); }
+        try { window.localStorage.setItem(PR_KEY, JSON.stringify(snaps)); } catch (e3) {}
+        for (i = 0; i < list.length; i++) list[i].prev = prev ? (prev[list[i].tid] || 0) : 0;
+        nflPower = { at: now, list: list, first: !prev, hasPo: list[0].po !== null };
+      }
+      cb();
+    });
+  });
+}
+function nflPowerPage() {
+  return CONFIG.nflPower && nflPower.list.length >= 20 && !seasonOver('nfl') ? [{ lg: 'nfl', power: true, hold: CONFIG.rankHoldSec + 5, num: 'power', of: 1, games: [] }] : [];
+}
+function nflPowerHTML() {
+  var L = nflPower.list, half = Math.ceil(L.length / 2), cols = ['', ''], favs = favList('nfl');
+  var head = '<div class="rkrow rkh"><span class="rn">#</span><span class="rt">TEAM</span><span class="rkr"><span class="rr">REC</span><span class="fp">FPI</span>' +
+             '<span class="mvt">+/-</span>' + (nflPower.hasPo ? '<span class="cp">PLAYOFF</span>' : '') + '</span></div>';
+  for (var i = 0; i < L.length; i++) {
+    var r = L[i], fav = inList(favs, String(r.team.abbreviation).toUpperCase()), po = r.po;
+    var pos = po === null ? '' : (po >= 99.95 ? 'IN' : po < 0.05 ? 'OUT' : (po < 1 ? '&lt;1' : po >= 99.5 ? '&gt;99' : Math.round(po)) + '<i>%</i>');
+    cols[i < half ? 0 : 1] += '<div class="rkrow' + (fav ? ' fav' : '') + '"><span class="rn">' + r.rank + '</span>' + logoHTML(r.team, 'nfl') +
+      '<span class="rt">' + esc(r.team.name) + '</span><span class="rkr"><span class="rr">' + esc(r.team.rec) + '</span>' +
+      '<span class="fp' + (r.fpi < 0 ? ' neg' : '') + '">' + (r.fpi > 0 ? '+' : '') + r.fpi.toFixed(1) + '</span>' + moveHTML(r, nflPower.first) +
+      (nflPower.hasPo ? '<span class="cp">' + pos + '</span>' : '') + '</span></div>';
+  }
+  return '<div class="rank pr"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
+}
 /* =================== STANDINGS (every day, between game windows) ===================
    A league's standings show only before its first game of the day starts, or after its last
    game of the day is final, never while its games are on (they'd be out of date).
@@ -6831,6 +6929,12 @@ function renderPage() {
     $('cards').innerHTML = rankHTML(pg.lg, rk);
     return;
   }
+  if (pg.power) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">Power Rankings · ESPN Football Power Index · as of ' + esc(timeStr(new Date(nflPower.at))) + '</span>';
+    try { $('cards').innerHTML = nflPowerHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.brk) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">March Madness · ' +
@@ -7161,7 +7265,7 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
@@ -7171,7 +7275,7 @@ function refreshAll() {
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
