@@ -5109,18 +5109,46 @@ var TD_ANIMALS = {
 /* real cut-out photos of each animal (img/td/), used in place of the drawings (?tdphotos=0: the drawings) */
 var TD_PHOTOS = { bear: 'bear', tiger: 'tiger', jaguar: 'jaguar', panther: 'panther', lion: 'lion', eagle: 'eagle', falcon: 'falcon', raven: 'raven',
                   cardinal: 'cardinal', hawk: 'osprey', horse: 'horse', whitehorse: 'whitehorse', ram: 'ram', bison: 'bison', dolphin: 'dolphin', bull: 'bull' };
+/* college: by the team's name (ESPN's college abbreviations repeat and shift), school-specific first, then the nickname.
+   Anything not here gets its helmet with the logo, same as the NFL. */
+var TD_COLLEGE = [
+  [/^Texas A&M Aggies/i, 'steer'], [/^Tennessee Volunteers/i, 'coonhound'], [/^Miami Hurricanes/i, 'ibis'], [/^SMU Mustangs/i, 'pony'],
+  [/^Arkansas Razorbacks/i, 'warthog'], [/^UAB Blazers/i, 'dragon'], [/^Iowa Hawkeyes/i, 'hawkeye'], [/^Old Dominion Monarchs/i, 'lion'],
+  [/^Baylor Bears|Black Bears$/i, 'blackbear'], [/Grizzlies$/i, 'grizzly'], [/Golden Eagles$/i, 'goldeneagle'], [/Eagles$/i, 'eagle'],
+  [/Badgers$/i, 'badger'], [/Beavers$/i, 'beaver'], [/Bobcats$|Wildcats$/i, 'bobcat'], [/Terriers$/i, 'terrier'], [/Bulldogs$/i, 'bulldog'],
+  [/Longhorns$/i, 'longhorn'], [/Camels$/i, 'camel'], [/Cardinals?$/i, 'cardinal'], [/Catamounts$/i, 'catamount'], [/Gamecocks$/i, 'gamecock'],
+  [/Cougars$/i, 'cougar'], [/Coyotes$/i, 'coyote'], [/Great Danes$/i, 'greatdane'], [/Dolphins$/i, 'dolphin'], [/Falcons$/i, 'falcon'],
+  [/Red Foxes$/i, 'fox'], [/Hornets$|Yellow Jackets$/i, 'hornet'], [/Huskies$/i, 'husky'], [/Jaguars$/i, 'jaguar'], [/Leopards$/i, 'leopard'],
+  [/Lions$/i, 'lion'], [/Mustangs$|Broncos$/i, 'horse'], [/Ospreys$/i, 'hawk'], [/Owls$/i, 'owl'], [/Panthers$/i, 'panther'], [/Penguins$/i, 'penguin'],
+  [/RedHawks$/i, 'redhawk'], [/Roadrunners$/i, 'roadrunner'], [/Seawolves$/i, 'seawolf'], [/Wolfpack$|Wolf Pack$|Lobos$/i, 'wolf'], [/Spiders$/i, 'spider'],
+  [/Terrapins$/i, 'terrapin'], [/Tigers$|Bengals$/i, 'tiger'], [/Wolverines$/i, 'wolverine'], [/Aggies$/i, 'steer'], [/Rams$/i, 'ram'],
+  [/Bison$/i, 'bison'], [/Bears$|Bruins$/i, 'bear'], [/Ravens$/i, 'raven']
+];
+(function () {                                                      // the college-only animals' photos (img/td/c-*.png)
+  var c = 'badger beaver blackbear bobcat bulldog camel catamount coonhound cougar coyote dragon fox gamecock goldeneagle greatdane grizzly hawkeye hornet husky ibis leopard longhorn owl penguin pony redhawk roadrunner seawolf spider steer terrapin terrier warthog wolf wolverine'.split(' ');
+  for (var i = 0; i < c.length; i++) TD_PHOTOS[c[i]] = 'c-' + c[i];
+})();
+function tdKind(t, lg) {
+  if (!t) return '';
+  if (lg === 'ncaaf') {
+    var n = String(t.name || '');
+    for (var i = 0; i < TD_COLLEGE.length; i++) if (TD_COLLEGE[i][0].test(n)) return CONFIG.tdPhotos || tdAnimalSVG(TD_COLLEGE[i][1]) ? TD_COLLEGE[i][1] : '';
+    return '';
+  }
+  return (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
+}
 function tdPhoto(kind) { return CONFIG.tdPhotos && TD_PHOTOS[kind] ? 'img/td/' + TD_PHOTOS[kind] + '.png' : ''; }
 function tdPhotoHTML(kind) { var u = tdPhoto(kind); return u ? '<img class="tdph" src="' + u + '" alt="">' : ''; }
 var tdPre = {};
 function tdPreload() {                                              // the animals for the teams on today's big screens, fetched ahead of time
   var fg = featuredGames();
   for (var i = 0; i < fg.length; i++) {
-    if (fg[i].lg !== 'nfl') continue;
+    if (fg[i].lg !== 'nfl' && fg[i].lg !== 'ncaaf') continue;
     var sides = [fg[i].g.teams.away, fg[i].g.teams.home];
-    for (var j = 0; j < 2; j++) { var u = tdPhoto(TD_ANIMALS.nfl[String(sides[j].abbreviation).toUpperCase()] || ''); if (u && !tdPre[u]) { tdPre[u] = new Image(); tdPre[u].src = u; } }
+    for (var j = 0; j < 2; j++) { var u = tdPhoto(tdKind(sides[j], fg[i].lg)); if (u && !tdPre[u]) { tdPre[u] = new Image(); tdPre[u].src = u; } }
   }
 }
-var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1 };
+var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1, goldeneagle: 1, hawkeye: 1, owl: 1, redhawk: 1 };
 function tdCat(body, extra) {                                    // a big cat at full gallop, facing right
   return '<path d="M42 52 C24 44 12 30 20 16" stroke="' + body + '" stroke-width="7" fill="none" stroke-linecap="round"/>' +
     '<g fill="' + body + '"><rect x="44" y="58" width="11" height="40" rx="5" transform="rotate(48 49 60)"/><rect x="58" y="60" width="11" height="38" rx="5" transform="rotate(30 63 62)"/>' +
@@ -5181,7 +5209,7 @@ var tdr = { on: false, timers: [] };
 function tdRunHTML(t, lg) {
   var look = teamLook(t, lg) || {}, col = '#' + String(look.color || t.color || '1f2a44').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
   if (col.toLowerCase() === alt.toLowerCase()) alt = '#ffffff';
-  var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '', who, ph = kind ? tdPhotoHTML(kind) : '';
+  var kind = tdKind(t, lg), who, ph = kind ? tdPhotoHTML(kind) : '';
   if (!ph && kind && !tdAnimalSVG(kind)) kind = '';                 // no drawing of this one (bull): the helmet
   if (ph) who = '<div class="tdchar photo' + (TD_BIRDS[kind] ? ' glide' : (kind === 'dolphin' ? ' leap' : ' run')) + '">' + ph + '</div>';
   else if (kind && TD_BIRDS[kind]) who = '<div class="tdchar fly"><div class="f0">' + tdAnimalSVG(kind, 0) + '</div><div class="f1">' + tdAnimalSVG(kind, 1) + '</div></div>';
@@ -5245,7 +5273,7 @@ function tdFxHTML(g, side, lg, ts, dt, delay, lab) {
   var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, '');
   if (!full) full = String(t.short || nickname(t.name) || '').replace(/^\s+|\s+$/g, '');   // no scorer (a safety, usually): the team's name
   var parts = full.split(/\s+/), last = parts.pop() || '', first = parts.join(' ');
-  var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
+  var kind = tdKind(t, lg);
   var leap = kind ? (tdPhotoHTML(kind) || tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0)) : '';
   if (!leap) leap = tdHelmetHTML(t, lg, col, acc, true);
   if (/tdph/.test(leap)) leap = leap.replace('class="tdph"', 'class="tdph" style="-webkit-filter:drop-shadow(0 0 2.2vh ' + acc + ');filter:drop-shadow(0 0 2.2vh ' + acc + ')"');
