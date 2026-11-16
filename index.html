@@ -810,6 +810,15 @@
     -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out infinite forwards; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.4s ease-in-out infinite forwards; }
   .bwin .bw2 span {
     -webkit-animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out infinite forwards; animation: bwSlam 0.5s 1.5s cubic-bezier(0.3,0,0.4,1) 1 both, bwBeat 0.6s 2.7s ease-in-out infinite forwards; }
+  .bwin .bwfig { position: absolute; bottom: 0; width: 22%; height: 41%; -webkit-animation: bwFig 0.9s cubic-bezier(.2,.9,.3,1.25) 1.5s 1 both; animation: bwFig 0.9s cubic-bezier(.2,.9,.3,1.25) 1.5s 1 both; }
+  .bwin .bwfig.l { left: 0.5%; } .bwin .bwfig.r { right: 0.5%; -webkit-animation-delay: 1.75s; animation-delay: 1.75s; }
+  .bwin .bwfb { position: absolute; left: 0; top: 0; right: 0; bottom: 0; -webkit-animation: bwBob 0.55s ease-in-out 2.6s infinite alternate; animation: bwBob 0.55s ease-in-out 2.6s infinite alternate; }
+  .bwin .bwfb img { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 100%; max-height: 100%; }
+  .bwin .bwfig.r img { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  @-webkit-keyframes bwFig { 0% { -webkit-transform: translateY(115%); } 70% { -webkit-transform: translateY(-7%); } 100% { -webkit-transform: translateY(0); } }
+  @keyframes bwFig { 0% { transform: translateY(115%); } 70% { transform: translateY(-7%); } 100% { transform: translateY(0); } }
+  @-webkit-keyframes bwBob { from { -webkit-transform: translateY(0); } to { -webkit-transform: translateY(-3%); } }
+  @keyframes bwBob { from { transform: translateY(0); } to { transform: translateY(-3%); } }
   .bwin .bwsc { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; color: #ffffff; font-size: 4.4vh; font-weight: 800; letter-spacing: 0.3vw;
     -webkit-animation: bwUp 0.6s 2.2s ease-out 1 both; animation: bwUp 0.6s 2.2s ease-out 1 both; }
   .bwin .jmp span { -webkit-animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both; animation: bwSlam 0.5s 0.9s cubic-bezier(0.3,0,0.4,1) 1 both; }
@@ -5113,7 +5122,15 @@ var TD_PHOTOS = { bear: 'bear', tiger: 'tiger', jaguar: 'jaguar', panther: 'pant
    Anything not here gets its helmet with the logo, same as the NFL. */
 var TD_COLLEGE = [
   [/^Texas A&M Aggies/i, 'steer'], [/^Tennessee Volunteers/i, 'coonhound'], [/^Miami Hurricanes/i, 'ibis'], [/^SMU Mustangs/i, 'pony'],
-  [/^Arkansas Razorbacks/i, 'warthog'], [/^UAB Blazers/i, 'dragon'], [/^Iowa Hawkeyes/i, 'hawkeye'], [/^Old Dominion Monarchs/i, 'lion'],
+  [/^Arkansas Razorbacks/i, 'warthog'], [/^UAB Blazers/i, 'dragon'], [/^Iowa Hawkeyes/i, 'hawkeye'], [/^Army Black Knights/i, 'blackknight'], [/^Notre Dame Fighting Irish/i, 'leprechaun'],
+  [/Trojans$/i, 'trojan'], [/Spartans$/i, 'spartan'], [/Knights$/i, 'knight'], [/Crusaders$/i, 'crusader'], [/Paladins$/i, 'paladin'],
+  [/Vikings$|Norse$/i, 'viking'], [/Gaels$|Highlanders$/i, 'gael'], [/Dons$/i, 'don'], [/Musketeers$/i, 'musketeer'], [/Cavaliers$/i, 'cavalier'],
+  [/Pirates$|Buccaneers$/i, 'pirate'], [/Raiders$/i, 'blueraider'], [/Midshipmen$/i, 'midshipman'], [/Tritons$/i, 'triton'], [/Cowboys$/i, 'cowboy'],
+  [/Mountaineers$/i, 'mountaineer'], [/Miners$|49ers$/i, 'miner'], [/Vaqueros$|Gauchos$/i, 'vaquero'], [/Sooners$|Pioneers$/i, 'sooner'],
+  [/Lumberjacks$/i, 'lumberjack'], [/Commodores$/i, 'commodore'], [/Rebels$|Colonels$|Governors$/i, 'rebel'], [/Patriots$|Colonials$/i, 'patriot'],
+  [/Minutemen$/i, 'minuteman'], [/Demon Deacons$/i, 'demondeacon'], [/Blue Devils$/i, 'bluedevil'], [/Sun Devils$/i, 'sundevil'], [/Billikens$/i, 'billiken'],
+  [/Friars$/i, 'friar'], [/Quakers$/i, 'quaker'], [/Boilermakers$/i, 'boilermaker'], [/Monarchs$|Dukes$|Royals$/i, 'monarch'],
+  [/Cyclones$|Golden Hurricane$/i, 'cyclone'], [/Green Wave$|Crimson Tide$/i, 'greenwave'],
   [/^Baylor Bears|Black Bears$/i, 'blackbear'], [/Grizzlies$/i, 'grizzly'], [/Golden Eagles$/i, 'goldeneagle'], [/Eagles$/i, 'eagle'],
   [/Badgers$/i, 'badger'], [/Beavers$/i, 'beaver'], [/Bobcats$|Wildcats$/i, 'bobcat'], [/Terriers$/i, 'terrier'], [/Bulldogs$/i, 'bulldog'],
   [/Longhorns$/i, 'longhorn'], [/Camels$/i, 'camel'], [/Cardinals?$/i, 'cardinal'], [/Catamounts$/i, 'catamount'], [/Gamecocks$/i, 'gamecock'],
@@ -5125,7 +5142,9 @@ var TD_COLLEGE = [
   [/Bison$/i, 'bison'], [/Bears$|Bruins$/i, 'bear'], [/Ravens$/i, 'raven']
 ];
 (function () {                                                      // the college-only animals' photos (img/td/c-*.png)
-  var c = 'badger beaver blackbear bobcat bulldog camel catamount coonhound cougar coyote dragon fox gamecock goldeneagle greatdane grizzly hawkeye hornet husky ibis leopard longhorn owl penguin pony redhawk roadrunner seawolf spider steer terrapin terrier warthog wolf wolverine'.split(' ');
+  var c = ('badger beaver blackbear bobcat bulldog camel catamount coonhound cougar coyote dragon fox gamecock goldeneagle greatdane grizzly hawkeye hornet husky ibis leopard longhorn owl penguin pony redhawk roadrunner seawolf spider steer terrapin terrier warthog wolf wolverine ' +
+          'trojan spartan knight blackknight crusader paladin viking gael leprechaun don musketeer cavalier pirate blueraider midshipman triton cowboy mountaineer ' +
+          'miner vaquero sooner lumberjack commodore rebel patriot minuteman demondeacon bluedevil sundevil billiken friar quaker boilermaker monarch cyclone greenwave').split(' ');
   for (var i = 0; i < c.length; i++) TD_PHOTOS[c[i]] = 'c-' + c[i];
 })();
 function tdKind(t, lg) {
@@ -5927,6 +5946,12 @@ var CELEBRATE = {
   'ncaaf:WIS': { name: 'BADGERS', bg: '#C5050C', st: '#ffffff', ring: '#ffffff', l1: 'BADGERS WIN!', l2: 'ON, WISCONSIN!',
                  c1: '#ffffff', s1: '#5e0003', c2: '#ffffff', s2: '#282728', conf: ['#ffffff', '#282728', '#ffd6d8', '#dadfe1'], jump: true }
 };
+function winFigHTML(t, lg, ring) {             // the team's animal / figure jumps up in both bottom corners (the right one faces in)
+  var u = CONFIG.tdPhotos ? tdPhoto(tdKind(t, lg)) : '';
+  if (!u) return '';
+  var im = '<img src="' + u + '" alt="" style="-webkit-filter:drop-shadow(0 0 2vh ' + ring + ');filter:drop-shadow(0 0 2vh ' + ring + ')">';
+  return '<div class="bwfig l"><div class="bwfb">' + im + '</div></div><div class="bwfig r"><div class="bwfb">' + im + '</div></div>';
+}
 function winFor(g, lg) {                       // one of our teams just won this game: which, and the score
   if (!g || !isFinal(g) || !g.teams) return null;
   var sides = ['away', 'home'];
@@ -5934,7 +5959,7 @@ function winFor(g, lg) {                       // one of our teams just won this
     var cfg = CELEBRATE[lg + ':' + g.teams[sides[i]].abbreviation];
     if (!cfg) continue;
     var side = sides[i], other = side === 'away' ? 'home' : 'away', me = num(scoreOf(g, side)), op = num(scoreOf(g, other));
-    if (me > op) return { cfg: cfg, side: side, me: me, op: op, opp: g.teams[other] };
+    if (me > op) return { cfg: cfg, side: side, me: me, op: op, opp: g.teams[other], lg: lg };
   }
   return null;
 }
@@ -5969,6 +5994,7 @@ function winHTML(g, w, root) {
   var opp = String(w.opp.short || nickname(w.opp.name) || w.opp.abbreviation).toUpperCase(), top1 = Math.round(H * 0.33);
   var dur = '-webkit-animation-duration:' + CONFIG.celebrateSec + 's;animation-duration:' + CONFIG.celebrateSec + 's;';
   return '<div class="bwin" style="' + dur + '"><div class="bwbg" style="background:' + c.bg + '"></div><div class="bwst" style="' + dur + 'background:repeating-linear-gradient(120deg,' + c.st + ' 0,' + c.st + ' 4vh,rgba(0,0,0,0) 4vh,rgba(0,0,0,0) 11vh)"></div>' + cf + hands +
+    winFigHTML(t, w.lg, c.ring) +
     '<div class="bwlogo" style="width:' + lz + 'px;height:' + lz + 'px;margin-left:' + (-lz / 2) + 'px;box-shadow:0 0 0 0.8vh ' + c.ring + '">' + logo + '</div>' +
     line(c.l1, 'bw1', top1, c.c1, c.s1) + line(c.l2, 'bw2', Math.round(top1 + fs * 1.22), c.c2, c.s2) +
     '<div class="bwsc">' + esc(c.name) + ' ' + w.me + ' &nbsp;·&nbsp; ' + esc(opp) + ' ' + w.op + '</div></div>';
