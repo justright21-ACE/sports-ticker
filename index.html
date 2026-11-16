@@ -6505,9 +6505,12 @@ function golfCrawlSeg() {
     html += '<span class="g">' + esc(R[i].pos + ' ' + String(R[i].last || R[i].name.split(' ').pop()).toUpperCase() + ' ' + (R[i].tot === null ? (R[i].totS || '') : parTxt(R[i].tot))) +
             (R[i].thru ? '<span class="st' + (e.state === 'in' && R[i].thru !== 'F' ? ' lv' : '') + '">' + esc(R[i].thru === 'F' ? 'F' : 'THRU ' + R[i].thru) + '</span>' : '') + '</span>';
   }
-  // the label stays short ("GOLF"); the tournament's name is the first thing that scrolls past
-  var tname = e.major ? e.major[2] : (e.short || e.name || '');
-  return html ? { label: 'GOLF', lg: 'golf', html: (tname ? '<span class="ig">' + esc(String(tname).toUpperCase()) + '</span>' : '') + html } : null;
+  // the label: a major's full name, or a tournament name of up to 4 words; a longer name gets "GOLF"
+  // in the corner and scrolls past first instead
+  var tname = String(e.major ? e.major[2] : (e.name || e.short || '')).replace(/\s+/g, ' ').replace(/^\s|\s$/g, '');
+  var fits = tname && (e.major || tname.split(' ').length <= 4);
+  return html ? { label: fits ? tname.toUpperCase() : 'GOLF', lg: 'golf',
+                  html: (!fits && tname ? '<span class="ig">' + esc(tname.toUpperCase()) + '</span>' : '') + html } : null;
 }
 /* =================== STANDINGS (every day, between game windows) ===================
    A league's standings show only before its first game of the day starts, or after its last
