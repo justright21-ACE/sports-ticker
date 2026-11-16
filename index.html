@@ -1490,6 +1490,7 @@ var CONFIG = {
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
+  tourney: true,         // March: big-five conference championship games + every NCAA tournament game get a big screen and the winner's celebration (?tourney=0 off)
   primeWin: true,        // any NFL primetime / special-day game: the winner's logo pops out with "<TEAM> WIN!" at the final (?primewin=0 off)
   tdPhotos: true,
   realHelmets: true,     // real helmet pictures (NFL) / the team logo (college, Washington) in place of the drawn helmets (?helmets=0)        // the touchdown run / package use real cut-out animal photos (img/td/), not the drawings (?tdphotos=0)
@@ -1693,6 +1694,7 @@ function readParams() {
     if (k === 'tdfx') CONFIG.tdFx = v !== '0';
     if (k === 'tdphotos') CONFIG.tdPhotos = v !== '0';
     if (k === 'primewin') CONFIG.primeWin = v !== '0';
+    if (k === 'tourney') CONFIG.tourney = v !== '0';
     if (k === 'helmets') CONFIG.realHelmets = v !== '0';
     if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
@@ -3701,7 +3703,69 @@ function wnbaCloseCond(g) {
   if (q === 4) { var cs = clockSecs(g); if (cs < 0 || cs > CONFIG.nbaCloseMin * 60) return false; }
   return Math.abs(num(scoreOf(g, 'home')) - num(scoreOf(g, 'away'))) <= CONFIG.nbaClosePts;
 }
+/* =========== COLLEGE HOOPS TOURNAMENTS ===========
+   March 1 - April 12: the big-five conference championship games (ACC, Big East, Big Ten, Big 12, SEC) and
+   every NCAA tournament game get a big screen, and the winner's celebration at the final (?tourney=0 off) */
+var tourCbb = { at: 0, live: false, games: [] };
+var TOUR_CONF = [[/\bACC\b/, 'ACC'], [/Big East/i, 'BIG EAST'], [/Big Ten/i, 'BIG TEN'], [/Big 12/i, 'BIG 12'], [/\bSEC\b/, 'SEC']];
+function tourInfo(h) {                          // from ESPN's game note: { ncaa: round 0-6 } or { conf: 'ACC' }; null: not one of ours
+  h = String(h || '');
+  if (/\bNIT\b|\bCBI\b|\bCIT\b|crown|women/i.test(h)) return null;
+  if (/men'?s basketball championship|ncaa tournament|march madness|national championship|final four/i.test(h)) { var r = brkRound(h); if (r >= 0) return { ncaa: r }; }
+  if (/tournament/i.test(h) && /championship|\bfinal\b/i.test(h) && !/semi-?final|quarter-?final|final four/i.test(h))
+    for (var i = 0; i < TOUR_CONF.length; i++) if (TOUR_CONF[i][0].test(h)) return { conf: TOUR_CONF[i][1] };
+  return null;
+}
+function tourSeason() { var d = new Date(), m = d.getMonth(); return m === 2 || (m === 3 && d.getDate() <= 12); }
+function loadTourCbb(cb) {
+  var t = new Date().getTime();
+  if (DEMO || !CONFIG.tourney || !inList(CONFIG.leagues, 'ncaab') || !tourSeason()) { tourCbb.games = []; return cb(); }
+  if (t - tourCbb.at < (tourCbb.live ? 40000 : 8 * 60000)) return cb();
+  var day = ymd(new Date(t - 4 * 3600000)).replace(/-/g, '');
+  getJSON(ESPN_API + ESPN_PATHS.ncaab + '/scoreboard?dates=' + day + '&groups=50&limit=400', function (err, data) {
+    if (err || !data) { tourCbb.at = t - 6 * 60000; return cb(); }
+    var evs = data.events || [], out = [], live = false;
+    for (var i = 0; i < evs.length; i++) {
+      var c = evs[i].competitions && evs[i].competitions[0], info = tourInfo((c && c.notes && c.notes[0] && c.notes[0].headline) || '');
+      if (!info) continue;
+      var g = fromEspn(evs[i], 'ncaab');
+      if (!g) continue;
+      g.raw = evs[i]; g.tourn = info;                                   // the big screen needs the full feed
+      g.tag = info.conf ? 'CHAMPIONSHIP' : ['FIRST FOUR', '1ST ROUND', '2ND ROUND', 'SWEET 16', 'ELITE EIGHT', 'FINAL FOUR', 'NATIONAL CHAMPIONSHIP'][info.ncaa];
+      var rg = ((c.notes[0].headline || '').match(/(East|West|South|Midwest)\s+Region/i) || [])[1];
+      if (rg && info.ncaa >= 1 && info.ncaa <= 4) g.tag = rg.toUpperCase() + ' · ' + g.tag;
+      if (g.live) live = true;
+      out.push(g);
+    }
+    tourCbb = { at: t, live: live, games: out };
+    cb();
+  });
+}
+function tourGames() {                          // live, tipping off within 30 min, or over (started in the last 3.5 hours)
+  var out = [], now = new Date().getTime();
+  if (!CONFIG.tourney || !tourSeason()) return out;
+  for (var i = 0; i < tourCbb.games.length; i++) {
+    var g = tourCbb.games[i], st = parseDate(g.date).getTime();
+    if (g.live || (!isFinal(g) && st - now < 30 * 60000 && st - now > -3 * 3600000) || (isFinal(g) && now - st < 3.5 * 3600000)) out.push(g);
+  }
+  return out;
+}
+function tourKind(g) {
+  var T = g.tourn || {};
+  if (T.conf) return [T.conf + ' FINAL', T.conf + ' Championship', 1];
+  return [T.ncaa === 6 ? 'TITLE GAME' : (T.ncaa === 5 ? 'FINAL FOUR' : 'MADNESS'), 'NCAA Tournament', 1];
+}
+function tourHold(g) {
+  var T = g.tourn || {}, big = T.conf || T.ncaa >= 3;
+  if (!g.live) return CONFIG.primetimeHoldPre;
+  return big ? CONFIG.primetimeHoldLive : CONFIG.cbbHoldSec + 20;
+}
+function tourLine(T) {                          // the celebration's second line
+  if (T.conf) return T.conf + ' CHAMPIONS';
+  return ['INTO THE FIELD OF 64', 'ON TO ROUND 2', 'SWEET 16 BOUND', 'ELITE EIGHT BOUND', 'FINAL FOUR BOUND', 'ON TO THE TITLE GAME', 'NATIONAL CHAMPIONS'][T.ncaa] || 'ADVANCES';
+}
 function loadMajorCbb(cb) {
+  var cb0 = cb; cb = function () { loadTourCbb(cb0); };
   var now = new Date(), t = now.getTime(), mo = now.getMonth();
   if (DEMO || !CONFIG.cbbClose || CONFIG.cbb === 'all' || !inList(CONFIG.leagues, 'ncaab') ||
       !(mo >= 10 || mo <= 3)) { majorCbb.games = []; return cb(); }                       // season: November to April
@@ -3929,7 +3993,9 @@ function featuredGames() {
   for (i = 0; i < cn.length; i++) { var nk = closeKind(cn[i], 'nfl'); out.push({ g: cn[i], lg: 'nfl', kind: nk, hold: closeHold(cn[i], nk, 'nfl') }); }
   var cb2 = closeGames('ncaab'), nb = closeGames('nba').concat(closeGames('wnba')), ck;
   for (i = 0; i < cl.length; i++) { ck = closeKind(cl[i], 'ncaaf'); out.push({ g: cl[i], lg: 'ncaaf', kind: ck, hold: closeHold(cl[i], ck, 'ncaaf') }); }
-  for (i = 0; i < cb2.length; i++) { ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck, 'ncaab'), upset: true }); }
+  var tgm = tourGames(), tseen = {};
+  for (i = 0; i < tgm.length; i++) { tseen[tgm[i].id] = 1; out.push({ g: tgm[i], lg: 'ncaab', kind: tourKind(tgm[i]), hold: tourHold(tgm[i]), upset: true }); }
+  for (i = 0; i < cb2.length; i++) { if (tseen[cb2[i].id]) continue; ck = closeKind(cb2[i], 'ncaab'); out.push({ g: cb2[i], lg: 'ncaab', kind: ck, hold: closeHold(cb2[i], ck, 'ncaab'), upset: true }); }
   for (i = 0; i < nb.length; i++) { var nlg = nb[i].wnba ? 'wnba' : 'nba'; ck = closeKind(nb[i], nlg); out.push({ g: nb[i], lg: nlg, kind: ck, hold: closeHold(nb[i], ck, nlg) }); }
   for (i = 0; i < ws.length; i++) out.push({ g: ws[i].g, lg: ws[i].lg, kind: ws[i].kind });
   return out;
@@ -3953,7 +4019,7 @@ function primetimeGames() {
 function loadPtDetails(cb) {
   var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')).concat(bowlGames()), i = 0, path = {};
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
-  var cbb = closeGames('ncaab');
+  var cbb = closeGames('ncaab').concat(tourGames());
   for (var jb = 0; jb < cbb.length; jb++) { games.push(cbb[jb]); path[cbb[jb].id] = 'basketball/mens-college-basketball'; }
   var nbc = closeGames('nba'), wbc = closeGames('wnba');
   for (var jw = 0; jw < wbc.length; jw++) { games.push(wbc[jw]); path[wbc[jw].id] = 'basketball/wnba'; }
@@ -5054,6 +5120,10 @@ function endHighlight() {
   scheduleRotate();
 }
 var winShown = {};                              // celebrations already played this session (by game)
+function winFresh(g, lg) {                      // first look at a game that's already over: only go celebrate if it ended recently
+  var st = parseDate(g.date).getTime();
+  return new Date().getTime() - st < (lg === 'ncaab' ? 3 : 4.5) * 3600000;
+}
 function detectJump() {
   var ftg = featuredGames(), hit = null, now = new Date().getTime(), i, next = {};
   // a score in a game that was a CLOSE game at the last check
@@ -5068,6 +5138,12 @@ function detectJump() {
   }
   for (i = 0; i < ftg.length; i++) {
     var g = ftg[i].g, lg = ftg[i].lg;
+    if (lg === 'ncaab' && g.tourn) {                                // tournament hoops: only the winner's jump
+      var wt = evTrack[g.id], won = !!winFor(g, lg);
+      if (!hit && won && CONFIG.celebrate && !winShown[g.id] && (wt ? !wt.won : winFresh(g, lg))) hit = { id: g.id, was: wt || {}, why: 'win' };
+      next[g.id] = { lg: lg, fin: isFinal(g), won: won, close: false, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
+      continue;
+    }
     if (lg !== 'nfl' && lg !== 'ncaaf') continue;
     var bp = bigPlayOf(g), was = evTrack[g.id];
     var tov = turnoverOf(g, was && was.poss);
@@ -5080,7 +5156,7 @@ function detectJump() {
       var dA = num(scoreOf(g, 'away')) - was.a, dH = num(scoreOf(g, 'home')) - was.h;
       if (dA >= 6 || dH >= 6) hit = { id: g.id, was: was, why: 'td', side: dA >= dH ? 'away' : 'home', lg: lg };
     }
-    if (!hit && CONFIG.celebrate && !winShown[g.id] && winFor(g, lg) && (!was || !was.won)) hit = { id: g.id, was: was || {}, why: 'win' };   // just won, or already won when the page loaded: go see it (once)
+    if (!hit && CONFIG.celebrate && !winShown[g.id] && winFor(g, lg) && (was ? !was.won : winFresh(g, lg))) hit = { id: g.id, was: was || {}, why: 'win' };   // just won, or already won when the page loaded: go see it (once)
     next[g.id] = { lg: lg, fin: isFinal(g), won: !!winFor(g, lg), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
   // a game that just turned into an UPSET ALERT
@@ -5159,7 +5235,7 @@ var TD_COLLEGE = [
 })();
 function tdKind(t, lg) {
   if (!t) return '';
-  if (lg === 'ncaaf') {
+  if (lg === 'ncaaf' || lg === 'ncaab') {
     var n = String(t.name || '');
     for (var i = 0; i < TD_COLLEGE.length; i++) if (TD_COLLEGE[i][0].test(n)) return CONFIG.tdPhotos || tdAnimalSVG(TD_COLLEGE[i][1]) ? TD_COLLEGE[i][1] : '';
     return '';
@@ -6032,6 +6108,14 @@ function winFor(g, lg) {                       // one of our teams just won this
     if (a === h) return null;
     var ws = a > h ? 'away' : 'home', ls = ws === 'away' ? 'home' : 'away', wt = g.teams[ws];
     return { cfg: primeWinCfg(wt, lg), side: ws, me: Math.max(a, h), op: Math.min(a, h), opp: g.teams[ls], lg: lg };
+  }
+  // college hoops: a big-five conference championship or any NCAA tournament game
+  if (CONFIG.tourney && lg === 'ncaab' && g.tourn && isFinal(g)) {
+    var ta = num(scoreOf(g, 'away')), th = num(scoreOf(g, 'home'));
+    if (ta === th) return null;
+    var tws = ta > th ? 'away' : 'home', tc = primeWinCfg(g.teams[tws], lg);
+    tc.l1 = tc.name + ' WINS!'; tc.l2 = tourLine(g.tourn);
+    return { cfg: tc, side: tws, me: Math.max(ta, th), op: Math.min(ta, th), opp: g.teams[tws === 'away' ? 'home' : 'away'], lg: lg };
   }
   return null;
 }
