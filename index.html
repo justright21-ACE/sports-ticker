@@ -5234,20 +5234,25 @@ function tdJump(hit) {
    up out of the bottom toward you, two helmets slide in from the sides, TOUCHDOWN drops in letter by letter
    in the team's colors over a glow, then the scorer's photo rises behind the word with the team's logo on
    one side and his name on the other. */
-function tdFxHTML(g, side, lg, ts, dt, delay) {
+var FX_WORDS = { 'TOUCHDOWN': 1, 'FIELD GOAL': 1, 'SAFETY': 1 };   // the scores that get the full package (extra points and 2-point tries just flip the number)
+function tdFxHTML(g, side, lg, ts, dt, delay, lab) {
   var t = g.teams[side], look = teamLook(t, lg) || {}, col = '#' + String(look.color || homeColor(t, lg) || 'e23d3d').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
   if (col.toLowerCase() === alt.toLowerCase() || /^#(000000|0b0b0b|101820)$/i.test(alt)) alt = '#ffffff';
   var lum = function (h) { h = h.replace('#', ''); return 0.3 * parseInt(h.substr(0, 2), 16) + 0.59 * parseInt(h.substr(2, 2), 16) + 0.11 * parseInt(h.substr(4, 2), 16); };
   var acc = alt !== '#ffffff' && lum(alt) > lum(col) ? alt : (lum(col) < 60 ? (alt !== '#ffffff' ? alt : '#e23d3d') : col);   // the bright one of the two, for glow and edges
   var p = ts ? findPlayer(dt, ts.name, t.tid) : null, url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
   if (url) url = url.replace(/&w=\d+&h=\d+/, '&w=350&h=254');
-  var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, ''), parts = full.split(/\s+/), last = parts.pop() || '', first = parts.join(' ');
+  var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, '');
+  if (!full) full = String(t.short || nickname(t.name) || '').replace(/^\s+|\s+$/g, '');   // no scorer (a safety, usually): the team's name
+  var parts = full.split(/\s+/), last = parts.pop() || '', first = parts.join(' ');
   var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
   var leap = kind ? (tdPhotoHTML(kind) || tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0)) : '';
   if (!leap) leap = tdHelmetHTML(t, lg, col, acc, true);
   if (/tdph/.test(leap)) leap = leap.replace('class="tdph"', 'class="tdph" style="-webkit-filter:drop-shadow(0 0 2.2vh ' + acc + ');filter:drop-shadow(0 0 2.2vh ' + acc + ')"');
-  var W = 'TOUCHDOWN', word = '';
-  for (var i = 0; i < W.length; i++) word += '<span style="-webkit-animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's;animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's">' + W.charAt(i) + '</span>';
+  var W = lab || 'TOUCHDOWN', word = '';
+  var ar = (window.innerWidth || 16) / (window.innerHeight || 9), fxSize = W.length > 9 ? 11.5 : 12.5;
+  if (ar < 1.7) fxSize = Math.round(fxSize * ar / 1.95 * 10) / 10;   // squarer screens: the word shrinks to stay between the helmets
+  for (var i = 0; i < W.length; i++) word += W.charAt(i) === ' ' ? '<span>&nbsp;</span>' : '<span style="-webkit-animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's;animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's">' + W.charAt(i) + '</span>';
   var sh = '0.4vh 0.4vh 0 ' + acc + ', -0.4vh 0.4vh 0 ' + acc + ', 0.4vh -0.4vh 0 ' + acc + ', -0.4vh -0.4vh 0 ' + acc + ', 0.9vh 0.9vh 0 ' + col + ', 0 1.4vh 3vh rgba(0,0,0,0.7)';
   var st = delay ? ' style="-webkit-animation-delay:' + (delay + 6.4) + 's;animation-delay:' + (delay + 6.4) + 's"' : '';
   var d = function (x) { return '-webkit-animation-delay:' + (x + (delay || 0)) + 's;animation-delay:' + (x + (delay || 0)) + 's;'; };
@@ -5261,7 +5266,7 @@ function tdFxHTML(g, side, lg, ts, dt, delay) {
     '<div class="tfslab" style="' + d(0.7) + 'border-color:' + acc + ';background:-webkit-linear-gradient(top, ' + col + ', ' + rgba(ah, 0.9) + ');background:linear-gradient(to bottom, ' + col + ', ' + rgba(ah, 0.9) + ')"></div>' +
     '<div class="tfhel l" style="' + d(0.65) + '">' + tdHelmetHTML(t, lg, col, acc, true) + '</div>' +
     '<div class="tfhel r" style="' + d(0.65) + '">' + tdHelmetHTML(t, lg, col, acc, true) + '</div>' +
-    '<div class="tfword" style="color:#ffffff;text-shadow:' + sh + '">' + word.replace(/animation-delay:([\d.]+)s/g, function (m, x) { return 'animation-delay:' + (+x + (delay || 0)).toFixed(3) + 's'; }) + '</div>' +
+    '<div class="tfword" style="color:#ffffff;' + 'font-size:' + fxSize + 'vh;' + (W.length > 9 ? 'letter-spacing:0.3vw;' : '') + 'text-shadow:' + sh + '">' + word.replace(/animation-delay:([\d.]+)s/g, function (m, x) { return 'animation-delay:' + (+x + (delay || 0)).toFixed(3) + 's'; }) + '</div>' +
     '<div class="tfleap' + (kind && TD_BIRDS[kind] ? ' bird' : '') + '" style="' + d(0) + '">' + leap + '</div>' +
     '</div>';
 }
@@ -5946,13 +5951,13 @@ function twoMinute(g, lg) {
   var late = lg === 'nhl' ? q >= 3 : (lg === 'nfl' || lg === 'ncaaf' ? (q === 2 || q >= 4) : q >= 4);
   return late && !!m && (+m[1] * 60 + +m[2]) <= 120;
 }
-function scoreLabel(lg, d) {
+function scoreLabel(lg, d, lp) {
   if (lg === 'mlb') return d > 1 ? d + ' RUNS SCORE' : 'RUN SCORES';
   if (lg === 'nhl') return 'GOAL!';
   if (lg === 'nba' || lg === 'wnba' || lg === 'ncaab') return '';
   if (d >= 6) return 'TOUCHDOWN';
   if (d === 3) return 'FIELD GOAL';
-  if (d === 2) return 'SAFETY';
+  if (d === 2) return /two-point|2-point|2pt|conversion/i.test(String(lp || '')) && !/safety/i.test(String(lp || '')) ? '2-POINT CONVERSION' : 'SAFETY';
   return '';
 }
 function ptAnimate(pg) {
@@ -6086,11 +6091,11 @@ function ptAnimate(pg) {
   // a score since this screen was last up: banner in the scoring team's color, then the number flips
   if (prev && !fin && (a > prev.a || h > prev.h) && pg.lg !== 'nba' && pg.lg !== 'wnba' && pg.lg !== 'ncaab') {
     var side = a - prev.a >= h - prev.h ? 'away' : 'home', d = side === 'away' ? a - prev.a : h - prev.h, t = g.teams[side];
-    var lab = scoreLabel(pg.lg, d), lead = (prev.a - prev.h) * (a - h) <= 0 && a !== h && prev.a !== prev.h ? ' TAKE THE LEAD' : (a === h ? ' TIE IT' : '');
-    var fx = CONFIG.tdFx && lab === 'TOUCHDOWN' && (pg.lg === 'nfl' || pg.lg === 'ncaaf');
+    var lab = scoreLabel(pg.lg, d, ((sitN.lastPlay || {}).text || '')), lead = (prev.a - prev.h) * (a - h) <= 0 && a !== h && prev.a !== prev.h ? ' TAKE THE LEAD' : (a === h ? ' TIE IT' : '');
+    var fx = CONFIG.tdFx && FX_WORDS[lab] && (pg.lg === 'nfl' || pg.lg === 'ncaaf');
     if (fx) {                                                       // the touchdown package instead of the flat banner
       var dtx = ptDetail[g.eid], tsx = tdScorer(g, dtx, side, side === 'away' ? prev.a : prev.h) || scorerFromPlays(g, dtx, lab, prev.play);
-      root.insertAdjacentHTML('beforeend', tdFxHTML(g, side, pg.lg, tsx, dtx, delay || 0));
+      root.insertAdjacentHTML('beforeend', tdFxHTML(g, side, pg.lg, tsx, dtx, delay || 0, lab));
       setTimeout(function () { var fxe = root.querySelector('.tdfx'); if (fxe && fxe.parentNode) fxe.parentNode.removeChild(fxe); }, ((delay || 0) + 7.2) * 1000);
       tdFxEnd = (delay || 0) + 7.2;
       var numx = root.querySelector(side === 'away' ? '.bigsc .sa' : '.bigsc .sh');
