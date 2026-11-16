@@ -8211,10 +8211,11 @@ var HOLIDAYS = {
   nye:         { tag: "NEW YEAR'S EVE", title: "NEW YEAR'S EVE", sub: '', c: ['#f5c542', '#e8ecf4', '#b48cff'], fx: ['fw', 'confetti'], card: 15, art: 'fw' },
   mlk:         { tag: 'MLK DAY', title: 'MARTIN LUTHER KING JR. DAY', sub: 'A DAY ON, NOT A DAY OFF', c: ['#f5c542', '#3c6df0', '#ffffff'], fx: ['tw'], card: 30, art: 'sun' },
   bhm:         { tag: 'BLACK HISTORY MONTH', title: 'BLACK HISTORY MONTH', sub: 'CELEBRATING BLACK EXCELLENCE', c: ['#d21034', '#111111', '#009b48'], strip: ['#d21034', '#111111', '#009b48'], fx: [], card: 60, art: 'bhm', quiet: true },
+  valentine:   { tag: "VALENTINE'S DAY", title: "HAPPY VALENTINE'S DAY", sub: '', c: ['#ff3d6e', '#ff9ec0', '#d4002a', '#ffffff'], fx: ['heart'], card: 30, art: 'heart' },
   presidents:  { tag: "PRESIDENTS' DAY", title: "PRESIDENTS' DAY", sub: '', c: RWB, fx: ['tw'], card: 30, art: 'stars' },
   stpat:       { tag: "ST. PATRICK'S DAY", title: "HAPPY ST. PATRICK'S DAY", sub: '', c: ['#169b62', '#7ed957', '#f5c542'], fx: ['clover'], card: 30, art: 'clover' },
   easter:      { tag: 'HAPPY EASTER', title: 'HAPPY EASTER', sub: '', c: ['#f7a8c4', '#b9a3f0', '#9fe2bf', '#ffe680'], fx: ['petal'], card: 30, art: 'egg' },
-  memorial:    { tag: 'MEMORIAL DAY', title: 'MEMORIAL DAY', sub: 'HONORING THOSE WHO GAVE ALL', c: RWB, fx: ['tw'], card: 30, art: 'stars' },
+  memorial:    { tag: 'MEMORIAL DAY', title: 'MEMORIAL DAY', sub: 'HONORING THOSE WHO GAVE ALL', c: RWB, fx: ['tw'], card: 30, art: 'flag' },
   juneteenth:  { tag: 'JUNETEENTH', title: 'HAPPY JUNETEENTH', sub: 'FREEDOM DAY · JUNE 19, 1865', c: ['#bf0a30', '#ffffff', '#3c6df0', '#009b48', '#f5c542'], strip: ['#d21034', '#111111', '#009b48'], fx: ['fw', 'tw'], card: 15, art: 'juneteenth' },
   july4:       { tag: 'HAPPY 4TH', title: 'HAPPY 4TH OF JULY', sub: 'INDEPENDENCE DAY', c: RWB, fx: ['fw', 'tw'], card: 15, art: 'fw' },
   labor:       { tag: 'LABOR DAY', title: 'HAPPY LABOR DAY', sub: '', c: ['#3c6df0', '#f5c542', '#ffffff'], fx: ['tw'], card: 30, art: 'stars' },
@@ -8232,6 +8233,7 @@ function holidayKey(d) {
   if (m === 11 && dd === 31) return 'nye';
   if (m === 0 && dd === nthDow(y, 0, 1, 3)) return 'mlk';
   if (m === 1 && dd === nthDow(y, 1, 1, 3)) return 'presidents';
+  if (m === 1 && dd === 14) return 'valentine';
   if (m === 2 && dd === 17) return 'stpat';
   if (m === e[0] && dd === e[1]) return 'easter';
   if (m === 4 && dd === nthDow(y, 4, 1, -1)) return 'memorial';
@@ -8263,6 +8265,7 @@ function holShape(s, col) {
   if (s === 'star' || s === 'tw') return o + '<polygon fill="' + col + '" points="' + starPts(50, 52, 46, 19, 5) + '"/></svg>';
   if (s === 'leaf') return o + '<path fill="' + col + '" d="M50 6 C78 22 92 52 50 94 C8 52 22 22 50 6Z"/><path d="M50 18 V90 M50 44 L68 30 M50 60 L32 46 M50 74 L66 62" stroke="rgba(0,0,0,0.3)" stroke-width="4" fill="none"/></svg>';
   if (s === 'clover') return o + '<g fill="' + col + '"><circle cx="50" cy="30" r="19"/><circle cx="30" cy="56" r="19"/><circle cx="70" cy="56" r="19"/><circle cx="50" cy="50" r="12"/></g><path d="M52 62 Q56 82 66 94" stroke="' + col + '" stroke-width="7" fill="none" stroke-linecap="round"/></svg>';
+  if (s === 'heart') return o + '<path fill="' + col + '" d="M50 88 C20 66 6 48 6 32 C6 18 17 8 30 8 C39 8 46 13 50 21 C54 13 61 8 70 8 C83 8 94 18 94 32 C94 48 80 66 50 88Z"/></svg>';
   if (s === 'petal') return o + '<ellipse cx="50" cy="50" rx="22" ry="40" fill="' + col + '"/></svg>';
   if (s === 'confetti') return o + '<rect x="30" y="10" width="40" height="80" rx="6" fill="' + col + '"/></svg>';
   if (s === 'bat') return o + '<path fill="' + col + '" d="M50 40 C46 30 42 30 40 36 C30 24 14 22 4 34 C14 36 18 44 16 52 C24 46 34 48 38 56 C42 50 46 50 50 58 C54 50 58 50 62 56 C66 48 76 46 84 52 C82 44 86 36 96 34 C86 22 70 24 60 36 C58 30 54 30 50 40Z"/></svg>';
@@ -8287,6 +8290,15 @@ function holArt(k, h) {                          // the greeting card's picture
   if (h.art === 'pumpkin') return o + '<rect x="140" y="22" width="16" height="30" rx="5" fill="#3d6b1f"/><ellipse cx="110" cy="112" rx="58" ry="74" fill="#e8650f"/><ellipse cx="190" cy="112" rx="58" ry="74" fill="#e8650f"/><ellipse cx="150" cy="112" rx="64" ry="80" fill="#ff7518"/>' +
       '<polygon points="112,92 132,92 122,74" fill="#2b1400"/><polygon points="168,92 188,92 178,74" fill="#2b1400"/><path d="M100 128 Q150 176 200 128 L186 134 L176 124 L164 136 L150 126 L136 136 L124 124 L114 134Z" fill="#2b1400"/></svg>';
   if (h.art === 'egg') return o + '<ellipse cx="150" cy="104" rx="62" ry="84" fill="' + c[0] + '"/><path d="M90 92 Q120 76 150 92 T210 92" stroke="' + c[1] + '" stroke-width="12" fill="none"/><path d="M92 124 Q120 140 150 124 T208 124" stroke="' + c[2] + '" stroke-width="12" fill="none"/><circle cx="150" cy="58" r="9" fill="' + c[3] + '"/></svg>';
+  if (h.art === 'flag') {                       // a waving flag: 13 wavy stripes and a star field
+    var band = function (y, hh) { return 'M40 ' + y + ' Q100 ' + (y - 16) + ' 160 ' + y + ' T280 ' + y + ' L280 ' + (y + hh) + ' Q220 ' + (y + hh + 16) + ' 160 ' + (y + hh) + ' T40 ' + (y + hh) + 'Z'; };
+    var fl = '', sh = 140 / 13;
+    for (var sI = 0; sI < 13; sI++) fl += '<path d="' + band(30 + sI * sh, sh + 0.6) + '" fill="' + (sI % 2 ? '#ffffff' : '#bf0a30') + '"/>';
+    fl += '<clipPath id="hfc"><path d="' + band(30, 76) + '"/></clipPath><rect x="40" y="0" width="100" height="120" fill="#1f3a93" clip-path="url(#hfc)"/>';
+    for (var r2 = 0; r2 < 3; r2++) for (var c2 = 0; c2 < 4; c2++) fl += '<polygon points="' + starPts(56 + c2 * 22, 38 + r2 * 20 - (c2 < 2 ? c2 * 4 : (3 - c2) * 4 + 2), 7, 3, 5) + '" fill="#ffffff"/>';
+    return o + '<rect x="30" y="14" width="8" height="186" rx="4" fill="#c9ced8"/>' + fl + '</svg>';
+  }
+  if (h.art === 'heart') return o + '<g transform="translate(60 6) scale(1.8)">' + holShape('heart', c[0]).replace(/<\/?svg[^>]*>/g, '') + '</g><g transform="translate(176 92) scale(0.9)">' + holShape('heart', c[1]).replace(/<\/?svg[^>]*>/g, '') + '</g><g transform="translate(34 104) scale(0.7)">' + holShape('heart', c[2]).replace(/<\/?svg[^>]*>/g, '') + '</g></svg>';
   if (h.art === 'stars') return o + '<polygon points="' + starPts(150, 104, 70, 28, 5) + '" fill="' + c[1] + '"/><polygon points="' + starPts(64, 120, 34, 14, 5) + '" fill="' + c[0] + '"/><polygon points="' + starPts(236, 120, 34, 14, 5) + '" fill="' + c[2] + '"/></svg>';
   if (h.art === 'fw') { var g = ''; for (var j = 0; j < 3; j++) { var cx = [80, 160, 230][j], cy = [80, 60, 110][j], rr = [52, 70, 44][j];
       for (var q = 0; q < 14; q++) { var an = q * Math.PI / 7; g += '<line x1="' + (cx + rr * 0.3 * Math.cos(an)).toFixed(1) + '" y1="' + (cy + rr * 0.3 * Math.sin(an)).toFixed(1) + '" x2="' + (cx + rr * Math.cos(an)).toFixed(1) + '" y2="' + (cy + rr * Math.sin(an)).toFixed(1) + '" stroke="' + c[j % c.length] + '"/>'; } }
