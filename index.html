@@ -5115,7 +5115,7 @@ var TD_ANIMALS = {
   nfl: { CHI: 'bear', CIN: 'tiger', JAX: 'jaguar', CAR: 'panther', DET: 'lion', PHI: 'eagle', ATL: 'falcon', BAL: 'raven',
          ARI: 'cardinal', SEA: 'hawk', DEN: 'n-bronco', IND: 'whitehorse', LAR: 'ram', BUF: 'bison', MIA: 'dolphin', HOU: 'bull',
          NE: 'n-patriot', NYJ: 'n-jet', NYG: 'n-giant', DAL: 'n-cowboy', WSH: 'n-commander', MIN: 'n-viking', GB: 'n-packer', LV: 'n-raider',
-         LAC: 'n-lightning', CLE: 'n-elf', PIT: 'n-steelworker', NO: 'n-saint', TB: 'n-buccaneer' }
+         KC: 'logo', LAC: 'n-lightning', CLE: 'n-elf', PIT: 'n-steelworker', NO: 'n-saint', TB: 'n-buccaneer' }
 };
 /* real cut-out photos of each animal (img/td/), used in place of the drawings (?tdphotos=0: the drawings) */
 var TD_PHOTOS = { bear: 'bear', tiger: 'tiger', jaguar: 'jaguar', panther: 'panther', lion: 'lion', eagle: 'eagle', falcon: 'falcon', raven: 'raven',
@@ -5163,6 +5163,7 @@ function tdKind(t, lg) {
   return k;
 }
 function tdPhoto(kind) { return CONFIG.tdPhotos && TD_PHOTOS[kind] ? 'img/td/' + TD_PHOTOS[kind] + '.png' : ''; }
+function tdLogoURL(t) { return t && t.logo ? String(t.logo) : ''; }   // kind 'logo': the team's own logo is what leaps out (Chiefs: the arrowhead)
 function tdPhotoHTML(kind) { var u = tdPhoto(kind); return u ? '<img class="tdph" src="' + u + '" alt="">' : ''; }
 var tdPre = {};
 function tdPreload() {                                              // the animals for the teams on today's big screens, fetched ahead of time
@@ -5234,7 +5235,7 @@ var tdr = { on: false, timers: [] };
 function tdRunHTML(t, lg) {
   var look = teamLook(t, lg) || {}, col = '#' + String(look.color || t.color || '1f2a44').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
   if (col.toLowerCase() === alt.toLowerCase()) alt = '#ffffff';
-  var kind = tdKind(t, lg), who, ph = kind ? tdPhotoHTML(kind) : '';
+  var kind = tdKind(t, lg), who, ph = kind === 'logo' ? (tdLogoURL(t) ? '<img class="tdph" src="' + esc(tdLogoURL(t)) + '" alt="">' : '') : (kind ? tdPhotoHTML(kind) : '');
   if (!ph && kind && !tdAnimalSVG(kind)) kind = '';                 // no drawing of this one (bull): the helmet
   if (ph) who = '<div class="tdchar photo' + (TD_BIRDS[kind] ? ' glide' : (kind === 'dolphin' ? ' leap' : ' run')) + '">' + ph + '</div>';
   else if (kind && TD_BIRDS[kind]) who = '<div class="tdchar fly"><div class="f0">' + tdAnimalSVG(kind, 0) + '</div><div class="f1">' + tdAnimalSVG(kind, 1) + '</div></div>';
@@ -5299,7 +5300,7 @@ function tdFxHTML(g, side, lg, ts, dt, delay, lab) {
   if (!full) full = String(t.short || nickname(t.name) || '').replace(/^\s+|\s+$/g, '');   // no scorer (a safety, usually): the team's name
   var parts = full.split(/\s+/), last = parts.pop() || '', first = parts.join(' ');
   var kind = tdKind(t, lg);
-  var leap = kind ? (tdPhotoHTML(kind) || tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0)) : '';
+  var leap = kind === 'logo' ? (tdLogoURL(t) ? '<img class="tdph" src="' + esc(tdLogoURL(t)) + '" alt="">' : '') : (kind ? (tdPhotoHTML(kind) || tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0)) : '');
   if (!leap) leap = tdHelmetHTML(t, lg, col, acc, true);
   if (/tdph/.test(leap)) leap = leap.replace('class="tdph"', 'class="tdph" style="-webkit-filter:drop-shadow(0 0 2.2vh ' + acc + ');filter:drop-shadow(0 0 2.2vh ' + acc + ')"');
   var W = lab || 'TOUCHDOWN', word = '';
@@ -5953,9 +5954,9 @@ var CELEBRATE = {
                  c1: '#ffffff', s1: '#5e0003', c2: '#ffffff', s2: '#282728', conf: ['#ffffff', '#282728', '#ffd6d8', '#dadfe1'], jump: true }
 };
 function winFigHTML(t, lg, ring) {             // the team's animal / figure jumps up in both bottom corners (the right one faces in)
-  var u = CONFIG.tdPhotos ? tdPhoto(tdKind(t, lg)) : '';
+  var k = tdKind(t, lg), u = k === 'logo' ? tdLogoURL(t) : (CONFIG.tdPhotos ? tdPhoto(k) : '');
   if (!u) return '';
-  var im = '<img src="' + u + '" alt="" style="-webkit-filter:drop-shadow(0 0 2vh ' + ring + ');filter:drop-shadow(0 0 2vh ' + ring + ')">';
+  var im = '<img src="' + esc(u) + '" alt="" style="-webkit-filter:drop-shadow(0 0 2vh ' + ring + ');filter:drop-shadow(0 0 2vh ' + ring + ')">';
   return '<div class="bwfig l"><div class="bwfb">' + im + '</div></div><div class="bwfig r"><div class="bwfb">' + im + '</div></div>';
 }
 function winFor(g, lg) {                       // one of our teams just won this game: which, and the score
