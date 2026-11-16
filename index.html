@@ -103,6 +103,11 @@
   }
   .logo img { position: absolute; left: 0.75vh; top: 0.75vh; width: 5.5vh; height: 5.5vh; }
   .logo.none { background: transparent; }
+  /* COMBAT: the fighter's photo in the logo circle, the country flag on its corner */
+  .fwrap { display: inline-block; position: relative; vertical-align: middle; margin-right: 0.7vw; }
+  .fwrap .logo.fpic { margin-right: 0; background-color: #2a3346; background-size: cover; background-position: center 12%; background-repeat: no-repeat; }
+  .fwrap .fflag { position: absolute; right: -0.6vh; bottom: -0.2vh; width: 3.4vh; height: 2.3vh; border-radius: 0.35vh; border: 0.25vh solid #0b1020; background: #0b1020; }
+  .lose .fwrap { opacity: 0.55; }
   .lose .logo { opacity: 0.55; }
   .stripe { height: 0.9vh; }
   /* squarer screens (4:3, 5:4): drop the small team names so letters + scores have room */
@@ -174,6 +179,9 @@
   .fight .abbr { font-size: 3.4vh; max-width: 20vw; padding: 0 0.6vw; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0; }
   .fight .name { display: none; }
   .fight .abbr { max-width: 24vw; }
+  .fight .row { white-space: nowrap; }
+  .fight .fwrap + .abbr { max-width: 19vw; }
+  .narrow .fight .fwrap + .abbr { max-width: 15.5vw; font-size: 2.9vh; }
   .fight .score { color: #f5b800; }
   /* WWE premium live event card: the event's name on top, the venue under it */
   .showbox { height: 20vh; padding: 2.2vh 1.2vw 0; box-sizing: border-box; overflow: hidden; }
@@ -1388,6 +1396,7 @@ var CONFIG = {
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
+  fighterPics: true,     // COMBAT cards: each fighter's photo and country flag (?fighterpics=0 off)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
   eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
   nflPower: true,        // NFL power rankings screen (ESPN's Football Power Index, all 32 teams) in the NFL rotation (?power=0 off)
@@ -1581,6 +1590,7 @@ function readParams() {
     if (k === 'reviews') CONFIG.reviews = v !== '0';
     if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'golf') CONFIG.golf = v !== '0';
+    if (k === 'fighterpics') CONFIG.fighterPics = v !== '0';
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
     if (k === 'specialdays') CONFIG.specialDays = v !== '0';
@@ -2424,6 +2434,59 @@ function loadPromo(slug, promo, cb) {
     cb(null, main);
   });
 }
+/* ---- COMBAT: fighter photos and country flags ----
+   UFC / PFL: ESPN's own headshot and flag for each fighter. Boxing: TheSportsDB's player record (cut-out
+   photo, nationality), looked up a couple of names per refresh and remembered for 30 days. Flags for a
+   country name come from flagcdn.com. */
+var COUNTRY_ISO = { 'united states': 'us', 'usa': 'us', 'united states of america': 'us', 'america': 'us', 'american': 'us', 'mexico': 'mx', 'mexican': 'mx', 'brazil': 'br', 'brazilian': 'br',
+  'russia': 'ru', 'russian': 'ru', 'russian federation': 'ru', 'dagestan': 'ru', 'chechnya': 'ru', 'united kingdom': 'gb', 'great britain': 'gb', 'uk': 'gb', 'british': 'gb', 'england': 'gb-eng', 'english': 'gb-eng',
+  'scotland': 'gb-sct', 'scottish': 'gb-sct', 'wales': 'gb-wls', 'welsh': 'gb-wls', 'northern ireland': 'gb-nir', 'ireland': 'ie', 'irish': 'ie', 'canada': 'ca', 'canadian': 'ca', 'australia': 'au', 'australian': 'au',
+  'new zealand': 'nz', 'japan': 'jp', 'japanese': 'jp', 'china': 'cn', 'chinese': 'cn', 'south korea': 'kr', 'korea': 'kr', 'philippines': 'ph', 'filipino': 'ph', 'kazakhstan': 'kz', 'uzbekistan': 'uz', 'ukraine': 'ua', 'ukrainian': 'ua',
+  'poland': 'pl', 'polish': 'pl', 'georgia': 'ge', 'armenia': 'am', 'azerbaijan': 'az', 'nigeria': 'ng', 'nigerian': 'ng', 'cameroon': 'cm', 'ghana': 'gh', 'south africa': 'za', 'france': 'fr', 'french': 'fr',
+  'germany': 'de', 'german': 'de', 'netherlands': 'nl', 'dutch': 'nl', 'sweden': 'se', 'swedish': 'se', 'norway': 'no', 'denmark': 'dk', 'italy': 'it', 'italian': 'it', 'spain': 'es', 'spanish': 'es', 'portugal': 'pt',
+  'puerto rico': 'pr', 'cuba': 'cu', 'cuban': 'cu', 'dominican republic': 'do', 'venezuela': 've', 'colombia': 'co', 'argentina': 'ar', 'peru': 'pe', 'chile': 'cl', 'ecuador': 'ec', 'jamaica': 'jm',
+  'thailand': 'th', 'kyrgyzstan': 'kg', 'tajikistan': 'tj', 'mongolia': 'mn', 'turkey': 'tr', 'turkiye': 'tr', 'iran': 'ir', 'moldova': 'md', 'belarus': 'by', 'lithuania': 'lt', 'latvia': 'lv',
+  'czech republic': 'cz', 'czechia': 'cz', 'slovakia': 'sk', 'croatia': 'hr', 'serbia': 'rs', 'bosnia and herzegovina': 'ba', 'bosnia': 'ba', 'romania': 'ro', 'bulgaria': 'bg', 'hungary': 'hu', 'greece': 'gr',
+  'austria': 'at', 'switzerland': 'ch', 'belgium': 'be', 'india': 'in', 'united arab emirates': 'ae', 'uae': 'ae', 'morocco': 'ma', 'egypt': 'eg', 'tunisia': 'tn', 'algeria': 'dz', 'haiti': 'ht',
+  'trinidad and tobago': 'tt', 'bahamas': 'bs', 'fiji': 'fj', 'samoa': 'ws', 'tonga': 'to', 'indonesia': 'id', 'vietnam': 'vn', 'taiwan': 'tw', 'israel': 'il', 'finland': 'fi', 'iceland': 'is',
+  'estonia': 'ee', 'albania': 'al', 'kosovo': 'xk', 'montenegro': 'me', 'north macedonia': 'mk', 'slovenia': 'si', 'paraguay': 'py', 'uruguay': 'uy', 'bolivia': 'bo', 'costa rica': 'cr', 'panama': 'pa',
+  'nicaragua': 'ni', 'guatemala': 'gt', 'honduras': 'hn', 'el salvador': 'sv', 'senegal': 'sn', 'kenya': 'ke', 'dr congo': 'cd', 'democratic republic of the congo': 'cd', 'congo': 'cg', 'angola': 'ao',
+  'zimbabwe': 'zw', 'uganda': 'ug', 'ivory coast': 'ci', "cote d'ivoire": 'ci', 'suriname': 'sr', 'guyana': 'gy', 'lebanon': 'lb', 'jordan': 'jo', 'iraq': 'iq', 'afghanistan': 'af', 'pakistan': 'pk' };
+function flagOf(country) {
+  var k = String(country || '').toLowerCase().replace(/^\s+|\s+$/g, '');
+  var iso = COUNTRY_ISO[k];
+  return iso ? 'https://flagcdn.com/w80/' + iso + '.png' : '';
+}
+function fighterPicHTML(t, e) {
+  if (!CONFIG.fighterPics || e.wwe) return '';
+  var fx = t.hs || t.flag ? t : (fighterInfo[normName(t.name)] || {});
+  var hs = t.hs || fx.img || '', fl = t.flag || fx.flag || '';
+  if (!hs && !fl) return '';
+  return '<span class="fwrap"><span class="logo fpic"' + (hs ? ' style="background-image:url(\'' + esc(hs).replace(/'/g, '%27') + '\')"' : '') + '></span>' +
+         (fl ? '<img class="fflag" src="' + esc(fl) + '" onerror="this.style.display=\'none\'" alt="">' : '') + '</span>';
+}
+var fighterInfo = {}, FIGHTER_KEY = 'fcw_fighters';
+try { var fi0 = JSON.parse(window.localStorage.getItem(FIGHTER_KEY)); if (fi0 && typeof fi0 === 'object') fighterInfo = fi0; } catch (e) {}
+function loadFighters(cb) {                                         // boxers: up to 2 new names a refresh (free tier)
+  var d = state.data.ufc, g = (d && d.games) || [], todo = [], now = new Date().getTime(), i;
+  if (DEMO || !CONFIG.fighterPics) return cb();
+  for (i = 0; i < g.length && todo.length < 2; i++) if (g[i].box) {
+    var two = [g[i].teams.away.name, g[i].teams.home.name];
+    for (var j = 0; j < 2 && todo.length < 2; j++) { var k = normName(two[j]), c = fighterInfo[k]; if (k && (!c || (!c.img && !c.flag && now - c.at > 86400000) || now - c.at > 30 * 86400000)) todo.push(two[j]); }
+  }
+  var q = 0;
+  (function next() {
+    if (q >= todo.length) { try { window.localStorage.setItem(FIGHTER_KEY, JSON.stringify(fighterInfo)); } catch (e) {} return cb(); }
+    var nm = todo[q++];
+    getJSON(SPORTSDB + 'searchplayers.php?p=' + encodeURIComponent(nm), function (err, data) {
+      var P = (!err && data && (data.player || data.players)) || [], best = null;
+      for (var r = 0; r < P.length && !best; r++) if (/box|fight|mma/i.test(P[r].strSport || '')) best = P[r];
+      if (!best && P.length === 1) best = P[0];
+      fighterInfo[normName(nm)] = { at: now, img: best ? (best.strCutout || best.strRender || best.strThumb || '') : '', flag: best ? flagOf(best.strNationality) : '' };
+      next();
+    });
+  })();
+}
 /* Major boxing cards from TheSportsDB (free key). It lists cards, not live rounds, so a
    boxing card shows the fight, start time and venue, then the result once it's posted.
    Checked for today and tomorrow, at most one request per refresh, each cached an hour. */
@@ -2528,7 +2591,9 @@ function fromFight(c, idx, count) {
     var at = cp.athlete || {}, full = at.displayName || at.fullName || '';
     var last = at.shortName ? at.shortName.replace(/^[A-Z][a-z]*\.\s*/, '') : full.split(' ').slice(-1)[0];
     var rec = cp.records && cp.records[0] && cp.records[0].summary;
-    return { abbreviation: String(last || full).toUpperCase(), name: full, short: rec || '', rank: 0 };
+    var ctry = (at.flag && at.flag.alt) || (typeof at.citizenship === 'string' ? at.citizenship : (at.citizenship && (at.citizenship.name || at.citizenship.abbreviation))) || (at.birthPlace && at.birthPlace.country) || '';
+    return { abbreviation: String(last || full).toUpperCase(), name: full, short: rec || '', rank: 0,
+             hs: headshotOf(at, 'mma'), flag: (at.flag && at.flag.href) || flagOf(ctry), country: ctry };
   }
   var seg = c.cardSegment, segText = typeof seg === 'string' ? seg : (seg && (seg.description || seg.displayName || seg.name)) || '';
   var stt = c.status || {}, ty = stt.type || {}, live = ty.state === 'in', fin = ty.state === 'post';
@@ -3017,7 +3082,7 @@ function leagueLogoErr(img) {
   if (n && /\bltag\b/.test(n.className)) n.style.display = 'none';
 }
 /* player headshots (ESPN), small and round; if one doesn't load it just disappears */
-var HS_PATH = { nfl: 'nfl', ncaaf: 'college-football', nba: 'nba', wnba: 'wnba', nhl: 'nhl', mlb: 'mlb', ncaab: 'mens-college-basketball' };
+var HS_PATH = { mma: 'mma', nfl: 'nfl', ncaaf: 'college-football', nba: 'nba', wnba: 'wnba', nhl: 'nhl', mlb: 'mlb', ncaab: 'mens-college-basketball' };
 function headshotOf(at, lg) {
   if (!at) return '';
   var h = at.headshot, href = h && (typeof h === 'string' ? h : h.href);
@@ -3118,7 +3183,7 @@ function cardHTML(e, lg) {
   var hc = e.ufc ? '' : homeColor(h, lg);
   function row(t, s, lose, tint, which) {
     return '<div class="row' + (lose ? ' lose' : '') + '"' + (tint ? ' style="background:' + tint + '"' : '') + '>' +
-      (e.ufc ? '' : logoHTML(t, lg)) + '<span class="abbr">' + esc(t.abbreviation) +
+      (e.ufc ? fighterPicHTML(t, e) : logoHTML(t, lg)) + '<span class="abbr">' + esc(t.abbreviation) +
       '</span>' + (inj && inj.side === which ? '<span class="injr">' + INJ_X + '</span>' : '') + (ctos && ctos[which] !== null ? ctosHTML(ctos[which], ctos.max) : '') + '<span class="name"><span class="nn">' + (apRank(t, lg) ? '<b class="rk">' + apRank(t, lg) + '</b>' : '') +
       esc(t.short || nickname(t.name)) + '</span>' + recHTML(t, apRank(t, lg)) + '</span><span class="score">' + esc(s) + '</span></div>';
   }
@@ -7672,7 +7737,7 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadH2h(function () { loadGolf(function () { loadEplTable(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadH2h(function () { loadGolf(function () { loadEplTable(function () { loadFighters(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
@@ -7682,7 +7747,7 @@ function refreshAll() {
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
