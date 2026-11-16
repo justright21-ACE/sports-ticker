@@ -5113,7 +5113,9 @@ function jumpTo(hit) {
    with their logo on it. Every animal here is drawn plain (no costume, jersey or team logo). */
 var TD_ANIMALS = {
   nfl: { CHI: 'bear', CIN: 'tiger', JAX: 'jaguar', CAR: 'panther', DET: 'lion', PHI: 'eagle', ATL: 'falcon', BAL: 'raven',
-         ARI: 'cardinal', SEA: 'hawk', DEN: 'horse', IND: 'whitehorse', LAR: 'ram', BUF: 'bison', MIA: 'dolphin', HOU: 'bull' }
+         ARI: 'cardinal', SEA: 'hawk', DEN: 'n-bronco', IND: 'whitehorse', LAR: 'ram', BUF: 'bison', MIA: 'dolphin', HOU: 'bull',
+         NE: 'n-patriot', NYJ: 'n-jet', NYG: 'n-giant', DAL: 'n-cowboy', WSH: 'n-commander', MIN: 'n-viking', GB: 'n-packer', LV: 'n-raider',
+         LAC: 'n-lightning', CLE: 'n-elf', PIT: 'n-steelworker', NO: 'n-saint', TB: 'n-buccaneer' }
 };
 /* real cut-out photos of each animal (img/td/), used in place of the drawings (?tdphotos=0: the drawings) */
 var TD_PHOTOS = { bear: 'bear', tiger: 'tiger', jaguar: 'jaguar', panther: 'panther', lion: 'lion', eagle: 'eagle', falcon: 'falcon', raven: 'raven',
@@ -5146,6 +5148,8 @@ var TD_COLLEGE = [
           'trojan spartan knight blackknight crusader paladin viking gael leprechaun don musketeer cavalier pirate blueraider midshipman triton cowboy mountaineer ' +
           'miner vaquero sooner lumberjack commodore rebel patriot minuteman demondeacon bluedevil sundevil billiken friar quaker boilermaker monarch cyclone greenwave').split(' ');
   for (var i = 0; i < c.length; i++) TD_PHOTOS[c[i]] = 'c-' + c[i];
+  var n = 'patriot jet giant cowboy commander viking packer raider lightning bronco elf steelworker saint buccaneer'.split(' ');   // the NFL's people and things
+  for (i = 0; i < n.length; i++) TD_PHOTOS['n-' + n[i]] = 'n-' + n[i];
 })();
 function tdKind(t, lg) {
   if (!t) return '';
@@ -5154,7 +5158,9 @@ function tdKind(t, lg) {
     for (var i = 0; i < TD_COLLEGE.length; i++) if (TD_COLLEGE[i][0].test(n)) return CONFIG.tdPhotos || tdAnimalSVG(TD_COLLEGE[i][1]) ? TD_COLLEGE[i][1] : '';
     return '';
   }
-  return (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
+  var k = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
+  if (!CONFIG.tdPhotos && k.indexOf('n-') === 0) k = { 'n-bronco': 'horse' }[k] || '';   // drawings only: the old drawn animals
+  return k;
 }
 function tdPhoto(kind) { return CONFIG.tdPhotos && TD_PHOTOS[kind] ? 'img/td/' + TD_PHOTOS[kind] + '.png' : ''; }
 function tdPhotoHTML(kind) { var u = tdPhoto(kind); return u ? '<img class="tdph" src="' + u + '" alt="">' : ''; }
@@ -5167,7 +5173,7 @@ function tdPreload() {                                              // the anima
     for (var j = 0; j < 2; j++) { var u = tdPhoto(tdKind(sides[j], fg[i].lg)); if (u && !tdPre[u]) { tdPre[u] = new Image(); tdPre[u].src = u; } }
   }
 }
-var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1, goldeneagle: 1, hawkeye: 1, owl: 1, redhawk: 1 };
+var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1, goldeneagle: 1, hawkeye: 1, owl: 1, redhawk: 1, 'n-jet': 1 };
 function tdCat(body, extra) {                                    // a big cat at full gallop, facing right
   return '<path d="M42 52 C24 44 12 30 20 16" stroke="' + body + '" stroke-width="7" fill="none" stroke-linecap="round"/>' +
     '<g fill="' + body + '"><rect x="44" y="58" width="11" height="40" rx="5" transform="rotate(48 49 60)"/><rect x="58" y="60" width="11" height="38" rx="5" transform="rotate(30 63 62)"/>' +
