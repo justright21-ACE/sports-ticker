@@ -1309,6 +1309,38 @@
   @-webkit-keyframes brkPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   @keyframes brkPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   .nomotion #breaking, .nomotion #breaking .bl .bk { -webkit-animation: none; animation: none; }
+  /* touchdown run: a curtain in the team's colors, pulled across by the team's animal (or its helmet) */
+  #tdrun { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 70; overflow: hidden; pointer-events: none; }
+  .tdcur { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; -webkit-transform: translateX(-112%); transform: translateX(-112%); }
+  .tdedge { position: absolute; right: -2.4vh; top: 0; bottom: 0; width: 2.4vh; }
+  .tdtxt { position: absolute; left: 0; right: 0; top: 30vh; text-align: center; }
+  .tdtxt .tdl { display: inline-block; margin-bottom: 1.5vh; } .tdtxt .tdl .logo { width: 14vh; height: 14vh; margin: 0; } .tdtxt .tdl .logo img { left: 1.5vh; top: 1.5vh; width: 11vh; height: 11vh; }
+  .tdtxt b { display: block; font-size: 13vh; line-height: 14vh; font-weight: 900; letter-spacing: 1vw; text-shadow: 0 0.6vh 2vh rgba(0,0,0,0.45); }
+  .tdtxt i { display: block; font-style: normal; font-size: 5vh; font-weight: 800; letter-spacing: 0.6vw; color: #ffffff; opacity: 0.9; }
+  .tdchar { position: absolute; left: 100%; margin-left: 0.5vw; top: 44vh; width: 52vh; height: 31vh; }
+  .tdchar svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .tdcur.back .tdchar { left: auto; right: 100%; margin: 0 0.5vw 0 0; } .tdcur.back .tdedge { right: auto; left: -2.4vh; }
+  .tdchar.run { -webkit-animation: tdBound 0.34s ease-in-out infinite alternate; animation: tdBound 0.34s ease-in-out infinite alternate; }
+  .tdchar.fly { top: 16vh; -webkit-animation: tdGlide 0.9s ease-in-out infinite alternate; animation: tdGlide 0.9s ease-in-out infinite alternate; }
+  .tdchar.fly .f0, .tdchar.fly .f1 { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .tdchar.fly .f0 { -webkit-animation: tdFlapA 0.36s steps(1) infinite; animation: tdFlapA 0.36s steps(1) infinite; }
+  .tdchar.fly .f1 { -webkit-animation: tdFlapB 0.36s steps(1) infinite; animation: tdFlapB 0.36s steps(1) infinite; }
+  .tdchar.leap { -webkit-animation: tdLeap 1s ease-in-out infinite alternate; animation: tdLeap 1s ease-in-out infinite alternate; }
+  .tdchar.spin { top: 40vh; width: 40vh; height: 32vh; -webkit-animation: tdWobble 0.5s ease-in-out infinite alternate; animation: tdWobble 0.5s ease-in-out infinite alternate; }
+  .tdhelm { position: relative; width: 100%; height: 100%; } .tdhelm svg { width: 100%; height: 100%; }
+  .tdhelm .tdlogo { position: absolute; left: 34%; top: 26%; } .tdhelm .tdlogo .logo { width: 11vh; height: 11vh; margin: 0; } .tdhelm .tdlogo .logo img { left: 1.2vh; top: 1.2vh; width: 8.6vh; height: 8.6vh; }
+  @-webkit-keyframes tdBound { from { -webkit-transform: translateY(0) rotate(-3deg); } to { -webkit-transform: translateY(-3vh) rotate(3deg); } }
+  @keyframes tdBound { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-3vh) rotate(3deg); } }
+  @-webkit-keyframes tdGlide { from { -webkit-transform: translateY(0); } to { -webkit-transform: translateY(4vh); } }
+  @keyframes tdGlide { from { transform: translateY(0); } to { transform: translateY(4vh); } }
+  @-webkit-keyframes tdFlapA { 0% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes tdFlapA { 0% { opacity: 1; } 50% { opacity: 0; } }
+  @-webkit-keyframes tdFlapB { 0% { opacity: 0; } 50% { opacity: 1; } }
+  @keyframes tdFlapB { 0% { opacity: 0; } 50% { opacity: 1; } }
+  @-webkit-keyframes tdLeap { from { -webkit-transform: translateY(4vh) rotate(14deg); } to { -webkit-transform: translateY(-6vh) rotate(-14deg); } }
+  @keyframes tdLeap { from { transform: translateY(4vh) rotate(14deg); } to { transform: translateY(-6vh) rotate(-14deg); } }
+  @-webkit-keyframes tdWobble { from { -webkit-transform: rotate(-8deg); } to { -webkit-transform: rotate(6deg) translateY(-2vh); } }
+  @keyframes tdWobble { from { transform: rotate(-8deg); } to { transform: rotate(6deg) translateY(-2vh); } }
 </style>
 </head>
 <body>
@@ -1332,6 +1364,7 @@
 
   <div id="stale"></div>
   <div id="breaking"></div>
+  <div id="tdrun"></div>
   <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Lines: DraftKings</span></div>
 </div>
 
@@ -1396,6 +1429,7 @@ var CONFIG = {
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
+  tdRun: true,           // a touchdown in a game with its own big screen, while that screen isn't up: the team's animal (or helmet) runs across and sweeps onto the game (?tdrun=0 off; ?tdtest=CHI to preview one)
   fighterPics: true,     // COMBAT cards: each fighter's photo and country flag (?fighterpics=0 off)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
   eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
@@ -1591,6 +1625,8 @@ function readParams() {
     if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'golf') CONFIG.golf = v !== '0';
     if (k === 'fighterpics') CONFIG.fighterPics = v !== '0';
+    if (k === 'tdrun') CONFIG.tdRun = v !== '0';
+    if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
     if (k === 'specialdays') CONFIG.specialDays = v !== '0';
@@ -4971,6 +5007,10 @@ function detectJump() {
       tovJumped[g.id] = tov.id; hit = { id: g.id, was: was, why: 'turnover' };   // jump once per turnover
     }
     if (!hit && was && bp && bp.id !== was.play && bp.yd >= CONFIG.bigPlayYds && bp.kind && g.live) hit = { id: g.id, was: was, why: 'bigplay' };
+    if (was && CONFIG.tdRun && (g.live || isFinal(g)) && (!hit || hit.why === 'score' || hit.why === 'bigplay' || hit.why === 'turnover')) {   // a touchdown (6+ points since the last look)
+      var dA = num(scoreOf(g, 'away')) - was.a, dH = num(scoreOf(g, 'home')) - was.h;
+      if (dA >= 6 || dH >= 6) hit = { id: g.id, was: was, why: 'td', side: dA >= dH ? 'away' : 'home', lg: lg };
+    }
     if (!hit && was && !was.fin && CONFIG.celebrate && winFor(g, lg)) hit = { id: g.id, was: was, why: 'win' };
     next[g.id] = { lg: lg, fin: isFinal(g), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
@@ -5002,6 +5042,122 @@ function jumpTo(hit) {
     return true;
   }
   return false;
+}
+/* =================== TOUCHDOWN RUN ===================
+   A touchdown in a game that has its own big screen, while that screen isn't up: the scoring team's
+   animal runs (or flies, or leaps) across the screen pulling a curtain in its colors, "TOUCHDOWN" on it,
+   and the curtain sweeps away onto that game's screen. Teams without an animal send their helmet across,
+   with their logo on it. Every animal here is drawn plain (no costume, jersey or team logo). */
+var TD_ANIMALS = {
+  nfl: { CHI: 'bear', CIN: 'tiger', JAX: 'jaguar', CAR: 'panther', DET: 'lion', PHI: 'eagle', ATL: 'falcon', BAL: 'raven',
+         ARI: 'cardinal', SEA: 'hawk', DEN: 'horse', IND: 'whitehorse', LAR: 'ram', BUF: 'bison', MIA: 'dolphin' }
+};
+var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1 };
+function tdCat(body, extra) {                                    // a big cat at full gallop, facing right
+  return '<path d="M42 52 C24 44 12 30 20 16" stroke="' + body + '" stroke-width="7" fill="none" stroke-linecap="round"/>' +
+    '<g fill="' + body + '"><rect x="44" y="58" width="11" height="40" rx="5" transform="rotate(48 49 60)"/><rect x="58" y="60" width="11" height="38" rx="5" transform="rotate(30 63 62)"/>' +
+    '<rect x="122" y="58" width="11" height="40" rx="5" transform="rotate(-50 127 60)"/><rect x="132" y="56" width="10" height="38" rx="5" transform="rotate(-28 137 58)"/>' +
+    '<ellipse cx="88" cy="56" rx="52" ry="19"/><ellipse cx="132" cy="50" rx="18" ry="16"/></g>' + (extra || '') +
+    '<g fill="' + body + '"><circle cx="153" cy="40" r="15"/><ellipse cx="167" cy="45" rx="9" ry="7"/>' +
+    '<path d="M141 30 L145 17 L152 28 Z M155 27 L161 15 L165 29 Z"/></g><circle cx="158" cy="36" r="2.4" fill="#111"/>';
+}
+function tdAnimalSVG(kind, frame) {
+  var s = '';
+  if (kind === 'tiger') s = tdCat('#E8862A', '<g stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round"><path d="M64 40 q5 14 -1 30"/><path d="M80 38 q6 16 0 34"/><path d="M96 38 q6 16 0 34"/><path d="M112 40 q5 14 -1 30"/><path d="M128 37 q4 10 -2 22"/></g>');
+  else if (kind === 'jaguar') s = tdCat('#D9A441', '<g fill="none" stroke="#3b2a14" stroke-width="3"><circle cx="66" cy="50" r="5"/><circle cx="84" cy="62" r="5"/><circle cx="100" cy="47" r="5"/><circle cx="116" cy="60" r="4.5"/><circle cx="76" cy="44" r="3.5"/><circle cx="130" cy="48" r="4"/></g>');
+  else if (kind === 'panther') s = tdCat('#1d1d26', '') + '<circle cx="158" cy="36" r="2.6" fill="#ffd23f"/>';
+  else if (kind === 'lion') s = tdCat('#C8913E', '<g fill="#7a4a1b"><circle cx="150" cy="42" r="25"/><circle cx="137" cy="30" r="10"/><circle cx="137" cy="56" r="10"/><circle cx="160" cy="62" r="9"/><circle cx="162" cy="22" r="9"/></g>') + '<circle cx="19" cy="15" r="6" fill="#7a4a1b"/>';
+  else if (kind === 'bear') s = '<g fill="#4a2f1d"><rect x="48" y="66" width="18" height="30" rx="7" transform="rotate(30 57 68)"/><rect x="70" y="68" width="18" height="28" rx="7" transform="rotate(10 79 70)"/>' +
+      '<rect x="116" y="66" width="18" height="30" rx="7" transform="rotate(-30 125 68)"/><rect x="132" y="64" width="17" height="28" rx="7" transform="rotate(-8 140 66)"/>' +
+      '<ellipse cx="92" cy="60" rx="56" ry="28"/><ellipse cx="112" cy="44" rx="30" ry="18"/><circle cx="152" cy="54" r="20"/><ellipse cx="171" cy="60" rx="11" ry="8"/>' +
+      '<circle cx="140" cy="37" r="7"/><circle cx="154" cy="34" r="7"/><circle cx="36" cy="54" r="6"/></g><ellipse cx="177" cy="58" rx="4" ry="3" fill="#111"/><circle cx="158" cy="48" r="2.4" fill="#111"/>';
+  else if (kind === 'horse' || kind === 'whitehorse') {
+    var hb = kind === 'horse' ? '#8B4A1F' : '#ECECEC', hm = kind === 'horse' ? '#2b1608' : '#9aa0a8';
+    s = '<path d="M46 46 C28 44 14 56 8 74" stroke="' + hm + '" stroke-width="9" fill="none" stroke-linecap="round"/>' +
+      '<g fill="' + hb + '"><rect x="50" y="60" width="7" height="46" rx="3" transform="rotate(50 53 62)"/><rect x="62" y="62" width="7" height="44" rx="3" transform="rotate(28 65 64)"/>' +
+      '<rect x="118" y="58" width="7" height="46" rx="3" transform="rotate(-55 121 60)"/><rect x="126" y="60" width="7" height="44" rx="3" transform="rotate(-25 129 62)"/>' +
+      '<ellipse cx="90" cy="55" rx="48" ry="18"/><path d="M118 46 L144 16 L158 22 L138 62 Z"/><ellipse cx="160" cy="28" rx="19" ry="9" transform="rotate(32 160 28)"/>' +
+      '<path d="M143 14 L146 4 L151 15 Z"/></g><path d="M118 44 L141 14" stroke="' + hm + '" stroke-width="7" stroke-linecap="round"/><circle cx="155" cy="22" r="2.2" fill="#111"/>';
+  } else if (kind === 'ram') s = '<g fill="#c9b08a"><rect x="62" y="66" width="7" height="30" rx="3" transform="rotate(30 65 68)"/><rect x="74" y="68" width="7" height="28" rx="3" transform="rotate(12 77 70)"/>' +
+      '<rect x="112" y="66" width="7" height="30" rx="3" transform="rotate(-30 115 68)"/><rect x="122" y="66" width="7" height="28" rx="3" transform="rotate(-10 125 68)"/></g>' +
+      '<g fill="#efe7d4"><circle cx="70" cy="55" r="20"/><circle cx="92" cy="48" r="22"/><circle cx="114" cy="54" r="21"/><circle cx="94" cy="64" r="20"/><circle cx="56" cy="60" r="12"/></g>' +
+      '<ellipse cx="148" cy="56" rx="17" ry="11" transform="rotate(25 148 56)" fill="#c9b08a"/><circle cx="138" cy="44" r="12" fill="none" stroke="#a5875a" stroke-width="7"/><circle cx="138" cy="44" r="4" fill="#a5875a"/><circle cx="152" cy="52" r="2.2" fill="#111"/>';
+  else if (kind === 'bison') s = '<g fill="#3b2416"><rect x="52" y="72" width="13" height="24" rx="5" transform="rotate(25 58 74)"/><rect x="66" y="74" width="13" height="22" rx="5" transform="rotate(8 72 76)"/>' +
+      '<rect x="122" y="72" width="13" height="24" rx="5" transform="rotate(-25 128 74)"/><rect x="134" y="72" width="13" height="22" rx="5" transform="rotate(-8 140 74)"/>' +
+      '<path d="M40 74 C38 46 64 22 102 20 C134 18 152 36 154 60 L150 84 L46 84 Z"/><path d="M40 60 C26 62 22 70 24 80" stroke="#3b2416" stroke-width="4" fill="none"/></g>' +
+      '<path d="M100 20 C130 16 156 30 160 58 L146 70 C140 50 124 36 104 34 Z" fill="#5a3a24"/><ellipse cx="166" cy="70" rx="15" ry="17" fill="#2a180d"/><path d="M158 84 L168 100 L174 84 Z" fill="#2a180d"/>' +
+      '<path d="M156 56 C150 48 154 42 160 44 M174 56 C180 48 176 42 170 44" stroke="#d8ccb4" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="170" cy="64" r="2.4" fill="#111"/>';
+  else if (kind === 'dolphin') s = '<path d="M34 64 C56 40 104 30 140 34 C154 30 166 36 168 46 C176 48 186 50 194 54 C186 58 176 59 166 58 C150 70 112 80 80 78 C60 77 44 72 34 64 Z" fill="#7f98a8"/>' +
+      '<path d="M46 70 C70 78 112 78 140 66 C152 62 160 60 166 58 C150 66 116 72 84 72 C68 72 56 70 46 70 Z" fill="#d6e1e8"/>' +
+      '<path d="M92 36 C96 22 104 12 118 6 C112 16 112 26 116 34 Z M118 70 C116 80 110 88 100 92 C114 92 124 84 130 70 Z" fill="#6c8494"/>' +
+      '<path d="M38 64 C28 56 18 50 6 50 C14 58 18 62 20 66 C16 72 12 78 6 84 C18 82 30 74 38 68 Z" fill="#6c8494"/>' +
+      '<path d="M168 52 C172 54 178 55 184 55" stroke="#4d6270" stroke-width="1.6" fill="none"/><circle cx="156" cy="46" r="2.4" fill="#111"/>';
+  else if (TD_BIRDS[kind]) {
+    var bc = { eagle: ['#4a3422', '#ffffff', '#f2b134'], falcon: ['#5f646e', '#2e3138', '#f2b134'], raven: ['#1c1530', '#2c2347', '#3a3a3a'], cardinal: ['#c8102e', '#a00d24', '#f28a1e'], hawk: ['#6b4a2e', '#f4efe6', '#f2b134'] }[kind];
+    var wing = frame ? '<path d="M84 64 L60 108 L84 100 L92 112 L104 98 L118 106 L112 66 Z" fill="' + bc[0] + '"/>'
+                     : '<path d="M84 54 L58 8 L82 18 L90 4 L102 20 L118 12 L112 54 Z" fill="' + bc[0] + '"/>';
+    s = '<path d="M72 54 L42 44 L46 60 L40 76 L72 66 Z" fill="' + bc[0] + '"/><ellipse cx="100" cy="60" rx="34" ry="13" fill="' + bc[0] + '"/>' + wing +
+      '<circle cx="136" cy="54" r="11" fill="' + bc[1] + '"/><path d="M145 50 L160 56 L145 61 Z" fill="' + bc[2] + '"/><circle cx="139" cy="51" r="2" fill="#111"/>' +
+      (kind === 'cardinal' ? '<path d="M128 46 L122 30 L138 44 Z" fill="' + bc[0] + '"/><path d="M140 52 L148 56 L140 60 Z" fill="#111"/>' : '') +
+      (kind === 'hawk' ? '<ellipse cx="104" cy="66" rx="20" ry="6" fill="#f4efe6"/>' : '');
+  }
+  return s ? '<svg viewBox="0 0 200 120">' + s + '</svg>' : '';
+}
+function tdHelmetHTML(t, lg, col, alt) {                          // a plain helmet in the team's color, its logo as the decal
+  return '<div class="tdhelm"><svg viewBox="0 0 200 160"><path d="M30 92 C26 40 70 10 118 14 C160 18 184 52 182 92 C181 112 170 124 152 128 L104 130 C92 130 86 122 84 112 L66 112 C52 112 34 108 30 92 Z" fill="' + col + '"/>' +
+    '<path d="M44 52 C70 22 126 14 168 48" stroke="' + alt + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
+    '<g stroke="#9aa3b2" stroke-width="7" fill="none" stroke-linecap="round"><path d="M150 96 L196 96"/><path d="M150 116 L194 116"/><path d="M192 92 L192 124 C188 136 176 140 164 138"/><path d="M168 96 L168 136"/></g>' +
+    '<circle cx="74" cy="96" r="8" fill="#2a3346"/></svg><div class="tdlogo">' + logoHTML(t, lg) + '</div></div>';
+}
+var tdr = { on: false, timers: [] };
+function tdRunHTML(t, lg) {
+  var look = teamLook(t, lg) || {}, col = '#' + String(look.color || t.color || '1f2a44').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
+  if (col.toLowerCase() === alt.toLowerCase()) alt = '#ffffff';
+  var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '', who;
+  if (kind && TD_BIRDS[kind]) who = '<div class="tdchar fly"><div class="f0">' + tdAnimalSVG(kind, 0) + '</div><div class="f1">' + tdAnimalSVG(kind, 1) + '</div></div>';
+  else if (kind === 'dolphin') who = '<div class="tdchar leap">' + tdAnimalSVG(kind) + '</div>';
+  else if (kind) who = '<div class="tdchar run">' + tdAnimalSVG(kind) + '</div>';
+  else who = '<div class="tdchar spin">' + tdHelmetHTML(t, lg, col, alt) + '</div>';
+  var nm = String(t.short || nickname(t.name) || t.abbreviation || '').toUpperCase();
+  return '<div class="tdcur" style="background:' + col + '"><div class="tdedge" style="background:' + alt + '"></div>' +
+         '<div class="tdtxt"><div class="tdl">' + logoHTML(t, lg) + '</div><b style="color:' + (alt === '#ffffff' ? '#ffffff' : alt) + '">TOUCHDOWN</b><i>' + esc(nm) + '</i></div>' + who + '</div>';
+}
+function tdSet(el, x, secs, ease) {
+  el.style.webkitTransition = secs ? '-webkit-transform ' + secs + 's ' + (ease || 'linear') : 'none';
+  el.style.transition = secs ? 'transform ' + secs + 's ' + (ease || 'linear') : 'none';
+  el.style.webkitTransform = 'translateX(' + x + ')'; el.style.transform = 'translateX(' + x + ')';
+}
+/* play it; midway (screen covered) call `swap`, at the end `done` */
+function tdRun(t, lg, swap, done) {
+  var box = $('tdrun');
+  if (!box || tdr.on) { if (swap) swap(); if (done) done(); return false; }
+  for (var i = 0; i < tdr.timers.length; i++) clearTimeout(tdr.timers[i]);
+  tdr.timers = []; tdr.on = true;
+  box.innerHTML = tdRunHTML(t, lg);
+  box.style.display = 'block';
+  var cur = box.firstChild;
+  tdSet(cur, '-112%', 0);
+  void cur.offsetWidth;
+  var later = function (fn, ms) { tdr.timers.push(setTimeout(fn, ms)); };
+  later(function () { tdSet(cur, '0%', 1.05, 'ease-out'); }, 30);                 // the animal pulls the curtain across
+  later(function () { if (swap) swap(); }, 1150);                                  // covered: change screens underneath
+  later(function () { cur.className = 'tdcur back'; }, 1800);                     // (off screen) it comes round to the curtain's other edge...
+  later(function () { tdSet(cur, '112%', 1.05, 'ease-in'); }, 1900);               // ...and runs through again, sweeping the curtain away
+  later(function () { box.style.display = 'none'; box.innerHTML = ''; tdr.on = false; if (done) done(); }, 3050);
+  return true;
+}
+/* from the jump check: a touchdown somewhere else. True when the run is playing (it does the jump itself). */
+function tdJump(hit) {
+  if (!hit || hit.why !== 'td' || !CONFIG.tdRun || hl.playing || document.body.className.indexOf('nomotion') >= 0) return false;
+  var cp = state.pages[state.pageIndex];
+  if (cp && cp.pt && cp.game && cp.game.id === hit.id) return false;              // already on it: the normal banner does it
+  if (cp && cp.pt && cp.game && cp.game.live && !isHalftime(cp.game) && isMustWatch(cp.game, cp.lg)) return true;   // never pulled off a live Bears game: skip it
+  var g = null;
+  for (var i = 0; i < state.pages.length && !g; i++) if (state.pages[i].pt && state.pages[i].game && state.pages[i].game.id === hit.id) g = state.pages[i].game;
+  if (!g) return false;
+  return tdRun(g.teams[hit.side], hit.lg, function () {
+    if (jumpTo(hit)) { refreshRender(true); if (!hl.playing) scheduleRotate(); }
+  }, null);
 }
 /* =================== INJURIES ===================
    From ESPN's game feed: who's out (and doubtful / questionable / day-to-day) for each team.
@@ -5372,7 +5528,7 @@ function fastRefresh() {
       soundCheck(); panelPhotoCheck();
       var hit = detectJump();
       buildPages();
-      var jumped = jumpTo(hit);
+      var jumped = tdJump(hit) ? false : jumpTo(hit);
       refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate();
       highlightCheck();
       fastBusy = false;
@@ -7747,7 +7903,7 @@ function refreshAll() {
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages();
-      var jumped = jumpTo(hit);
+      var jumped = tdJump(hit) ? false : jumpTo(hit);   // a touchdown elsewhere: the team's animal runs across first
       refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); renderCrawl(); renderFoot(errs);
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
@@ -7759,6 +7915,7 @@ function refreshAll() {
 
 function rotate() {
   if (hl.playing) return;                                 // a highlight is on: it restarts the rotation when it ends
+  if (tdr.on) { state.rotTimer = setTimeout(rotate, 3500); return; }   // a touchdown run is crossing the screen
   if (reloadIfWanted()) return;                           // a new version of the ticker: load it between screens
   if (state.pages.length > 1) { state.pageIndex = (state.pageIndex + 1) % state.pages.length; renderPage(); }
   scheduleRotate();
@@ -8221,6 +8378,12 @@ refreshAll();
 scheduleRotate();
 setInterval(antiBurn, 10 * 60000);
 setInterval(staleCheck, 15000);
+if (CONFIG.tdTest) setTimeout(function () {                      // ?tdtest=CHI (or ncaaf:USC): show the touchdown run once
+  var pr = CONFIG.tdTest.split(':'), lg = pr.length > 1 ? pr[0].toLowerCase() : 'nfl', ab = pr[pr.length - 1], t = null, L = [];
+  for (var k in state.data) L = L.concat(state.data[k] && state.data[k].games ? state.data[k].games : []);
+  for (var i = 0; i < L.length && !t; i++) { if (L[i].teams.away.abbreviation === ab) t = L[i].teams.away; else if (L[i].teams.home.abbreviation === ab) t = L[i].teams.home; }
+  tdRun(t || { abbreviation: ab, name: ab, short: ab }, lg, null, null);
+}, 6000);
 verCheck(); setInterval(verCheck, 5 * 60000);
 if (CONFIG.fastRefreshSec) setInterval(fastRefresh, CONFIG.fastRefreshSec * 1000);   // Bears / USC live: every 10 s
 setTimeout(function () { window.location.reload(); }, 6 * 3600000); // fresh start every 6 hours
