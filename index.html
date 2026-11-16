@@ -5232,8 +5232,25 @@ function tdAnimalSVG(kind, frame) {
 /* real NFL helmet pictures (img/helmet/, from github.com/ajreinhard/data-viz, facing right); Washington's still has the old logo, so it's left out.
    No helmet picture (Washington, college): the team's own logo instead of a drawing. ?helmets=0: the drawings */
 var HELMETS = 'ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LA LAC LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN';
+/* college helmets (img/helmet/c-*.png): school name = file, matched against the start of ESPN's team name, longest name wins
+   (so "Georgia Tech Yellow Jackets" gets Georgia Tech, not Georgia) */
+var CHELMETS = (function () {
+  var L = 'air force=air-force|akron=akron|alabama=alabama|app state=app-state|appalachian state=app-state|arizona=arizona|arizona state=arizona-state|arkansas=arkansas|arkansas state=arkansas-state|army=army|auburn=auburn|ball state=ball-state|baylor=baylor|boise state=boise-state|boston college=boston-college|bowling green=bowling-green|buffalo=buffalo|byu=byu|california=california|central michigan=central-michigan|charlotte=charlotte|cincinnati=cincinnati|clemson=clemson|coastal carolina=coastal-carolina|colorado=colorado|colorado state=colorado-state|delaware=delaware|duke=duke|east carolina=east-carolina|eastern michigan=eastern-michigan|florida atlantic=florida-atlantic|fau=florida-atlantic|fiu=fiu|florida international=fiu|florida=florida|florida state=florida-state|fresno state=fresno-state|georgia=georgia|georgia southern=georgia-southern|georgia state=georgia-state|georgia tech=georgia-tech|hawaii=hawaii|houston=houston|illinois=illinois|indiana=indiana|iowa=iowa|iowa state=iowa-state|jacksonville state=jacksonville-state|james madison=james-madison|kansas=kansas|kansas state=kansas-state|kennesaw state=kennesaw-state|kent state=kent-state|kentucky=kentucky|liberty=liberty|louisiana=louisiana|louisiana lafayette=louisiana|louisiana-lafayette=louisiana|louisiana tech=louisiana-tech|louisville=louisville|lsu=lsu|marshall=marshall|maryland=maryland|memphis=memphis|miami hurricanes=miami-hurricanes|miami (fl)=miami-hurricanes|michigan=michigan|michigan state=michigan-state|middle tennessee=middle-tennessee|minnesota=minnesota|mississippi state=mississippi-state|missouri=missouri|missouri state=missouri-state|navy=navy|nc state=nc-state|north carolina state=nc-state|nebraska=nebraska|nevada=nevada|new mexico=new-mexico|new mexico state=new-mexico-state|north carolina=north-carolina|north dakota state=north-dakota-state|north texas=north-texas|northern illinois=northern-illinois|northwestern=northwestern|notre dame=notre-dame|ohio=ohio|ohio state=ohio-state|oklahoma=oklahoma|oklahoma state=oklahoma-state|old dominion=old-dominion|ole miss=ole-miss|oregon=oregon|oregon state=oregon-state|penn state=penn-state|pittsburgh=pittsburgh|pitt=pittsburgh|purdue=purdue|rice=rice|rutgers=rutgers|sacramento state=sacramento-state|sam houston=sam-houston|sam houston state=sam-houston|san diego state=san-diego-state|san jose state=san-jose-state|smu=smu|south alabama=south-alabama|south carolina=south-carolina|south florida=south-florida|usf=south-florida|southern miss=southern-miss|southern mississippi=southern-miss|stanford=stanford|syracuse=syracuse|tcu=tcu|temple=temple|tennessee=tennessee|texas=texas|texas a&m=texas-am|texas am=texas-am|texas state=texas-state|texas tech=texas-tech|toledo=toledo|troy=troy|tulane=tulane|tulsa=tulsa|uab=uab|ucf=ucf|ucla=ucla|uconn=uconn|connecticut=uconn|ul monroe=ul-monroe|louisiana monroe=ul-monroe|ulm=ul-monroe|louisiana-monroe=ul-monroe|umass=umass|massachusetts=umass|unlv=unlv|usc=usc|utah=utah|utah state=utah-state|utep=utep|utrgv=utrgv|utsa=utsa|vanderbilt=vanderbilt|virginia=virginia|virginia tech=virginia-tech|wake forest=wake-forest|washington=washington|washington state=washington-state|west virginia=west-virginia|western kentucky=western-kentucky|western michigan=western-michigan|wisconsin=wisconsin|wyoming=wyoming'.split('|'), out = [];
+  for (var i = 0; i < L.length; i++) { var kv = L[i].split('='); out.push([kv[0], kv[1]]); }
+  out.sort(function (a, b) { return b[0].length - a[0].length; });
+  return out;
+})();
+function schoolKey(n) {
+  return String(n || '').toLowerCase().replace(/[\u00e9\u00e8]/g, 'e').replace(/\u00ed/g, 'i').replace(/\u00f1/g, 'n').replace(/['\u2019\u02bb\u2018]/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '') + ' ';
+}
 function tdHelmetURL(t, lg) {
-  if (!CONFIG.realHelmets || lg !== 'nfl' || !t) return '';
+  if (!CONFIG.realHelmets || !t) return '';
+  if (lg === 'ncaaf') {
+    var nk = schoolKey(t.name);
+    for (var j = 0; j < CHELMETS.length; j++) if (nk.indexOf(CHELMETS[j][0] + ' ') === 0) return 'img/helmet/c-' + CHELMETS[j][1] + '.png';
+    return '';
+  }
+  if (lg !== 'nfl') return '';
   var a = String(t.abbreviation || '').toUpperCase(); if (a === 'LAR') a = 'LA';
   return a && (' ' + HELMETS + ' ').indexOf(' ' + a + ' ') >= 0 ? 'img/helmet/' + a + '.png' : '';
 }
