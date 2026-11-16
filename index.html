@@ -5053,6 +5053,7 @@ function endHighlight() {
   if (hl.queue.length) return playHighlight(hl.queue.shift());
   scheduleRotate();
 }
+var winShown = {};                              // celebrations already played this session (by game)
 function detectJump() {
   var ftg = featuredGames(), hit = null, now = new Date().getTime(), i, next = {};
   // a score in a game that was a CLOSE game at the last check
@@ -5079,8 +5080,8 @@ function detectJump() {
       var dA = num(scoreOf(g, 'away')) - was.a, dH = num(scoreOf(g, 'home')) - was.h;
       if (dA >= 6 || dH >= 6) hit = { id: g.id, was: was, why: 'td', side: dA >= dH ? 'away' : 'home', lg: lg };
     }
-    if (!hit && was && !was.fin && CONFIG.celebrate && winFor(g, lg)) hit = { id: g.id, was: was, why: 'win' };
-    next[g.id] = { lg: lg, fin: isFinal(g), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
+    if (!hit && CONFIG.celebrate && !winShown[g.id] && winFor(g, lg) && (!was || !was.won)) hit = { id: g.id, was: was || {}, why: 'win' };   // just won, or already won when the page loaded: go see it (once)
+    next[g.id] = { lg: lg, fin: isFinal(g), won: !!winFor(g, lg), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
   }
   // a game that just turned into an UPSET ALERT
   var upNow = {};
@@ -6008,8 +6009,16 @@ function primeWinCfg(t, lg) {                 // a celebration built from the te
   return { name: nick, bg: col, st: alt, ring: alt, l1: nick + ' WIN!', l2: '', big: true,
            c1: light ? '#101820' : '#ffffff', s1: light ? '#ffffff' : (lum(alt) > 60 ? alt : '#000000'), c2: '#ffffff', s2: '#000000', conf: [alt, '#ffffff', col] };
 }
+function gameOver(g, lg) {                     // final, or football at 0:00 of the 4th (or later) and not tied: ESPN can take minutes to say "Final"
+  if (isFinal(g)) return true;
+  if ((lg !== 'nfl' && lg !== 'ncaaf') || !g.live) return false;
+  var a = num(scoreOf(g, 'away')), h = num(scoreOf(g, 'home')), q = quarterOf(g);
+  if (a === h || q < 4) return false;
+  if (/end of (the )?(4th|fourth|ot|overtime|regulation)|end of game/i.test(String(g.detail || '') + ' ' + String(g.status || ''))) return true;
+  return clockSecs(g) === 0 && Math.abs(a - h) > 2;               // 0:00 but a try still to come could tie it at 1-2 points: wait for the word
+}
 function winFor(g, lg) {                       // one of our teams just won this game: which, and the score
-  if (!g || !isFinal(g) || !g.teams) return null;
+  if (!g || !g.teams || !gameOver(g, lg)) return null;
   var sides = ['away', 'home'];
   for (var i = 0; i < 2; i++) {
     var cfg = CELEBRATE[lg + ':' + g.teams[sides[i]].abbreviation];
@@ -6091,7 +6100,7 @@ function ptAnimate(pg) {
   var sitN = (compOf(g) || {}).situation || {};
   var rzN = CONFIG.redZone ? redZoneOf(g, pg.lg) : null;
   var wpa = root.querySelector('.wpb .wpa');
-  var now = { a: a, h: h, fin: fin, fb: fb && fb.style.left, los: los && los.style.left, fd: fd && fd.style.left, play: bp && bp.id, poss: sitN.possession, rz: !!rzN, rzSide: rzN && rzN.side, wp: wpa && wpa.style.width };
+  var now = { a: a, h: h, fin: fin, won: !!(CONFIG.celebrate && winFor(g, pg.lg)), fb: fb && fb.style.left, los: los && los.style.left, fd: fd && fd.style.left, play: bp && bp.id, poss: sitN.possession, rz: !!rzN, rzSide: rzN && rzN.side, wp: wpa && wpa.style.width };
   if (prev && wpa && prev.wp && prev.wp !== now.wp) {                   // win-probability bar glides to the new split
     wpa.style.width = prev.wp; void root.offsetWidth;
     setTimeout(function () { wpa.style.width = now.wp; }, 60);
@@ -6245,7 +6254,8 @@ function ptAnimate(pg) {
   if (prev && fin && !prev.fin && !entering) root.className += ' stampnow';
   // Bears / USC / Wisconsin win: the celebration, right after the FINAL stamp (and again whenever that final screen comes up)
   var bw = CONFIG.celebrate ? winFor(g, pg.lg) : null, bwEnd = 0;
-  if (bw && (entering || (prev && !prev.fin))) {
+  if (bw) winShown[g.id] = 1;
+  if (bw && (entering || (prev && !prev.won))) {
     var bwWait = 2.0;
     setTimeout(function () {
       if (!root.parentNode || root.querySelector('.bwin')) return;
