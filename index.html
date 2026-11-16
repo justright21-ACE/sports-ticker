@@ -6465,6 +6465,9 @@ function golfOn() {
   if (e.state === 'post') return now - Math.max(e.end, e.start) < 30 * 3600000 && now - e.start < 6 * 86400000;   // the final leaderboard until the next morning
   return e.start - now < 12 * 3600000 && e.start - now > -86400000;                                                  // the field, the morning it starts
 }
+function golfName(n) {                                             // "Arnold Palmer Invitational presented by Mastercard" -> "Arnold Palmer Invitational"
+  return String(n || '').replace(/\s*[,\-\u2013]?\s*\b(presented|pres\.?|powered|hosted)\s+by\b.*$/i, '').replace(/\s+/g, ' ').replace(/^\s|\s$/g, '');
+}
 function golfTab() { return golf.ev && golf.ev.major ? golf.ev.major[1] : 'GOLF'; }
 function golfPages() { return golfOn() ? [{ lg: 'golf', golf: true, hold: golf.ev.major ? 40 : 25, num: 'golf', of: 1, games: [], key: 'golf:board' }] : []; }
 function golfFeatured() { return golfOn() && golf.ev.major && golf.ev.state === 'in'; }
@@ -6472,7 +6475,7 @@ function golfHeading() {
   var e = golf.ev, rnd = e.round ? 'Round ' + e.round : '', det = String(e.detail || '');
   var st = e.state === 'post' ? 'Final' : (/complete|suspend|delay/i.test(det) ? det.replace(/^Round \d+\s*-\s*/i, '') : (e.state === 'in' ? 'Live' : 'Starts ' + timeStr(new Date(e.start))));
   var big = e.major ? e.major[2].toUpperCase() : 'GOLF';
-  var parts = [e.major ? '' : e.name, rnd && e.state !== 'pre' ? rnd + ' · ' + st : st, e.venue], keep = [];
+  var parts = [e.major ? '' : golfName(e.name), rnd && e.state !== 'pre' ? rnd + ' · ' + st : st, e.venue], keep = [];
   for (var i = 0; i < parts.length; i++) if (parts[i]) keep.push(parts[i]);
   return '<span class="lg">' + esc(big) + '</span><span class="sub">' + esc(keep.join(' · ')) + '</span>';
 }
@@ -6505,12 +6508,9 @@ function golfCrawlSeg() {
     html += '<span class="g">' + esc(R[i].pos + ' ' + String(R[i].last || R[i].name.split(' ').pop()).toUpperCase() + ' ' + (R[i].tot === null ? (R[i].totS || '') : parTxt(R[i].tot))) +
             (R[i].thru ? '<span class="st' + (e.state === 'in' && R[i].thru !== 'F' ? ' lv' : '') + '">' + esc(R[i].thru === 'F' ? 'F' : 'THRU ' + R[i].thru) + '</span>' : '') + '</span>';
   }
-  // the label: a major's full name, or a tournament name of up to 4 words; a longer name gets "GOLF"
-  // in the corner and scrolls past first instead
-  var tname = String(e.major ? e.major[2] : (e.name || e.short || '')).replace(/\s+/g, ' ').replace(/^\s|\s$/g, '');
-  var fits = tname && (e.major || tname.split(' ').length <= 4);
-  return html ? { label: fits ? tname.toUpperCase() : 'GOLF', lg: 'golf',
-                  html: (!fits && tname ? '<span class="ig">' + esc(tname.toUpperCase()) + '</span>' : '') + html } : null;
+  // the label: the tournament's name (a major's full name), never the sponsor's "presented by ..."
+  var tname = e.major ? e.major[2] : golfName(e.name || e.short);
+  return html ? { label: tname ? tname.toUpperCase() : 'GOLF', lg: 'golf', html: html } : null;
 }
 /* =================== STANDINGS (every day, between game windows) ===================
    A league's standings show only before its first game of the day starts, or after its last
