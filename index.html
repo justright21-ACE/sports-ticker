@@ -1365,6 +1365,39 @@
   @keyframes tfLeap { 0% { opacity: 0; transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 65% { opacity: 1; transform: translateY(-30vh) scale(1.35); } 100% { opacity: 0; transform: translateY(-62vh) scale(2.1); } }
   .nomotion .tdfx, .nomotion .tdfx > div, .nomotion .tfword span { -webkit-animation: none !important; animation: none !important; opacity: 1; } .nomotion .tfleap { display: none; }
   /* touchdown run: a curtain in the team's colors, pulled across by the team's animal (or its helmet) */
+  /* holidays */
+  #holstrip { display: none; position: absolute; left: 0; right: 0; bottom: -0.35vh; height: 0.5vh; }
+  #holfx { position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+  #holfx i { position: absolute; display: block; opacity: 0.55; }
+  #holfx .hfall { -webkit-animation: holFall 14s linear infinite; animation: holFall 14s linear infinite; }
+  #holfx .htw { opacity: 0; -webkit-animation: holTw 3s ease-in-out infinite; animation: holTw 3s ease-in-out infinite; }
+  #holfx .hfly { -webkit-animation: holFly 18s linear infinite; animation: holFly 18s linear infinite; opacity: 0.75; }
+  #holfx .hfly b { display: block; width: 100%; height: 100%; -webkit-animation: holFlap 0.35s ease-in-out infinite alternate; animation: holFlap 0.35s ease-in-out infinite alternate; }
+  @-webkit-keyframes holFall { 0% { -webkit-transform: translate(0, -8vh) rotate(0deg); } 50% { -webkit-transform: translate(2.5vw, 50vh) rotate(180deg); } 100% { -webkit-transform: translate(0, 108vh) rotate(360deg); } }
+  @keyframes holFall { 0% { transform: translate(0, -8vh) rotate(0deg); } 50% { transform: translate(2.5vw, 50vh) rotate(180deg); } 100% { transform: translate(0, 108vh) rotate(360deg); } }
+  @-webkit-keyframes holTw { 0%, 100% { opacity: 0.08; -webkit-transform: scale(0.6); } 50% { opacity: 0.7; -webkit-transform: scale(1); } }
+  @keyframes holTw { 0%, 100% { opacity: 0.08; transform: scale(0.6); } 50% { opacity: 0.7; transform: scale(1); } }
+  @-webkit-keyframes holFly { 0% { -webkit-transform: translate(-10vw, 0); } 50% { -webkit-transform: translate(55vw, -5vh); } 100% { -webkit-transform: translate(115vw, 3vh); } }
+  @keyframes holFly { 0% { transform: translate(-10vw, 0); } 50% { transform: translate(55vw, -5vh); } 100% { transform: translate(115vw, 3vh); } }
+  @-webkit-keyframes holFlap { from { -webkit-transform: scaleY(1); } to { -webkit-transform: scaleY(0.45); } }
+  @keyframes holFlap { from { transform: scaleY(1); } to { transform: scaleY(0.45); } }
+  .hfw { position: absolute; width: 0; height: 0; }
+  .hfw span { position: absolute; left: 0; top: 0; width: 7vh; height: 0.5vh; -webkit-transform-origin: 0 50%; transform-origin: 0 50%; }
+  .hfw b { display: block; height: 100%; border-radius: 0.3vh; -webkit-transform-origin: 0 50%; transform-origin: 0 50%; -webkit-animation: holRay 1.6s ease-out both; animation: holRay 1.6s ease-out both; }
+  @-webkit-keyframes holRay { 0% { -webkit-transform: translateX(0) scaleX(0.1); opacity: 1; } 40% { -webkit-transform: translateX(1.5vh) scaleX(1); opacity: 0.95; } 100% { -webkit-transform: translateX(5vh) scaleX(0.3); opacity: 0; } }
+  @keyframes holRay { 0% { transform: translateX(0) scaleX(0.1); opacity: 1; } 40% { transform: translateX(1.5vh) scaleX(1); opacity: 0.95; } 100% { transform: translateX(5vh) scaleX(0.3); opacity: 0; } }
+  #holcard { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 85; text-align: center; pointer-events: none; }
+  #holcard.on { display: block; -webkit-animation: hcIn 7.2s ease both; animation: hcIn 7.2s ease both; }
+  #holcard .hca { width: 46vh; height: 31vh; margin: 13vh auto 0; -webkit-animation: hcPop 0.9s cubic-bezier(.2,.9,.3,1.3) 0.2s both; animation: hcPop 0.9s cubic-bezier(.2,.9,.3,1.3) 0.2s both; }
+  #holcard .hct { margin-top: 5vh; font-size: 11vh; font-weight: 800; letter-spacing: 0.4vw; line-height: 1; color: #ffffff; text-shadow: 0 0.6vh 2.4vh rgba(0,0,0,0.6); white-space: nowrap; -webkit-animation: hcUp 0.8s ease-out 0.6s both; animation: hcUp 0.8s ease-out 0.6s both; }
+  #holcard .hcs { margin-top: 2.4vh; font-size: 4.6vh; font-weight: 700; letter-spacing: 0.5vw; -webkit-animation: hcUp 0.8s ease-out 1.1s both; animation: hcUp 0.8s ease-out 1.1s both; }
+  @-webkit-keyframes hcIn { 0% { opacity: 0; } 7% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes hcIn { 0% { opacity: 0; } 7% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+  @-webkit-keyframes hcPop { 0% { -webkit-transform: scale(0.3); opacity: 0; } 100% { -webkit-transform: scale(1); opacity: 1; } }
+  @keyframes hcPop { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  @-webkit-keyframes hcUp { 0% { -webkit-transform: translateY(4vh); opacity: 0; } 100% { -webkit-transform: translateY(0); opacity: 1; } }
+  @keyframes hcUp { 0% { transform: translateY(4vh); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+  .nomotion #holfx { display: none; }
   #tdrun { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 70; overflow: hidden; pointer-events: none; }
   .tdcur { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; -webkit-transform: translateX(-112%); transform: translateX(-112%); }
   .tdedge { position: absolute; right: -2.4vh; top: 0; bottom: 0; width: 2.4vh; }
@@ -1409,6 +1442,7 @@
     <div id="tabs"></div>
     <div id="brand"><small>The</small>FanCave <span>Wire</span></div>
     <div id="clock"></div>
+    <div id="holstrip"></div>
   </div>
 
   <div id="board">
@@ -1425,6 +1459,8 @@
   <div id="stale"></div>
   <div id="breaking"></div>
   <div id="tdrun"></div>
+  <div id="holfx"></div>
+  <div id="holcard"></div>
   <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Lines: DraftKings</span></div>
 </div>
 
@@ -1491,6 +1527,8 @@ var CONFIG = {
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
   tourney: true,         // March: big-five conference championship games + every NCAA tournament game get a big screen and the winner's celebration (?tourney=0 off)
+  holidays: true,        // US holidays + Black History Month: colors, drifting snow / leaves / fireworks, a greeting card now and then (?holiday=0 off, ?holiday=juneteenth previews)
+  holidayForce: '',
   primeWin: true,        // any NFL primetime / special-day game: the winner's logo pops out with "<TEAM> WIN!" at the final (?primewin=0 off)
   tdPhotos: true,
   realHelmets: true,     // real helmet pictures (NFL) / the team logo (college, Washington) in place of the drawn helmets (?helmets=0)        // the touchdown run / package use real cut-out animal photos (img/td/), not the drawings (?tdphotos=0)
@@ -1694,6 +1732,7 @@ function readParams() {
     if (k === 'tdfx') CONFIG.tdFx = v !== '0';
     if (k === 'tdphotos') CONFIG.tdPhotos = v !== '0';
     if (k === 'primewin') CONFIG.primeWin = v !== '0';
+    if (k === 'holiday') { if (v === '0') CONFIG.holidays = false; else CONFIG.holidayForce = String(v).toLowerCase(); }
     if (k === 'tourney') CONFIG.tourney = v !== '0';
     if (k === 'helmets') CONFIG.realHelmets = v !== '0';
     if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
@@ -8152,6 +8191,166 @@ function gameDayTheme() {
   }
   return best;
 }
+/* =========== HOLIDAYS ===========
+   US holidays (and Black History Month): a strip in the holiday's colors under the header, the holiday's
+   name by the clock, a tint behind everything, a few things drifting at the edges (snow, leaves, fireworks...)
+   and now and then a greeting card for ~7 s, never over a live big game or a celebration.
+   ?holiday=juneteenth (christmas, july4, newyear...) previews one; ?holiday=0 turns them off. */
+function nthDow(y, m, dow, n) {                 // n-th weekday of a month (n = -1: the last)
+  if (n < 0) { var l = new Date(y, m + 1, 0); return l.getDate() - ((l.getDay() - dow + 7) % 7); }
+  var f = new Date(y, m, 1); return 1 + ((dow - f.getDay() + 7) % 7) + (n - 1) * 7;
+}
+function easterOf(y) {                          // Anonymous Gregorian algorithm: [month 0-11, day]
+  var a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+      h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  return [Math.floor((h + l - 7 * m + 114) / 31) - 1, ((h + l - 7 * m + 114) % 31) + 1];
+}
+var RWB = ['#bf0a30', '#ffffff', '#3c6df0'];
+var HOLIDAYS = {
+  newyear:     { tag: 'HAPPY NEW YEAR', title: 'HAPPY NEW YEAR', sub: '', c: ['#f5c542', '#e8ecf4', '#b48cff'], fx: ['fw', 'confetti'], card: 15, art: 'fw' },
+  nye:         { tag: "NEW YEAR'S EVE", title: "NEW YEAR'S EVE", sub: '', c: ['#f5c542', '#e8ecf4', '#b48cff'], fx: ['fw', 'confetti'], card: 15, art: 'fw' },
+  mlk:         { tag: 'MLK DAY', title: 'MARTIN LUTHER KING JR. DAY', sub: 'A DAY ON, NOT A DAY OFF', c: ['#f5c542', '#3c6df0', '#ffffff'], fx: ['tw'], card: 30, art: 'sun' },
+  bhm:         { tag: 'BLACK HISTORY MONTH', title: 'BLACK HISTORY MONTH', sub: 'CELEBRATING BLACK EXCELLENCE', c: ['#d21034', '#111111', '#009b48'], strip: ['#d21034', '#111111', '#009b48'], fx: [], card: 60, art: 'bhm', quiet: true },
+  presidents:  { tag: "PRESIDENTS' DAY", title: "PRESIDENTS' DAY", sub: '', c: RWB, fx: ['tw'], card: 30, art: 'stars' },
+  stpat:       { tag: "ST. PATRICK'S DAY", title: "HAPPY ST. PATRICK'S DAY", sub: '', c: ['#169b62', '#7ed957', '#f5c542'], fx: ['clover'], card: 30, art: 'clover' },
+  easter:      { tag: 'HAPPY EASTER', title: 'HAPPY EASTER', sub: '', c: ['#f7a8c4', '#b9a3f0', '#9fe2bf', '#ffe680'], fx: ['petal'], card: 30, art: 'egg' },
+  memorial:    { tag: 'MEMORIAL DAY', title: 'MEMORIAL DAY', sub: 'HONORING THOSE WHO GAVE ALL', c: RWB, fx: ['tw'], card: 30, art: 'stars' },
+  juneteenth:  { tag: 'JUNETEENTH', title: 'HAPPY JUNETEENTH', sub: 'FREEDOM DAY · JUNE 19, 1865', c: ['#bf0a30', '#ffffff', '#3c6df0', '#009b48', '#f5c542'], strip: ['#d21034', '#111111', '#009b48'], fx: ['fw', 'tw'], card: 15, art: 'juneteenth' },
+  july4:       { tag: 'HAPPY 4TH', title: 'HAPPY 4TH OF JULY', sub: 'INDEPENDENCE DAY', c: RWB, fx: ['fw', 'tw'], card: 15, art: 'fw' },
+  labor:       { tag: 'LABOR DAY', title: 'HAPPY LABOR DAY', sub: '', c: ['#3c6df0', '#f5c542', '#ffffff'], fx: ['tw'], card: 30, art: 'stars' },
+  halloween:   { tag: 'HAPPY HALLOWEEN', title: 'HAPPY HALLOWEEN', sub: '', c: ['#ff7518', '#8a4dff', '#9cff57'], fx: ['bat'], card: 20, art: 'pumpkin' },
+  veterans:    { tag: 'VETERANS DAY', title: 'VETERANS DAY', sub: 'THANK YOU FOR YOUR SERVICE', c: RWB, fx: ['tw'], card: 30, art: 'stars' },
+  thanksgiving:{ tag: 'HAPPY THANKSGIVING', title: 'HAPPY THANKSGIVING', sub: '', c: ['#d2691e', '#e0a526', '#a0522d', '#c0392b'], fx: ['leaf'], card: 20, art: 'leaf' },
+  xmaseve:     { tag: 'CHRISTMAS EVE', title: 'MERRY CHRISTMAS EVE', sub: '', c: ['#c8102e', '#0f8a3c', '#f5c542', '#ffffff'], fx: ['flake'], card: 15, art: 'flake' },
+  christmas:   { tag: 'MERRY CHRISTMAS', title: 'MERRY CHRISTMAS', sub: '', c: ['#c8102e', '#0f8a3c', '#f5c542', '#ffffff'], fx: ['flake'], card: 15, art: 'flake' }
+};
+function holidayKey(d) {
+  if (!CONFIG.holidays) return '';
+  if (CONFIG.holidayForce) return HOLIDAYS[CONFIG.holidayForce] ? CONFIG.holidayForce : '';
+  var y = d.getFullYear(), m = d.getMonth(), dd = d.getDate(), e = easterOf(y);
+  if (m === 0 && dd === 1) return 'newyear';
+  if (m === 11 && dd === 31) return 'nye';
+  if (m === 0 && dd === nthDow(y, 0, 1, 3)) return 'mlk';
+  if (m === 1 && dd === nthDow(y, 1, 1, 3)) return 'presidents';
+  if (m === 2 && dd === 17) return 'stpat';
+  if (m === e[0] && dd === e[1]) return 'easter';
+  if (m === 4 && dd === nthDow(y, 4, 1, -1)) return 'memorial';
+  if (m === 5 && dd === 19) return 'juneteenth';
+  if (m === 6 && dd === 4) return 'july4';
+  if (m === 8 && dd === nthDow(y, 8, 1, 1)) return 'labor';
+  if (m === 9 && dd === 31) return 'halloween';
+  if (m === 10 && dd === 11) return 'veterans';
+  if (m === 10 && dd === thanksgivingOf(y)) return 'thanksgiving';
+  if (m === 11 && dd === 24) return 'xmaseve';
+  if (m === 11 && dd === 25) return 'christmas';
+  if (m === 1) return 'bhm';                                        // all of February
+  return '';
+}
+function holTitle(k, d) {
+  var h = HOLIDAYS[k], y = d.getFullYear();
+  if (k === 'newyear') return { t: h.title, s: String(y) };
+  if (k === 'nye') return { t: h.title, s: 'COUNTDOWN TO ' + (y + 1) };
+  return { t: h.title, s: h.sub };
+}
+/* the drawings: all simple shapes drawn here */
+function holShape(s, col) {
+  var o = '<svg viewBox="0 0 100 100" width="100%" height="100%">';
+  if (s === 'flake') {
+    o += '<g stroke="' + col + '" stroke-width="6" stroke-linecap="round" fill="none">';
+    for (var i = 0; i < 6; i++) o += '<g transform="rotate(' + (i * 60) + ' 50 50)"><line x1="50" y1="50" x2="50" y2="8"/><line x1="50" y1="24" x2="40" y2="14"/><line x1="50" y1="24" x2="60" y2="14"/></g>';
+    return o + '</g></svg>';
+  }
+  if (s === 'star' || s === 'tw') return o + '<polygon fill="' + col + '" points="' + starPts(50, 52, 46, 19, 5) + '"/></svg>';
+  if (s === 'leaf') return o + '<path fill="' + col + '" d="M50 6 C78 22 92 52 50 94 C8 52 22 22 50 6Z"/><path d="M50 18 V90 M50 44 L68 30 M50 60 L32 46 M50 74 L66 62" stroke="rgba(0,0,0,0.3)" stroke-width="4" fill="none"/></svg>';
+  if (s === 'clover') return o + '<g fill="' + col + '"><circle cx="50" cy="30" r="19"/><circle cx="30" cy="56" r="19"/><circle cx="70" cy="56" r="19"/><circle cx="50" cy="50" r="12"/></g><path d="M52 62 Q56 82 66 94" stroke="' + col + '" stroke-width="7" fill="none" stroke-linecap="round"/></svg>';
+  if (s === 'petal') return o + '<ellipse cx="50" cy="50" rx="22" ry="40" fill="' + col + '"/></svg>';
+  if (s === 'confetti') return o + '<rect x="30" y="10" width="40" height="80" rx="6" fill="' + col + '"/></svg>';
+  if (s === 'bat') return o + '<path fill="' + col + '" d="M50 40 C46 30 42 30 40 36 C30 24 14 22 4 34 C14 36 18 44 16 52 C24 46 34 48 38 56 C42 50 46 50 50 58 C54 50 58 50 62 56 C66 48 76 46 84 52 C82 44 86 36 96 34 C86 22 70 24 60 36 C58 30 54 30 50 40Z"/></svg>';
+  return o + '</svg>';
+}
+function starPts(cx, cy, ro, ri, n) {
+  var p = [];
+  for (var i = 0; i < n * 2; i++) { var r = i % 2 ? ri : ro, a = Math.PI / n * i - Math.PI / 2; p.push((cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1)); }
+  return p.join(' ');
+}
+function holArt(k, h) {                          // the greeting card's picture
+  var c = h.c, o = '<svg viewBox="0 0 300 200" width="100%" height="100%">';
+  if (h.art === 'juneteenth') {                  // the Juneteenth flag's idea: a new horizon, a star with a burst around it
+    return o + '<rect width="300" height="200" rx="14" fill="#13286b"/><path d="M0 128 Q150 70 300 128 V186 Q300 200 286 200 H14 Q0 200 0 186Z" fill="#bf0a30"/>' +
+      '<polygon points="' + starPts(150, 104, 66, 46, 12) + '" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>' +
+      '<polygon points="' + starPts(150, 106, 34, 14, 5) + '" fill="#ffffff"/></svg>';
+  }
+  if (h.art === 'bhm') return o + '<circle cx="150" cy="100" r="86" fill="#111"/><clipPath id="hbc"><circle cx="150" cy="100" r="80"/></clipPath><g clip-path="url(#hbc)"><rect x="60" y="20" width="180" height="54" fill="#d21034"/><rect x="60" y="74" width="180" height="52" fill="#111"/><rect x="60" y="126" width="180" height="54" fill="#009b48"/></g>' +
+      '<polygon points="' + starPts(150, 102, 30, 12, 5) + '" fill="#f5c542"/></svg>';
+  if (h.art === 'sun') { var r = ''; for (var i = 0; i < 9; i++) r += '<line x1="150" y1="150" x2="' + (150 + 120 * Math.cos(Math.PI * (1 + i / 8))).toFixed(1) + '" y2="' + (150 + 120 * Math.sin(Math.PI * (1 + i / 8))).toFixed(1) + '"/>';
+    return o + '<g stroke="' + c[0] + '" stroke-width="7" stroke-linecap="round" opacity="0.8">' + r + '</g><path d="M80 150 A70 70 0 0 1 220 150Z" fill="' + c[0] + '"/><rect x="40" y="150" width="220" height="8" rx="4" fill="' + c[1] + '"/></svg>'; }
+  if (h.art === 'pumpkin') return o + '<rect x="140" y="22" width="16" height="30" rx="5" fill="#3d6b1f"/><ellipse cx="110" cy="112" rx="58" ry="74" fill="#e8650f"/><ellipse cx="190" cy="112" rx="58" ry="74" fill="#e8650f"/><ellipse cx="150" cy="112" rx="64" ry="80" fill="#ff7518"/>' +
+      '<polygon points="112,92 132,92 122,74" fill="#2b1400"/><polygon points="168,92 188,92 178,74" fill="#2b1400"/><path d="M100 128 Q150 176 200 128 L186 134 L176 124 L164 136 L150 126 L136 136 L124 124 L114 134Z" fill="#2b1400"/></svg>';
+  if (h.art === 'egg') return o + '<ellipse cx="150" cy="104" rx="62" ry="84" fill="' + c[0] + '"/><path d="M90 92 Q120 76 150 92 T210 92" stroke="' + c[1] + '" stroke-width="12" fill="none"/><path d="M92 124 Q120 140 150 124 T208 124" stroke="' + c[2] + '" stroke-width="12" fill="none"/><circle cx="150" cy="58" r="9" fill="' + c[3] + '"/></svg>';
+  if (h.art === 'stars') return o + '<polygon points="' + starPts(150, 104, 70, 28, 5) + '" fill="' + c[1] + '"/><polygon points="' + starPts(64, 120, 34, 14, 5) + '" fill="' + c[0] + '"/><polygon points="' + starPts(236, 120, 34, 14, 5) + '" fill="' + c[2] + '"/></svg>';
+  if (h.art === 'fw') { var g = ''; for (var j = 0; j < 3; j++) { var cx = [80, 160, 230][j], cy = [80, 60, 110][j], rr = [52, 70, 44][j];
+      for (var q = 0; q < 14; q++) { var an = q * Math.PI / 7; g += '<line x1="' + (cx + rr * 0.3 * Math.cos(an)).toFixed(1) + '" y1="' + (cy + rr * 0.3 * Math.sin(an)).toFixed(1) + '" x2="' + (cx + rr * Math.cos(an)).toFixed(1) + '" y2="' + (cy + rr * Math.sin(an)).toFixed(1) + '" stroke="' + c[j % c.length] + '"/>'; } }
+    return o + '<g stroke-width="6" stroke-linecap="round">' + g + '</g></svg>'; }
+  return '<div style="width:100%;height:100%">' + holShape(h.art, c[0]) + '</div>';
+}
+var hol = { key: '', cardAt: 0, fw: null };
+function holidayApply(d) {
+  var k = holidayKey(d), body = document.body;
+  if (k === hol.key) return k;
+  hol.key = k;
+  var fx = $('holfx'), st = $('holstrip');
+  if (hol.fw) { clearInterval(hol.fw); hol.fw = null; }
+  fx.innerHTML = ''; st.style.display = 'none'; body.style.backgroundImage = '';
+  if (!k) return k;
+  var h = HOLIDAYS[k], c = h.c, sc = h.strip || c, html = '', i, R = Math.random;
+  st.style.background = '-webkit-linear-gradient(left, ' + sc.join(', ') + ')'; st.style.background = 'linear-gradient(to right, ' + sc.join(', ') + ')'; st.style.display = 'block';
+  body.style.backgroundImage = 'radial-gradient(ellipse at 0% 100%, ' + hexA(c[0], 0.22) + ', transparent 55%), radial-gradient(ellipse at 100% 0%, ' + hexA(c[c.length > 2 ? 2 : 1], 0.18) + ', transparent 55%)';
+  if (!CONFIG.motion) return k;
+  for (var f = 0; f < h.fx.length; f++) {
+    var t = h.fx[f];
+    if (t === 'fw') { hol.fw = setInterval(function () { holBurst(c); }, 2600); continue; }
+    var n = t === 'bat' ? 5 : (t === 'tw' ? 10 : 14);
+    for (i = 0; i < n; i++) {
+      var col = c[i % c.length], sz = (t === 'tw' ? 1.4 + R() * 1.6 : (t === 'bat' ? 4 + R() * 2.5 : 1.8 + R() * 2.2)).toFixed(2), dur = (t === 'bat' ? 14 + R() * 10 : 10 + R() * 9).toFixed(1), del = (-R() * 20).toFixed(1);
+      var pos = t === 'tw' ? 'left:' + (R() < 0.5 ? R() * 14 : 86 + R() * 12).toFixed(1) + 'vw;top:' + (11 + R() * 74).toFixed(1) + 'vh;' :
+                (t === 'bat' ? 'left:0;top:' + (12 + R() * 50).toFixed(1) + 'vh;' : 'left:' + (R() * 98).toFixed(1) + 'vw;top:0;');
+      var cls = t === 'tw' ? 'htw' : (t === 'bat' ? 'hfly' : 'hfall');
+      html += '<i class="' + cls + '" style="' + pos + 'width:' + sz + 'vh;height:' + sz + 'vh;-webkit-animation-duration:' + dur + 's;animation-duration:' + (t === 'tw' ? (2 + R() * 3).toFixed(1) : dur) + 's;-webkit-animation-delay:' + del + 's;animation-delay:' + del + 's">' +
+              (t === 'bat' ? '<b>' + holShape('bat', i % 2 ? '#8a4dff' : '#ff7518') + '</b>' : holShape(t, col)) + '</i>';
+    }
+  }
+  fx.innerHTML = html;
+  hol.cardAt = new Date().getTime() + 6000 - h.card * 60000;        // first card ~6 s in
+  return k;
+}
+function holBright(h) {                         // the holiday's most readable color on the dark header
+  var best = '#ffffff', bl = -1;
+  for (var i = 0; i < h.c.length; i++) { var c = h.c[i].replace('#', ''), l = 0.3 * parseInt(c.substr(0, 2), 16) + 0.59 * parseInt(c.substr(2, 2), 16) + 0.11 * parseInt(c.substr(4, 2), 16);
+    if (h.c[i].toLowerCase() !== '#ffffff' && l > bl) { bl = l; best = h.c[i]; } }
+  return bl < 90 ? '#ffffff' : best;
+}
+function hexA(c, a) { c = String(c).replace('#', ''); return 'rgba(' + parseInt(c.substr(0, 2), 16) + ',' + parseInt(c.substr(2, 2), 16) + ',' + parseInt(c.substr(4, 2), 16) + ',' + a + ')'; }
+function holBurst(c) {                           // one firework, somewhere around the edges
+  var fx = $('holfx'); if (!fx || document.hidden) return;
+  var R = Math.random, side = R() < 0.5, x = side ? 3 + R() * 18 : 79 + R() * 18, y = 12 + R() * 55, col = c[Math.floor(R() * c.length)], rays = '';
+  for (var i = 0; i < 14; i++) rays += '<span style="-webkit-transform:rotate(' + (i * 360 / 14) + 'deg);transform:rotate(' + (i * 360 / 14) + 'deg)"><b style="background:' + col + '"></b></span>';
+  var el = document.createElement('div'); el.className = 'hfw'; el.style.left = x + 'vw'; el.style.top = y + 'vh'; el.innerHTML = rays;
+  fx.appendChild(el); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1800);
+}
+function holidayCard() {                         // every few minutes: the greeting, unless something better is on
+  var k = hol.key, now = new Date().getTime();
+  if (!k || !CONFIG.motion) return;
+  var h = HOLIDAYS[k];
+  if (now - hol.cardAt < h.card * 60000) return;
+  var pg = state.pages[state.pageIndex] || {};
+  if ((pg.pt && pg.game && pg.game.live) || document.querySelector('.bwin, .tdfx') || $('tdrun').style.display === 'block' || $('breaking').style.display === 'block') return;
+  hol.cardAt = now;
+  var tt = holTitle(k, new Date()), el = $('holcard');
+  el.style.background = 'radial-gradient(ellipse at 50% 38%, ' + hexA(h.c[0], 0.42) + ', transparent 70%), #05070d';
+  el.innerHTML = '<div class="hca">' + holArt(k, h) + '</div><div class="hct" style="font-size:' + Math.min(11, 90 * ((window.innerWidth || 16) / (window.innerHeight || 9)) / (tt.t.length * 0.66)).toFixed(1) + 'vh">' + esc(tt.t) + '</div>' + (tt.s ? '<div class="hcs" style="color:' + (k === 'bhm' || k === 'juneteenth' ? '#f5c542' : holBright(h)) + '">' + esc(tt.s) + '</div>' : '');
+  el.className = ''; void el.offsetWidth; el.className = 'on';
+  setTimeout(function () { el.className = ''; }, 7200);
+}
 function applyTheme(d) {
   var t = CONFIG.theme;
   if (t === 'auto') t = gameDayTheme() || 'house';
@@ -8159,13 +8358,18 @@ function applyTheme(d) {
   var vw = window.innerWidth || document.documentElement.clientWidth, vh = window.innerHeight || document.documentElement.clientHeight;
   if (vh && vw / vh < 1.7) cls += (cls ? ' ' : '') + 'narrow';     // 16:10 and squarer
   if (!CONFIG.motion) cls += (cls ? ' ' : '') + 'nomotion';
+  var hk = holidayApply(d || new Date());
+  if (hk) cls += (cls ? ' ' : '') + 'hol hol-' + hk;
   if (document.body.className !== cls) document.body.className = cls;
 }
 
 function renderClock() {
   var d = new Date();
   applyTheme(d);
-  $('clock').innerHTML = '<small>' + DAYS[d.getDay()] + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + '</small>' + timeStr(d);
+  var hk = hol.key, hh = hk && HOLIDAYS[hk];
+  $('clock').innerHTML = (hh ? '<small class="holtag" style="color:' + (hk === 'bhm' || hk === 'juneteenth' ? '#f5c542' : holBright(hh)) + '">' + esc(hh.tag) + '</small>' :
+    '<small>' + DAYS[d.getDay()] + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + '</small>') + timeStr(d);
+  holidayCard();
 }
 
 function renderFoot(errs) {
