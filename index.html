@@ -1309,6 +1309,52 @@
   @-webkit-keyframes brkPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   @keyframes brkPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   .nomotion #breaking, .nomotion #breaking .bl .bk { -webkit-animation: none; animation: none; }
+  /* the touchdown package: animal leaps out, helmets + TOUCHDOWN, photo and name */
+  .tdfx { position: absolute; left: 0; right: 0; bottom: 1vh; height: 46vh; z-index: 30; pointer-events: none; overflow: visible;
+          -webkit-animation: tfOut 0.6s ease-in 6.4s 1 both; animation: tfOut 0.6s ease-in 6.4s 1 both; }
+  .tdfx > div { position: absolute; }
+  .tfshade { left: -2vw; right: -2vw; bottom: -1vh; height: 48vh; opacity: 0; background: -webkit-linear-gradient(bottom, rgba(5,8,15,0.94) 0%, rgba(5,8,15,0.82) 62%, rgba(5,8,15,0) 100%);
+             background: linear-gradient(to top, rgba(5,8,15,0.94) 0%, rgba(5,8,15,0.82) 62%, rgba(5,8,15,0) 100%); -webkit-animation: tfShade 0.4s ease-out 0.3s 1 both; animation: tfShade 0.4s ease-out 0.3s 1 both; }
+  @-webkit-keyframes tfShade { from { opacity: 0; } to { opacity: 1; } } @keyframes tfShade { from { opacity: 0; } to { opacity: 1; } }
+  .tfglow { left: 5%; right: 5%; bottom: 0; height: 30vh; opacity: 0; -webkit-animation: tfFade 0.6s ease-out 0.5s 1 both; animation: tfFade 0.6s ease-out 0.5s 1 both; }
+  .tfslab { left: 17%; right: 17%; bottom: 2vh; height: 13vh; border-top: 0.5vh solid #fff; border-bottom: 0.5vh solid #fff; -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%;
+            -webkit-animation: tfSlab 0.35s ease-out 0.7s 1 both; animation: tfSlab 0.35s ease-out 0.7s 1 both; box-shadow: 0 0 4vh rgba(0,0,0,0.5); }
+  .tfword { left: 0; right: 0; bottom: 2.6vh; text-align: center; font-size: 12.5vh; line-height: 12vh; font-weight: 800; font-style: italic; letter-spacing: 0.5vw; white-space: nowrap; }
+  .tfword span { display: inline-block; opacity: 0; -webkit-animation: tfLetter 0.32s cubic-bezier(.2,.9,.3,1.3) 0.8s 1 both; animation: tfLetter 0.32s cubic-bezier(.2,.9,.3,1.3) 0.8s 1 both; }
+  .tfhel { bottom: 1vh; width: 21vh; height: 16.8vh; } .tfhel .tdhelm { width: 100%; height: 100%; }
+  .tfhel .tdhelm .tdlogo .logo { width: 5.6vh; height: 5.6vh; } .tfhel .tdhelm .tdlogo .logo img { left: 0.6vh; top: 0.6vh; width: 4.4vh; height: 4.4vh; }
+  .tfhel.l { left: 6%; -webkit-animation: tfHelL 0.45s ease-out 0.65s 1 both; animation: tfHelL 0.45s ease-out 0.65s 1 both; }
+  .tfhel.r { right: 6%; -webkit-animation: tfHelR 0.45s ease-out 0.65s 1 both; animation: tfHelR 0.45s ease-out 0.65s 1 both; }
+  .tfhel.r svg { -webkit-transform: scaleX(-1); transform: scaleX(-1); } .tfhel.r .tdlogo { left: auto; right: 34%; }
+  .tfpic { left: 50%; margin-left: -17vh; bottom: 12vh; width: 34vh; height: 25vh; overflow: hidden; -webkit-animation: tfRise 0.5s ease-out 1.35s 1 both; animation: tfRise 0.5s ease-out 1.35s 1 both; }
+  .tfpic img { width: 100%; height: 100%; display: block; }
+  .tftile { left: 26%; bottom: 16vh; width: 11vh; height: 11vh; border: 0.4vh solid #fff; -webkit-transform: skewX(-8deg); transform: skewX(-8deg); box-shadow: 0 1vh 2vh rgba(0,0,0,0.5);
+            -webkit-animation: tfTile 0.4s ease-out 1.5s 1 both; animation: tfTile 0.4s ease-out 1.5s 1 both; }
+  .tftile .logo { position: absolute; left: 1.2vh; top: 1.2vh; width: 7.8vh; height: 7.8vh; margin: 0; } .tftile .logo img { left: 0.9vh; top: 0.9vh; width: 6vh; height: 6vh; }
+  .tfname { left: 61%; bottom: 15vh; font-style: italic; font-weight: 800; color: #fff; line-height: 1; text-shadow: 0 0.6vh 1.6vh rgba(0,0,0,0.7);
+            -webkit-animation: tfName 0.4s ease-out 1.55s 1 both; animation: tfName 0.4s ease-out 1.55s 1 both; }
+  .tfname i { display: block; font-size: 4vh; letter-spacing: 0.2vw; } .tfname b { display: block; font-size: 7.4vh; letter-spacing: 0.2vw; }
+  .tfleap { left: 50%; bottom: 0; width: 60vh; height: 36vh; margin-left: -30vh; opacity: 0; -webkit-transform-origin: 50% 100%; transform-origin: 50% 100%;
+            -webkit-animation: tfLeap 1.05s ease-out 0s 1 both; animation: tfLeap 1.05s ease-out 0s 1 both; }
+  .tfleap svg { width: 100%; height: 100%; overflow: visible; } .tfleap .tdhelm { width: 70%; height: 90%; margin: 0 auto; }
+  @-webkit-keyframes tfOut { from { opacity: 1; } to { opacity: 0; } } @keyframes tfOut { from { opacity: 1; } to { opacity: 0; } }
+  @-webkit-keyframes tfFade { from { opacity: 0; } to { opacity: 0.85; } } @keyframes tfFade { from { opacity: 0; } to { opacity: 0.85; } }
+  @-webkit-keyframes tfSlab { from { -webkit-transform: scaleX(0); } to { -webkit-transform: scaleX(1); } } @keyframes tfSlab { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @-webkit-keyframes tfLetter { 0% { opacity: 0; -webkit-transform: translateY(-9vh) scale(2.2); } 100% { opacity: 1; -webkit-transform: translateY(0) scale(1); } }
+  @keyframes tfLetter { 0% { opacity: 0; transform: translateY(-9vh) scale(2.2); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+  @-webkit-keyframes tfHelL { from { -webkit-transform: translateX(-60vw) rotate(-25deg); } to { -webkit-transform: translateX(0) rotate(0); } }
+  @keyframes tfHelL { from { transform: translateX(-60vw) rotate(-25deg); } to { transform: translateX(0) rotate(0); } }
+  @-webkit-keyframes tfHelR { from { -webkit-transform: translateX(60vw) rotate(25deg); } to { -webkit-transform: translateX(0) rotate(0); } }
+  @keyframes tfHelR { from { transform: translateX(60vw) rotate(25deg); } to { transform: translateX(0) rotate(0); } }
+  @-webkit-keyframes tfRise { from { opacity: 0; -webkit-transform: translateY(14vh); } to { opacity: 1; -webkit-transform: translateY(0); } }
+  @keyframes tfRise { from { opacity: 0; transform: translateY(14vh); } to { opacity: 1; transform: translateY(0); } }
+  @-webkit-keyframes tfTile { from { opacity: 0; -webkit-transform: translateX(-12vw) skewX(-8deg); } to { opacity: 1; -webkit-transform: translateX(0) skewX(-8deg); } }
+  @keyframes tfTile { from { opacity: 0; transform: translateX(-12vw) skewX(-8deg); } to { opacity: 1; transform: translateX(0) skewX(-8deg); } }
+  @-webkit-keyframes tfName { from { opacity: 0; -webkit-transform: translateX(12vw); } to { opacity: 1; -webkit-transform: translateX(0); } }
+  @keyframes tfName { from { opacity: 0; transform: translateX(12vw); } to { opacity: 1; transform: translateX(0); } }
+  @-webkit-keyframes tfLeap { 0% { opacity: 0; -webkit-transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 65% { opacity: 1; -webkit-transform: translateY(-30vh) scale(1.35); } 100% { opacity: 0; -webkit-transform: translateY(-62vh) scale(2.1); } }
+  @keyframes tfLeap { 0% { opacity: 0; transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 65% { opacity: 1; transform: translateY(-30vh) scale(1.35); } 100% { opacity: 0; transform: translateY(-62vh) scale(2.1); } }
+  .nomotion .tdfx, .nomotion .tdfx > div, .nomotion .tfword span { -webkit-animation: none !important; animation: none !important; opacity: 1; } .nomotion .tfleap { display: none; }
   /* touchdown run: a curtain in the team's colors, pulled across by the team's animal (or its helmet) */
   #tdrun { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 70; overflow: hidden; pointer-events: none; }
   .tdcur { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; -webkit-transform: translateX(-112%); transform: translateX(-112%); }
@@ -1429,6 +1475,7 @@ var CONFIG = {
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
+  tdFx: false,           // DEMO: the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=1 on)
   tdRun: true,           // a touchdown in a game with its own big screen, while that screen isn't up: the team's animal (or helmet) runs across and sweeps onto the game (?tdrun=0 off; ?tdtest=CHI to preview one)
   fighterPics: true,     // COMBAT cards: each fighter's photo and country flag (?fighterpics=0 off)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
@@ -1626,6 +1673,7 @@ function readParams() {
     if (k === 'golf') CONFIG.golf = v !== '0';
     if (k === 'fighterpics') CONFIG.fighterPics = v !== '0';
     if (k === 'tdrun') CONFIG.tdRun = v !== '0';
+    if (k === 'tdfx') CONFIG.tdFx = v !== '0';
     if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
@@ -5103,8 +5151,8 @@ function tdAnimalSVG(kind, frame) {
   }
   return s ? '<svg viewBox="0 0 200 120">' + s + '</svg>' : '';
 }
-function tdHelmetHTML(t, lg, col, alt) {                          // a plain helmet in the team's color, its logo as the decal
-  return '<div class="tdhelm"><svg viewBox="0 0 200 160"><path d="M30 92 C26 40 70 10 118 14 C160 18 184 52 182 92 C181 112 170 124 152 128 L104 130 C92 130 86 122 84 112 L66 112 C52 112 34 108 30 92 Z" fill="' + col + '"/>' +
+function tdHelmetHTML(t, lg, col, alt, rim) {                     // a plain helmet in the team's color, its logo as the decal (rim: a light edge, for dark backgrounds)
+  return '<div class="tdhelm"><svg viewBox="0 0 200 160"><path d="M30 92 C26 40 70 10 118 14 C160 18 184 52 182 92 C181 112 170 124 152 128 L104 130 C92 130 86 122 84 112 L66 112 C52 112 34 108 30 92 Z" fill="' + col + '"' + (rim ? ' stroke="' + alt + '" stroke-width="5"' : '') + '/>' +
     '<path d="M44 52 C70 22 126 14 168 48" stroke="' + alt + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
     '<g stroke="#9aa3b2" stroke-width="7" fill="none" stroke-linecap="round"><path d="M150 96 L196 96"/><path d="M150 116 L194 116"/><path d="M192 92 L192 124 C188 136 176 140 164 138"/><path d="M168 96 L168 136"/></g>' +
     '<circle cx="74" cy="96" r="8" fill="#2a3346"/></svg><div class="tdlogo">' + logoHTML(t, lg) + '</div></div>';
@@ -5158,6 +5206,40 @@ function tdJump(hit) {
   return tdRun(g.teams[hit.side], hit.lg, function () {
     if (jumpTo(hit)) { refreshRender(true); if (!hl.playing) scheduleRotate(); }
   }, null);
+}
+/* =================== TOUCHDOWN PACKAGE (big screen) ===================
+   About 7 seconds across the lower part of the game screen: the scoring team's animal (or its helmet) leaps
+   up out of the bottom toward you, two helmets slide in from the sides, TOUCHDOWN drops in letter by letter
+   in the team's colors over a glow, then the scorer's photo rises behind the word with the team's logo on
+   one side and his name on the other. */
+function tdFxHTML(g, side, lg, ts, dt, delay) {
+  var t = g.teams[side], look = teamLook(t, lg) || {}, col = '#' + String(look.color || homeColor(t, lg) || 'e23d3d').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
+  if (col.toLowerCase() === alt.toLowerCase() || /^#(000000|0b0b0b|101820)$/i.test(alt)) alt = '#ffffff';
+  var lum = function (h) { h = h.replace('#', ''); return 0.3 * parseInt(h.substr(0, 2), 16) + 0.59 * parseInt(h.substr(2, 2), 16) + 0.11 * parseInt(h.substr(4, 2), 16); };
+  var acc = alt !== '#ffffff' && lum(alt) > lum(col) ? alt : (lum(col) < 60 ? (alt !== '#ffffff' ? alt : '#e23d3d') : col);   // the bright one of the two, for glow and edges
+  var p = ts ? findPlayer(dt, ts.name, t.tid) : null, url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
+  if (url) url = url.replace(/&w=\d+&h=\d+/, '&w=350&h=254');
+  var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, ''), parts = full.split(/\s+/), last = parts.pop() || '', first = parts.join(' ');
+  var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
+  var leap = kind ? tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0) : tdHelmetHTML(t, lg, col, acc, true);
+  var W = 'TOUCHDOWN', word = '';
+  for (var i = 0; i < W.length; i++) word += '<span style="-webkit-animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's;animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's">' + W.charAt(i) + '</span>';
+  var sh = '0.4vh 0.4vh 0 ' + acc + ', -0.4vh 0.4vh 0 ' + acc + ', 0.4vh -0.4vh 0 ' + acc + ', -0.4vh -0.4vh 0 ' + acc + ', 0.9vh 0.9vh 0 ' + col + ', 0 1.4vh 3vh rgba(0,0,0,0.7)';
+  var st = delay ? ' style="-webkit-animation-delay:' + (delay + 6.4) + 's;animation-delay:' + (delay + 6.4) + 's"' : '';
+  var d = function (x) { return '-webkit-animation-delay:' + (x + (delay || 0)) + 's;animation-delay:' + (x + (delay || 0)) + 's;'; };
+  var ah = acc.replace('#', '');
+  return '<div class="tdfx"' + st + '>' +
+    '<div class="tfshade" style="' + d(0.3) + '"></div>' +
+    '<div class="tfglow" style="' + d(0.5) + 'background:-webkit-radial-gradient(50% 100%, ellipse, ' + rgba(ah, 0.85) + ' 0%, ' + rgba(ah, 0.35) + ' 40%, transparent 70%);background:radial-gradient(ellipse at 50% 100%, ' + rgba(ah, 0.85) + ' 0%, ' + rgba(ah, 0.35) + ' 40%, transparent 70%)"></div>' +
+    (url || full ? '<div class="tfpic" style="' + d(1.35) + '">' + (url ? '<img src="' + esc(url) + '" alt="" onerror="this.style.display=\'none\'">' : '') + '</div>' : '') +
+    '<div class="tftile" style="' + d(1.5) + 'background:' + col + ';border-color:' + acc + '">' + logoHTML(t, lg) + '</div>' +
+    (full ? '<div class="tfname" style="' + d(1.55) + '">' + (first ? '<i>' + esc(first.toUpperCase()) + '</i>' : '') + '<b>' + esc(last.toUpperCase()) + '</b></div>' : '') +
+    '<div class="tfslab" style="' + d(0.7) + 'border-color:' + acc + ';background:-webkit-linear-gradient(top, ' + col + ', ' + rgba(ah, 0.9) + ');background:linear-gradient(to bottom, ' + col + ', ' + rgba(ah, 0.9) + ')"></div>' +
+    '<div class="tfhel l" style="' + d(0.65) + '">' + tdHelmetHTML(t, lg, col, acc, true) + '</div>' +
+    '<div class="tfhel r" style="' + d(0.65) + '">' + tdHelmetHTML(t, lg, col, acc, true) + '</div>' +
+    '<div class="tfword" style="color:#ffffff;text-shadow:' + sh + '">' + word.replace(/animation-delay:([\d.]+)s/g, function (m, x) { return 'animation-delay:' + (+x + (delay || 0)).toFixed(3) + 's'; }) + '</div>' +
+    '<div class="tfleap' + (kind && TD_BIRDS[kind] ? ' bird' : '') + '" style="' + d(0) + '">' + leap + '</div>' +
+    '</div>';
 }
 /* =================== INJURIES ===================
    From ESPN's game feed: who's out (and doubtful / questionable / day-to-day) for each team.
@@ -5857,7 +5939,7 @@ function ptAnimate(pg) {
   var entering = ptLastKey !== key;
   ptLastKey = key;
   if (entering) root.className += ' enter';
-  var rzEnd = 0, spotEnd = 0;
+  var rzEnd = 0, spotEnd = 0, tdFxEnd = 0;
   var fb = root.querySelector('.field .fb'), los = root.querySelector('.field .los'), fd = root.querySelector('.field .fd');
   var bp = (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? bigPlayOf(g) : null;
   var sitN = (compOf(g) || {}).situation || {};
@@ -5981,7 +6063,16 @@ function ptAnimate(pg) {
   if (prev && !fin && (a > prev.a || h > prev.h) && pg.lg !== 'nba' && pg.lg !== 'wnba' && pg.lg !== 'ncaab') {
     var side = a - prev.a >= h - prev.h ? 'away' : 'home', d = side === 'away' ? a - prev.a : h - prev.h, t = g.teams[side];
     var lab = scoreLabel(pg.lg, d), lead = (prev.a - prev.h) * (a - h) <= 0 && a !== h && prev.a !== prev.h ? ' TAKE THE LEAD' : (a === h ? ' TIE IT' : '');
-    if (lab || lead) {
+    var fx = CONFIG.tdFx && lab === 'TOUCHDOWN' && (pg.lg === 'nfl' || pg.lg === 'ncaaf');
+    if (fx) {                                                       // the touchdown package instead of the flat banner
+      var dtx = ptDetail[g.eid], tsx = tdScorer(g, dtx, side, side === 'away' ? prev.a : prev.h) || scorerFromPlays(g, dtx, lab, prev.play);
+      root.insertAdjacentHTML('beforeend', tdFxHTML(g, side, pg.lg, tsx, dtx, delay || 0));
+      setTimeout(function () { var fxe = root.querySelector('.tdfx'); if (fxe && fxe.parentNode) fxe.parentNode.removeChild(fxe); }, ((delay || 0) + 7.2) * 1000);
+      tdFxEnd = (delay || 0) + 7.2;
+      var numx = root.querySelector(side === 'away' ? '.bigsc .sa' : '.bigsc .sh');
+      if (numx) { numx.className += ' flip'; numx.style.webkitAnimationDelay = ((delay || 0) + 0.9) + 's'; numx.style.animationDelay = ((delay || 0) + 0.9) + 's'; }
+    }
+    if ((lab || lead) && !fx) {
       var col = homeColor(t, pg.lg) || 'e23d3d', band = root.querySelector('.band');
       var pop = document.createElement('div');
       pop.className = 'pop';
@@ -6021,6 +6112,7 @@ function ptAnimate(pg) {
   var animEnd = entering ? 2.0 : 0;
   if (delay) animEnd = Math.max(animEnd, delay + 0.4);
   if (root.querySelector('.pop')) animEnd = Math.max(animEnd, delay + 3.9);
+  if (tdFxEnd) animEnd = Math.max(animEnd, tdFxEnd);
   if (rzEnd) {
     animEnd = Math.max(animEnd, rzEnd);
     setTimeout(function () { var z = root.querySelectorAll('.rza'); for (var zi = 0; zi < z.length; zi++) if (z[zi].parentNode) z[zi].parentNode.removeChild(z[zi]); }, (rzEnd + 0.4) * 1000);   // slid off: tidy up
