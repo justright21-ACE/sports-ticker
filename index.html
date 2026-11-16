@@ -1490,6 +1490,7 @@ var CONFIG = {
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
+  primeWin: true,        // any NFL primetime / special-day game: the winner's logo pops out with "<TEAM> WIN!" at the final (?primewin=0 off)
   tdPhotos: true,
   realHelmets: true,     // real helmet pictures (NFL) / the team logo (college, Washington) in place of the drawn helmets (?helmets=0)        // the touchdown run / package use real cut-out animal photos (img/td/), not the drawings (?tdphotos=0)
   tdRun: true,           // a touchdown in a game with its own big screen, while that screen isn't up: the team's animal (or helmet) runs across and sweeps onto the game (?tdrun=0 off; ?tdtest=CHI to preview one)
@@ -1691,6 +1692,7 @@ function readParams() {
     if (k === 'tdrun') CONFIG.tdRun = v !== '0';
     if (k === 'tdfx') CONFIG.tdFx = v !== '0';
     if (k === 'tdphotos') CONFIG.tdPhotos = v !== '0';
+    if (k === 'primewin') CONFIG.primeWin = v !== '0';
     if (k === 'helmets') CONFIG.realHelmets = v !== '0';
     if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
@@ -5997,6 +5999,15 @@ function winFigHTML(t, lg, ring) {             // the team's animal / figure jum
   var im = '<img src="' + esc(u) + '" alt="" style="-webkit-filter:drop-shadow(0 0 2vh ' + ring + ');filter:drop-shadow(0 0 2vh ' + ring + ')">';
   return '<div class="bwfig l"><div class="bwfb">' + im + '</div></div><div class="bwfig r"><div class="bwfb">' + im + '</div></div>';
 }
+function primeWinCfg(t, lg) {                 // a celebration built from the team's own colors, the logo popping out big
+  var look = teamLook(t, lg) || {}, hx = function (v, d) { v = String(v || d).replace('#', ''); return /^[0-9a-f]{6}$/i.test(v) ? '#' + v : '#' + d; };
+  var col = hx(look.color || homeColor(t, lg), '333333'), alt = hx(look.alt || t.alt, 'ffffff');
+  var lum = function (c) { c = c.replace('#', ''); return 0.3 * parseInt(c.substr(0, 2), 16) + 0.59 * parseInt(c.substr(2, 2), 16) + 0.11 * parseInt(c.substr(4, 2), 16); };
+  if (col.toLowerCase() === alt.toLowerCase()) alt = '#ffffff';
+  var nick = String(t.short || nickname(t.name) || t.abbreviation).toUpperCase(), light = lum(col) > 150;
+  return { name: nick, bg: col, st: alt, ring: alt, l1: nick + ' WIN!', l2: '', big: true,
+           c1: light ? '#101820' : '#ffffff', s1: light ? '#ffffff' : (lum(alt) > 60 ? alt : '#000000'), c2: '#ffffff', s2: '#000000', conf: [alt, '#ffffff', col] };
+}
 function winFor(g, lg) {                       // one of our teams just won this game: which, and the score
   if (!g || !isFinal(g) || !g.teams) return null;
   var sides = ['away', 'home'];
@@ -6006,11 +6017,18 @@ function winFor(g, lg) {                       // one of our teams just won this
     var side = sides[i], other = side === 'away' ? 'home' : 'away', me = num(scoreOf(g, side)), op = num(scoreOf(g, other));
     if (me > op) return { cfg: cfg, side: side, me: me, op: op, opp: g.teams[other], lg: lg };
   }
+  // anyone else: an NFL primetime / special-day game (SNF, MNF, TNF, Thanksgiving, Christmas...): the winner gets it too, in their colors
+  if (CONFIG.primeWin && lg === 'nfl' && g.date && ptKind(g)) {
+    var a = num(scoreOf(g, 'away')), h = num(scoreOf(g, 'home'));
+    if (a === h) return null;
+    var ws = a > h ? 'away' : 'home', ls = ws === 'away' ? 'home' : 'away', wt = g.teams[ws];
+    return { cfg: primeWinCfg(wt, lg), side: ws, me: Math.max(a, h), op: Math.min(a, h), opp: g.teams[ls], lg: lg };
+  }
   return null;
 }
 function winHTML(g, w, root) {
   var c = w.cfg, W = root.offsetWidth || 1000, H = root.offsetHeight || 700, longest = Math.max(c.l1.length, c.l2.length);
-  var fs = Math.round(Math.min(H * 0.16, W / (longest * 0.68))), lz = Math.round(Math.min(H * 0.24, W * 0.22)), lh = Math.round(fs * 1.12);
+  var fs = Math.round(Math.min(H * 0.16, W / (longest * 0.68))), lz = Math.round(Math.min(H * (c.big ? 0.38 : 0.24), W * (c.big ? 0.3 : 0.22))), lh = Math.round(fs * 1.12);
   var t = g.teams[w.side], logo = t.logo ? '<img src="' + esc(t.logo) + '" onerror="this.style.display=\'none\'" alt="">' : '';
   var cf = '', i;
   for (i = 0; i < 44; i++) {
@@ -6036,12 +6054,12 @@ function winHTML(g, w, root) {
     hands = '<div class="bwh l" style="width:' + hz + 'px;height:' + Math.round(hz * 1.4) + 'px"><div>' + V_HAND + '</div></div>' +
             '<div class="bwh r" style="width:' + hz + 'px;height:' + Math.round(hz * 1.4) + 'px"><div>' + V_HAND + '</div></div>';
   }
-  var opp = String(w.opp.short || nickname(w.opp.name) || w.opp.abbreviation).toUpperCase(), top1 = Math.round(H * 0.33);
+  var opp = String(w.opp.short || nickname(w.opp.name) || w.opp.abbreviation).toUpperCase(), top1 = Math.round(H * (c.big ? 0.47 : 0.33));
   var dur = '-webkit-animation-duration:' + CONFIG.celebrateSec + 's;animation-duration:' + CONFIG.celebrateSec + 's;';
   return '<div class="bwin" style="' + dur + '"><div class="bwbg" style="background:' + c.bg + '"></div><div class="bwst" style="' + dur + 'background:repeating-linear-gradient(120deg,' + c.st + ' 0,' + c.st + ' 4vh,rgba(0,0,0,0) 4vh,rgba(0,0,0,0) 11vh)"></div>' + cf + hands +
     winFigHTML(t, w.lg, c.ring) +
     '<div class="bwlogo" style="width:' + lz + 'px;height:' + lz + 'px;margin-left:' + (-lz / 2) + 'px;box-shadow:0 0 0 0.8vh ' + c.ring + '">' + logo + '</div>' +
-    line(c.l1, 'bw1', top1, c.c1, c.s1) + line(c.l2, 'bw2', Math.round(top1 + fs * 1.22), c.c2, c.s2) +
+    line(c.l1, 'bw1', top1, c.c1, c.s1) + (c.l2 ? line(c.l2, 'bw2', Math.round(top1 + fs * 1.22), c.c2, c.s2) : '') +
     '<div class="bwsc">' + esc(c.name) + ' ' + w.me + ' &nbsp;·&nbsp; ' + esc(opp) + ' ' + w.op + '</div></div>';
 }
 function twoMinute(g, lg) {
