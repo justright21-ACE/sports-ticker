@@ -1386,7 +1386,8 @@
   .tdchar.photo.glide { top: 14vh; -webkit-animation: tdGlide 0.9s ease-in-out infinite alternate; animation: tdGlide 0.9s ease-in-out infinite alternate; }
   .tdchar.photo.run, .tdchar.photo.leap { height: 40vh; top: 38vh; }
   .tfleap { text-align: center; } .tfleap .tdph { max-width: 100%; max-height: 100%; vertical-align: bottom; }
-  .tdhelm { position: relative; width: 100%; height: 100%; } .tdhelm svg { width: 100%; height: 100%; }
+  .tdhelm { position: relative; width: 100%; height: 100%; }
+  .tdhimg { position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto; max-width: 100%; max-height: 100%; } .tdhelm svg { width: 100%; height: 100%; }
   .tdhelm .tdlogo { position: absolute; left: 34%; top: 26%; } .tdhelm .tdlogo .logo { width: 11vh; height: 11vh; margin: 0; } .tdhelm .tdlogo .logo img { left: 1.2vh; top: 1.2vh; width: 8.6vh; height: 8.6vh; }
   @-webkit-keyframes tdBound { from { -webkit-transform: translateY(0) rotate(-3deg); } to { -webkit-transform: translateY(-3vh) rotate(3deg); } }
   @keyframes tdBound { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-3vh) rotate(3deg); } }
@@ -1489,7 +1490,8 @@ var CONFIG = {
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
-  tdPhotos: true,        // the touchdown run / package use real cut-out animal photos (img/td/), not the drawings (?tdphotos=0)
+  tdPhotos: true,
+  realHelmets: true,     // real helmet pictures (NFL) / the team logo (college, Washington) in place of the drawn helmets (?helmets=0)        // the touchdown run / package use real cut-out animal photos (img/td/), not the drawings (?tdphotos=0)
   tdRun: true,           // a touchdown in a game with its own big screen, while that screen isn't up: the team's animal (or helmet) runs across and sweeps onto the game (?tdrun=0 off; ?tdtest=CHI to preview one)
   fighterPics: true,     // COMBAT cards: each fighter's photo and country flag (?fighterpics=0 off)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
@@ -1689,6 +1691,7 @@ function readParams() {
     if (k === 'tdrun') CONFIG.tdRun = v !== '0';
     if (k === 'tdfx') CONFIG.tdFx = v !== '0';
     if (k === 'tdphotos') CONFIG.tdPhotos = v !== '0';
+    if (k === 'helmets') CONFIG.realHelmets = v !== '0';
     if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
@@ -5171,7 +5174,8 @@ function tdPreload() {                                              // the anima
   for (var i = 0; i < fg.length; i++) {
     if (fg[i].lg !== 'nfl' && fg[i].lg !== 'ncaaf') continue;
     var sides = [fg[i].g.teams.away, fg[i].g.teams.home];
-    for (var j = 0; j < 2; j++) { var u = tdPhoto(tdKind(sides[j], fg[i].lg)); if (u && !tdPre[u]) { tdPre[u] = new Image(); tdPre[u].src = u; } }
+    for (var j = 0; j < 2; j++) { var us = [tdPhoto(tdKind(sides[j], fg[i].lg)), tdHelmetURL(sides[j], fg[i].lg)];
+      for (var q = 0; q < 2; q++) { var u = us[q]; if (u && !tdPre[u]) { tdPre[u] = new Image(); tdPre[u].src = u; } } }
   }
 }
 var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1, goldeneagle: 1, hawkeye: 1, owl: 1, redhawk: 1, 'n-jet': 1 };
@@ -5225,7 +5229,19 @@ function tdAnimalSVG(kind, frame) {
   }
   return s ? '<svg viewBox="0 0 200 120">' + s + '</svg>' : '';
 }
-function tdHelmetHTML(t, lg, col, alt, rim) {                     // a plain helmet in the team's color, its logo as the decal (rim: a light edge, for dark backgrounds)
+/* real NFL helmet pictures (img/helmet/, from github.com/ajreinhard/data-viz, facing right); Washington's still has the old logo, so it's left out.
+   No helmet picture (Washington, college): the team's own logo instead of a drawing. ?helmets=0: the drawings */
+var HELMETS = 'ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LA LAC LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN';
+function tdHelmetURL(t, lg) {
+  if (!CONFIG.realHelmets || lg !== 'nfl' || !t) return '';
+  var a = String(t.abbreviation || '').toUpperCase(); if (a === 'LAR') a = 'LA';
+  return a && (' ' + HELMETS + ' ').indexOf(' ' + a + ' ') >= 0 ? 'img/helmet/' + a + '.png' : '';
+}
+function tdHelmetHTML(t, lg, col, alt, rim) {
+  if (CONFIG.realHelmets) {
+    var hu = tdHelmetURL(t, lg) || tdLogoURL(t), glow = rim ? ' style="-webkit-filter:drop-shadow(0 0 1.2vh ' + alt + ');filter:drop-shadow(0 0 1.2vh ' + alt + ')"' : '';
+    if (hu) return '<img class="tdhimg" src="' + esc(hu) + '" alt=""' + glow + '>';
+  }                     // a plain helmet in the team's color, its logo as the decal (rim: a light edge, for dark backgrounds)
   return '<div class="tdhelm"><svg viewBox="0 0 200 160"><path d="M30 92 C26 40 70 10 118 14 C160 18 184 52 182 92 C181 112 170 124 152 128 L104 130 C92 130 86 122 84 112 L66 112 C52 112 34 108 30 92 Z" fill="' + col + '"' + (rim ? ' stroke="' + alt + '" stroke-width="5"' : '') + '/>' +
     '<path d="M44 52 C70 22 126 14 168 48" stroke="' + alt + '" stroke-width="8" fill="none" stroke-linecap="round"/>' +
     '<g stroke="#9aa3b2" stroke-width="7" fill="none" stroke-linecap="round"><path d="M150 96 L196 96"/><path d="M150 116 L194 116"/><path d="M192 92 L192 124 C188 136 176 140 164 138"/><path d="M168 96 L168 136"/></g>' +
