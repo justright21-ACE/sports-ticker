@@ -5229,9 +5229,9 @@ function tdAnimalSVG(kind, frame) {
   }
   return s ? '<svg viewBox="0 0 200 120">' + s + '</svg>' : '';
 }
-/* real NFL helmet pictures (img/helmet/, from github.com/ajreinhard/data-viz, facing right); Washington's still has the old logo, so it's left out.
+/* real NFL helmet pictures (img/helmet/, from github.com/ajreinhard/data-viz, facing right); Washington's there still has the old logo, so theirs (WSH.png) is a separate picture.
    No helmet picture (Washington, college): the team's own logo instead of a drawing. ?helmets=0: the drawings */
-var HELMETS = 'ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LA LAC LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN';
+var HELMETS = 'WSH ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LA LAC LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN';
 /* college helmets (img/helmet/c-*.png): school name = file, matched against the start of ESPN's team name, longest name wins
    (so "Georgia Tech Yellow Jackets" gets Georgia Tech, not Georgia) */
 var CHELMETS = (function () {
