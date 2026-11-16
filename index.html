@@ -1373,6 +1373,10 @@
   .tdchar.fly .f1 { -webkit-animation: tdFlapB 0.36s steps(1) infinite; animation: tdFlapB 0.36s steps(1) infinite; }
   .tdchar.leap { -webkit-animation: tdLeap 1s ease-in-out infinite alternate; animation: tdLeap 1s ease-in-out infinite alternate; }
   .tdchar.spin { top: 40vh; width: 40vh; height: 32vh; -webkit-animation: tdWobble 0.5s ease-in-out infinite alternate; animation: tdWobble 0.5s ease-in-out infinite alternate; }
+  .tdchar.photo { text-align: center; } .tdchar.photo .tdph { max-width: 100%; max-height: 100%; vertical-align: bottom; }
+  .tdchar.photo.glide { top: 14vh; -webkit-animation: tdGlide 0.9s ease-in-out infinite alternate; animation: tdGlide 0.9s ease-in-out infinite alternate; }
+  .tdchar.photo.run, .tdchar.photo.leap { height: 40vh; top: 38vh; }
+  .tfleap { text-align: center; } .tfleap .tdph { max-width: 100%; max-height: 100%; vertical-align: bottom; }
   .tdhelm { position: relative; width: 100%; height: 100%; } .tdhelm svg { width: 100%; height: 100%; }
   .tdhelm .tdlogo { position: absolute; left: 34%; top: 26%; } .tdhelm .tdlogo .logo { width: 11vh; height: 11vh; margin: 0; } .tdhelm .tdlogo .logo img { left: 1.2vh; top: 1.2vh; width: 8.6vh; height: 8.6vh; }
   @-webkit-keyframes tdBound { from { -webkit-transform: translateY(0) rotate(-3deg); } to { -webkit-transform: translateY(-3vh) rotate(3deg); } }
@@ -1476,6 +1480,7 @@ var CONFIG = {
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: false,           // DEMO: the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=1 on)
+  tdPhotos: true,        // the touchdown run / package use real cut-out animal photos (img/td/), not the drawings (?tdphotos=0)
   tdRun: true,           // a touchdown in a game with its own big screen, while that screen isn't up: the team's animal (or helmet) runs across and sweeps onto the game (?tdrun=0 off; ?tdtest=CHI to preview one)
   fighterPics: true,     // COMBAT cards: each fighter's photo and country flag (?fighterpics=0 off)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
@@ -1674,6 +1679,7 @@ function readParams() {
     if (k === 'fighterpics') CONFIG.fighterPics = v !== '0';
     if (k === 'tdrun') CONFIG.tdRun = v !== '0';
     if (k === 'tdfx') CONFIG.tdFx = v !== '0';
+    if (k === 'tdphotos') CONFIG.tdPhotos = v !== '0';
     if (k === 'tdtest') CONFIG.tdTest = v.toUpperCase();
     if (k === 'epltable') CONFIG.eplTable = v !== '0';
     if (k === 'scoring') CONFIG.scoringSummary = v !== '0';
@@ -5098,8 +5104,22 @@ function jumpTo(hit) {
    with their logo on it. Every animal here is drawn plain (no costume, jersey or team logo). */
 var TD_ANIMALS = {
   nfl: { CHI: 'bear', CIN: 'tiger', JAX: 'jaguar', CAR: 'panther', DET: 'lion', PHI: 'eagle', ATL: 'falcon', BAL: 'raven',
-         ARI: 'cardinal', SEA: 'hawk', DEN: 'horse', IND: 'whitehorse', LAR: 'ram', BUF: 'bison', MIA: 'dolphin' }
+         ARI: 'cardinal', SEA: 'hawk', DEN: 'horse', IND: 'whitehorse', LAR: 'ram', BUF: 'bison', MIA: 'dolphin', HOU: 'bull' }
 };
+/* real cut-out photos of each animal (img/td/), used in place of the drawings (?tdphotos=0: the drawings) */
+var TD_PHOTOS = { bear: 'bear', tiger: 'tiger', jaguar: 'jaguar', panther: 'panther', lion: 'lion', eagle: 'eagle', falcon: 'falcon', raven: 'raven',
+                  cardinal: 'cardinal', hawk: 'osprey', horse: 'horse', whitehorse: 'whitehorse', ram: 'ram', bison: 'bison', dolphin: 'dolphin', bull: 'bull' };
+function tdPhoto(kind) { return CONFIG.tdPhotos && TD_PHOTOS[kind] ? 'img/td/' + TD_PHOTOS[kind] + '.png' : ''; }
+function tdPhotoHTML(kind) { var u = tdPhoto(kind); return u ? '<img class="tdph" src="' + u + '" alt="">' : ''; }
+var tdPre = {};
+function tdPreload() {                                              // the animals for the teams on today's big screens, fetched ahead of time
+  var fg = featuredGames();
+  for (var i = 0; i < fg.length; i++) {
+    if (fg[i].lg !== 'nfl') continue;
+    var sides = [fg[i].g.teams.away, fg[i].g.teams.home];
+    for (var j = 0; j < 2; j++) { var u = tdPhoto(TD_ANIMALS.nfl[String(sides[j].abbreviation).toUpperCase()] || ''); if (u && !tdPre[u]) { tdPre[u] = new Image(); tdPre[u].src = u; } }
+  }
+}
 var TD_BIRDS = { eagle: 1, falcon: 1, raven: 1, cardinal: 1, hawk: 1 };
 function tdCat(body, extra) {                                    // a big cat at full gallop, facing right
   return '<path d="M42 52 C24 44 12 30 20 16" stroke="' + body + '" stroke-width="7" fill="none" stroke-linecap="round"/>' +
@@ -5161,8 +5181,10 @@ var tdr = { on: false, timers: [] };
 function tdRunHTML(t, lg) {
   var look = teamLook(t, lg) || {}, col = '#' + String(look.color || t.color || '1f2a44').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
   if (col.toLowerCase() === alt.toLowerCase()) alt = '#ffffff';
-  var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '', who;
-  if (kind && TD_BIRDS[kind]) who = '<div class="tdchar fly"><div class="f0">' + tdAnimalSVG(kind, 0) + '</div><div class="f1">' + tdAnimalSVG(kind, 1) + '</div></div>';
+  var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '', who, ph = kind ? tdPhotoHTML(kind) : '';
+  if (!ph && kind && !tdAnimalSVG(kind)) kind = '';                 // no drawing of this one (bull): the helmet
+  if (ph) who = '<div class="tdchar photo' + (TD_BIRDS[kind] ? ' glide' : (kind === 'dolphin' ? ' leap' : ' run')) + '">' + ph + '</div>';
+  else if (kind && TD_BIRDS[kind]) who = '<div class="tdchar fly"><div class="f0">' + tdAnimalSVG(kind, 0) + '</div><div class="f1">' + tdAnimalSVG(kind, 1) + '</div></div>';
   else if (kind === 'dolphin') who = '<div class="tdchar leap">' + tdAnimalSVG(kind) + '</div>';
   else if (kind) who = '<div class="tdchar run">' + tdAnimalSVG(kind) + '</div>';
   else who = '<div class="tdchar spin">' + tdHelmetHTML(t, lg, col, alt) + '</div>';
@@ -5221,7 +5243,9 @@ function tdFxHTML(g, side, lg, ts, dt, delay) {
   if (url) url = url.replace(/&w=\d+&h=\d+/, '&w=350&h=254');
   var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, ''), parts = full.split(/\s+/), last = parts.pop() || '', first = parts.join(' ');
   var kind = (TD_ANIMALS[lg] || {})[String(t.abbreviation).toUpperCase()] || '';
-  var leap = kind ? tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0) : tdHelmetHTML(t, lg, col, acc, true);
+  var leap = kind ? (tdPhotoHTML(kind) || tdAnimalSVG(kind, TD_BIRDS[kind] ? 1 : 0)) : '';
+  if (!leap) leap = tdHelmetHTML(t, lg, col, acc, true);
+  if (/tdph/.test(leap)) leap = leap.replace('class="tdph"', 'class="tdph" style="-webkit-filter:drop-shadow(0 0 2.2vh ' + acc + ');filter:drop-shadow(0 0 2.2vh ' + acc + ')"');
   var W = 'TOUCHDOWN', word = '';
   for (var i = 0; i < W.length; i++) word += '<span style="-webkit-animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's;animation-delay:' + (0.8 + i * 0.055).toFixed(3) + 's">' + W.charAt(i) + '</span>';
   var sh = '0.4vh 0.4vh 0 ' + acc + ', -0.4vh 0.4vh 0 ' + acc + ', 0.4vh -0.4vh 0 ' + acc + ', -0.4vh -0.4vh 0 ' + acc + ', 0.9vh 0.9vh 0 ' + col + ', 0 1.4vh 3vh rgba(0,0,0,0.7)';
@@ -7994,7 +8018,7 @@ function refreshAll() {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
-      buildPages();
+      buildPages(); tdPreload();
       var jumped = tdJump(hit) ? false : jumpTo(hit);   // a touchdown elsewhere: the team's animal runs across first
       refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); renderCrawl(); renderFoot(errs);
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
