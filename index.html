@@ -733,6 +733,15 @@
   .ptv.mu .p2 > .field3, .ptv.mu .p2 > .field { display: block !important; }
   .ptv.mu .field3 .fsvg { height: 27vh; }
   .ptv.mu .ptbg { z-index: 0; } .ptv.mu .band, .ptv.mu .cols { z-index: 1; }
+  .ptv.mu .muh.lg { top: 8vh; height: 32vh; }                           /* a team logo (NBA / MLB, a school without a helmet) */
+  .ptv.mu.mu-nba .band { top: 14vh; }                                   /* basketball: no field, so everything sits in the middle */
+  .ptv.mu .mub { position: absolute; left: 0; right: 0; top: 64vh; text-align: center; z-index: 1; }   /* baseball: the bases and the count */
+  .ptv.mu .mub svg { height: 20vh; vertical-align: middle; }
+  .ptv.mu .mub .mc { display: inline-block; vertical-align: middle; margin-left: 4vw; text-align: left; font-size: 5.4vh; font-weight: 700; line-height: 1.25; color: #fff; }
+  .ptv.mu .mub .mc i { font-style: normal; color: rgba(255,255,255,0.5); font-size: 3.6vh; letter-spacing: 0.3vw; margin-left: 0.8vw; }
+  .ptv.mu .mub .mc b { display: inline-block; width: 2.6vh; height: 2.6vh; border-radius: 50%; border: 0.35vh solid rgba(255,255,255,0.5); margin-right: 0.8vw; vertical-align: middle; }
+  .ptv.mu .mub .mc b.on { background: #f5b800; border-color: #f5b800; }
+  .mumsg { position: absolute; left: 0; right: 0; top: 44vh; text-align: center; font-size: 5vh; color: rgba(255,255,255,0.45); letter-spacing: 0.3vw; }
   body.mview .ptv.mu .bigsc { font-size: 20vh !important; } body.mview .ptv.mu .clk { font-size: 6.5vh !important; }
   body.mview .ptv.mu .field3 .fsvg { height: 27vh !important; } body.mview .ptv.mu .side .nm { font-size: 5vh !important; }
   body.mview .ptv.mu .p2 { width: 92vw !important; }
@@ -3642,6 +3651,7 @@ function muAll() {
   add(state.data.ncaaf && state.data.ncaaf.games, 'ncaaf');
   try { add(cfbGames(), 'ncaaf'); add(bowlGames(), 'ncaaf'); } catch (e) {}
   add(muExtra.games, 'ncaaf');
+  if (footballOff(new Date()) || CONFIG.muTeam) { add(state.data.nba && state.data.nba.games, 'nba'); add(state.data.mlb && state.data.mlb.games, 'mlb'); }
   return out;
 }
 function muIs(t, q) {
@@ -3683,15 +3693,22 @@ function muTv(g) {
   for (var i = 0; i < b.length; i++) o += ' ' + (b[i].names || []).join(' ') + ' ' + ((b[i].media && b[i].media.shortName) || '');
   return o;
 }
+function footballOff(d) {                      // the day after the Super Bowl (2nd Sunday of February) to college's Week 0 (last Saturday of August)
+  var y = d.getFullYear(), sb = new Date(y, 1, nthDow(y, 1, 0, 2) + 1), w0 = new Date(y, 7, nthDow(y, 7, 6, -1));
+  return d >= sb && d < w0;
+}
 function muFeatured(x) {
   var g = x.g, A = g.teams.away, H = g.teams.home;
+  if (x.lg === 'nba') return muIs(A, 'sa') || muIs(H, 'sa') || muIs(A, 'sas') || muIs(H, 'sas');              // the off-season's teams: Spurs,
+  if (x.lg === 'mlb') return muIs(A, 'chw') || muIs(H, 'chw') || muIs(A, 'cws') || muIs(H, 'cws');            // White Sox
   if (x.lg === 'nfl') return !!ptKind(g) || muIs(A, 'chi') || muIs(H, 'chi');
   if (muIs(A, 'usc') || muIs(H, 'usc') || muIs(A, 'wisconsin') || muIs(H, 'wisconsin')) return true;
   var d = parseDate(g.date);
   return d.getDay() === 6 && d.getHours() >= 17 && /\bABC\b/.test(muTv(g));
 }
 function muPage(x, hold) {
-  var kind = (x.lg === 'nfl' ? ptKind(x.g) : null) || [x.lg === 'nfl' ? 'NFL' : 'NCAAF', x.lg === 'nfl' ? 'NFL' : 'College Football', 1];
+  var LN = { nfl: 'NFL', ncaaf: 'College Football', nba: 'NBA', mlb: 'MLB' };
+  var kind = (x.lg === 'nfl' ? ptKind(x.g) : null) || [x.lg === 'ncaaf' ? 'NCAAF' : LN[x.lg], LN[x.lg], 1];
   return { pt: true, game: x.g, lg: x.lg, kind: kind, key: 'mu:' + x.g.id, hold: hold, num: 'mu', of: 1, games: [] };
 }
 function muPages() {
@@ -3703,8 +3720,8 @@ function muPages() {
     if (x.g.live) muPin = x.g.id;
     return [muPage(x, 60)];
   }
-  var all = muAll(), feat = [], live = [], fin = [], up = [];
-  for (i = 0; i < all.length; i++) if (muFeatured(all[i])) feat.push(all[i]);
+  var all = muAll(), feat = [], live = [], fin = [], up = [], off = footballOff(new Date());
+  for (i = 0; i < all.length; i++) if (muFeatured(all[i]) && (off ? all[i].lg === 'nba' || all[i].lg === 'mlb' : all[i].lg === 'nfl' || all[i].lg === 'ncaaf')) feat.push(all[i]);
   for (i = 0; i < feat.length; i++) {
     var g = feat[i].g;
     if (g.live) live.push(feat[i]);
@@ -3717,19 +3734,28 @@ function muPages() {
   for (i = 0; i < L.length; i++) out.push(muPage(L[i], 90));
   if (out.length) return out;
   if (up.length) return [muPage(up[0], 60)];                           // nothing on: the next one, with its kickoff time
+  if (off) return [];
   var y = muPick();                                                    // no featured game around at all: the closest live game
   return y ? [muPage(y, 60)] : [];
 }
 function muDecorate(pg) {                       // the real helmets on the big screen's two sides, facing each other
   var pv = $('cards').querySelector('.ptv');
   if (!pv) return;
-  pv.className += ' mu';
+  pv.className += ' mu mu-' + pg.lg;
   var sides = ['away', 'home'];
   for (var i = 0; i < 2; i++) {
     var el = pv.querySelector('.band .side.' + sides[i]), t = pg.game.teams[sides[i]];
     if (!el) continue;
-    var u = tdHelmetURL(t, pg.lg) || tdLogoURL(t);
-    if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (sides[i] === 'home' ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
+    var hu = tdHelmetURL(t, pg.lg), u = hu || tdLogoURL(t);              // a helmet is mirrored to face in; a logo never is (it'd read backwards)
+    if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (hu ? '' : ' lg') + (hu && sides[i] === 'home' ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
+  }
+  var st = (compOf(pg.game) || {}).situation;
+  if (pg.lg === 'mlb' && pg.game.live && st) {
+    var base = function (x, y, on) { return '<polygon points="' + x + ',' + (y - 22) + ' ' + (x + 22) + ',' + y + ' ' + x + ',' + (y + 22) + ' ' + (x - 22) + ',' + y + '" fill="' + (on ? '#f5b800' : 'none') + '" stroke="' + (on ? '#f5b800' : 'rgba(255,255,255,0.5)') + '" stroke-width="5"/>'; };
+    var outs = +st.outs || 0, od = '';
+    for (var o = 0; o < 3; o++) od += '<b' + (o < outs ? ' class="on"' : '') + '></b>';
+    pv.insertAdjacentHTML('beforeend', '<div class="mub"><svg viewBox="0 0 160 110">' + base(130, 60, st.onFirst) + base(80, 26, st.onSecond) + base(30, 60, st.onThird) + '</svg>' +
+      '<div class="mc">' + (+st.balls || 0) + '-' + (+st.strikes || 0) + '<i>COUNT</i><br>' + od + '<i>OUTS</i></div></div>');
   }
 }
 
@@ -4298,7 +4324,12 @@ function primetimeGames() {
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
   var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')).concat(bowlGames()), i = 0, path = {};
-  if (CONFIG.view === 'matchup') for (var mq = 0; mq < state.pages.length; mq++) if (state.pages[mq].pt) { if (state.pages[mq].lg === 'nfl') games.push(state.pages[mq].game); else cfb.push(state.pages[mq].game); }
+  var MUPATH = { nba: 'basketball/nba', mlb: 'baseball/mlb' };
+  if (CONFIG.view === 'matchup') for (var mq = 0; mq < state.pages.length; mq++) if (state.pages[mq].pt) {
+    var mpg = state.pages[mq];
+    if (mpg.lg === 'nfl') games.push(mpg.game); else if (mpg.lg === 'ncaaf') cfb.push(mpg.game);
+    else if (MUPATH[mpg.lg]) { games.push(mpg.game); path[mpg.game.id] = MUPATH[mpg.lg]; }
+  }
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   var cbb = closeGames('ncaab').concat(tourGames());
   for (var jb = 0; jb < cbb.length; jb++) { games.push(cbb[jb]); path[cbb[jb].id] = 'basketball/mens-college-basketball'; }
@@ -8362,6 +8393,7 @@ function rankHTML(lg, rk) {
 
 function renderPage() {
   var pg = state.pages[state.pageIndex];
+  if (!pg && CONFIG.view === 'matchup') { $('msg').style.display = 'none'; $('cards').innerHTML = '<div class="mumsg">No game on right now</div>'; return; }
   if (!pg) {
     renderTabs('');
     $('heading').innerHTML = ''; $('cards').innerHTML = '';
