@@ -4143,6 +4143,7 @@ function loadPtDetails(cb) {
         det.hclk = hst && hst.displayClock ? { per: +(hst.period || 0), secs: mmss(hst.displayClock), txt: hst.displayClock } : null;
         det.snap = lastSnap(data);
         det.videos = parseVideos(data);
+        det.box = perfRows(data);                                        // every player's line: the leaders panels pick the best games
         det.leaders = {};
         var tl = data.leaders || [];
         for (var u = 0; u < tl.length; u++) if (tl[u].team && tl[u].team.id) det.leaders[tl[u].team.id] = tl[u].leaders || [];
@@ -4428,8 +4429,19 @@ function ptHTML(g, kind, lg) {
   var L = c.leaders || [];
   var CATS = foot ? { passingYards: 'PASSING', rushingYards: 'RUSHING', receivingYards: 'RECEIVING' } :
              (hock ? { goals: 'GOALS', assists: 'ASSISTS', points: 'POINTS', saves: 'SAVES' } : { points: 'POINTS', rebounds: 'REBOUNDS', assists: 'ASSISTS' });
+  function bestGames(tid) {                                            // football: this team's three best games so far, any position
+    if (!foot || pre || !det.box || !det.box.length) return [];
+    var L = [], i;
+    for (i = 0; i < det.box.length; i++) { var r = det.box[i]; if (String(r.team.tid) === String(tid)) { r.sc = gameScore(r); if (r.sc >= 3) L.push(r); } }
+    L.sort(function (x, y) { return y.sc - x.sc; });
+    var out = [];
+    for (i = 0; i < L.length && out.length < 3; i++) { var b = gameLine(L[i]); out.push({ cat: b[0], en: { athlete: { shortName: L[i].short, displayName: L[i].name }, displayValue: b[1] } }); }
+    return out;
+  }
   function teamLeaders(cp) {
-    var tid = (cp.team || {}).id, list = (det.leaders && det.leaders[tid]) || cp.leaders || [], out = [], i, seen = {};
+    var tid = (cp.team || {}).id, bg = bestGames(tid);
+    if (bg.length) return bg;
+    var list = (det.leaders && det.leaders[tid]) || cp.leaders || [], out = [], i, seen = {};
     for (i = 0; i < list.length && out.length < 3; i++) {             // per-team leaders (ESPN game feed or scoreboard)
       var e1 = list[i].leaders && list[i].leaders[0];
       if (e1 && CATS[list[i].name] && !seen[list[i].name]) { seen[list[i].name] = 1; out.push({ cat: CATS[list[i].name], en: e1 }); }
@@ -4729,9 +4741,9 @@ function tdScorer(g, det, side, prevPts) {
     if (!(spPts > prevPts && Math.abs(spPts - pts) <= 2)) break;   // the summary hasn't caught up yet
     var tx = String(sp.text || ''), fg = tx.match(/^(.+?) (\d+) (?:Yd|Yard)s? Field Goal/i);
     if (fg) return { name: fg[1], line: fg[2] + '-yard field goal', tid: tid };
-    var m = tx.match(/^(.+?) \d+ (?:Yd|Yard)s? (pass from (.+?)(?: \(|$)|run|interception return|fumble return|fumble recovery|punt return|kickoff return|blocked)/i);
+    var m = tx.match(/^(.+?) \d+ (?:Yd|Yard)s? (pass from (.+?)(?: \(|$)|run|rush|interception return|fumble return|fumble recovery|punt return|kickoff return|blocked)/i);
     if (!m) return null;
-    var how = /pass from/i.test(m[2]) ? 'catch from ' + m[3] : m[2].toLowerCase();
+    var how = /pass from/i.test(m[2]) ? 'catch from ' + m[3] : m[2].toLowerCase().replace(/^rush$/, 'run');   // ESPN now writes "2 Yd Rush"
     var yd = (tx.match(/ (\d+) (?:Yd|Yard)/i) || [])[1];
     return { name: m[1], line: (yd ? yd + '-yard ' : '') + how, tid: tid };
   }
@@ -7014,9 +7026,9 @@ function perfRows(data) {                        // one game's box score -> a ro
         if (!id) continue;
         var p = out[id] || (out[id] = { id: id, name: at.displayName || '', short: at.shortName || at.displayName || '', pos: (at.position && at.position.abbreviation) || '',
           photo: (at.headshot && at.headshot.href) || '', team: team, passYds: 0, passTd: 0, cmp: '', car: 0, rushYds: 0, rushTd: 0, rec: 0, recYds: 0, recTd: 0,
-          tkl: 0, solo: 0, sacks: 0, int: 0, intYds: 0, intTd: 0, retTd: 0, dTd: 0 });
+          tkl: 0, solo: 0, sacks: 0, int: 0, intYds: 0, intTd: 0, retTd: 0, dTd: 0, pInt: 0 });
         var v = function (k, l) { var i = col(k, l); return i >= 0 ? num(st[i]) : 0; };
-        if (cat.name === 'passing') { p.passYds = v('passingYards', 'YDS'); p.passTd = v('passingTouchdowns', 'TD'); var ci = col('completions/passingAttempts', 'C/ATT'); p.cmp = ci >= 0 ? String(st[ci]) : ''; }
+        if (cat.name === 'passing') { p.passYds = v('passingYards', 'YDS'); p.passTd = v('passingTouchdowns', 'TD'); p.pInt = v('interceptions', 'INT'); var ci = col('completions/passingAttempts', 'C/ATT'); p.cmp = ci >= 0 ? String(st[ci]) : ''; }
         else if (cat.name === 'rushing') { p.car = v('rushingAttempts', 'CAR'); p.rushYds = v('rushingYards', 'YDS'); p.rushTd = v('rushingTouchdowns', 'TD'); }
         else if (cat.name === 'receiving') { p.rec = v('receptions', 'REC'); p.recYds = v('receivingYards', 'YDS'); p.recTd = v('receivingTouchdowns', 'TD'); }
         else if (cat.name === 'defensive') { p.tkl = v('totalTackles', 'TOT'); p.solo = v('soloTackles', 'SOLO'); p.sacks = v('sacks', 'SACKS'); p.dTd = Math.max(p.dTd, v('defensiveTouchdowns', 'TD')); }
@@ -7080,6 +7092,23 @@ function loadPerf(cb) {
       });
     })();
   });
+}
+/* how good a player's game is (football), roughly in fantasy terms: yards, touchdowns, catches, and on
+   defense tackles, sacks and takeaways; interceptions thrown count against */
+function gameScore(r) {
+  return r.passYds / 25 + r.passTd * 4 - (r.pInt || 0) * 2 + r.rushYds / 10 + r.rushTd * 6 + r.recYds / 10 + r.recTd * 6 + r.rec * 0.5 +
+         r.retTd * 6 + r.tkl * 0.6 + r.sacks * 3 + r.int * 5 + r.dTd * 6;
+}
+function gameLine(r) {                          // [label, stat line] by what made the game
+  var td = function (n) { return n ? ' · ' + n + ' TD' : ''; }, parts = [
+    ['PASSING', r.passYds / 25 + r.passTd * 4, (r.cmp ? r.cmp + ' · ' : '') + r.passYds + ' YDS' + td(r.passTd) + (r.pInt ? ' · ' + r.pInt + ' INT' : '')],
+    ['RUSHING', r.rushYds / 10 + r.rushTd * 6, r.car + ' CAR · ' + r.rushYds + ' YDS' + td(r.rushTd)],
+    ['RECEIVING', r.recYds / 10 + r.recTd * 6 + r.rec * 0.5, r.rec + ' REC · ' + r.recYds + ' YDS' + td(r.recTd)],
+    ['DEFENSE', r.tkl * 0.6 + r.sacks * 3 + r.int * 5 + r.dTd * 6, [r.tkl ? r.tkl + ' TKL' : '', r.sacks ? r.sacks + ' SK' : '', r.int ? r.int + ' INT' : '', r.dTd ? 'TD' : ''].filter(function (x) { return x; }).join(' · ')]];
+  parts.sort(function (x, y) { return y[1] - x[1]; });
+  var line = parts[0][2];
+  if (parts[1][1] >= 3) line += ' · ' + parts[1][2].replace(/ · 0 YDS$/, '');      // a real second act: a QB's rushing, a back's catches
+  return [parts[0][0], line];
 }
 function perfLeaders() {                         // category -> top 3 players
   var S = perf.st, all = [], out = [];
