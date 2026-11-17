@@ -380,7 +380,7 @@
   .perf .pfh { font-size: 2.1vh; font-weight: 800; letter-spacing: 0.25vw; color: #f5c542; margin-bottom: 1.4vh; white-space: nowrap; }
   .perf .pftop { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-box-align: center; -webkit-align-items: center; align-items: center; margin-bottom: 1.4vh; }
   .perf .pfph { position: relative; width: 11vh; height: 11vh; border-radius: 50%; background: #1d2943; -webkit-flex: none; flex: none; }
-  .perf .pfph img { position: absolute; left: 50%; bottom: 0; height: 100%; border-radius: 0 0 5.5vh 5.5vh; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+  .perf .pfph > img { position: absolute; left: 50%; bottom: 0; height: 100%; border-radius: 0 0 5.5vh 5.5vh; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
   .perf .pflg { position: absolute; right: -0.4vh; bottom: -0.4vh; width: 4.2vh; height: 4.2vh; }
   .perf .pflg .logo { width: 4.2vh; height: 4.2vh; margin: 0; }
   .perf .pfwho { -webkit-flex: 1; flex: 1; min-width: 0; padding: 0 0.6vw 0 0.9vw; }
@@ -4735,15 +4735,17 @@ function rosterOf(data) {
   }
   return out;
 }
-function findPlayer(det, name, tid) {
+function findPlayer(det, name, tid, g) {
   var R = det && det.roster, n = normName(name);
-  if (!R || !n) return null;
+  if (!n) return null;
+  if (!R) R = { full: {}, short: {}, last: {} };
   var hit = R.full[n] || R.short[n];
   if (!hit) {                                                     // "J.Allen" / "Allen"
     var m = String(name).match(/^([A-Z])\.? ?([A-Za-z'\- ]+)$/), ln = normName(m ? m[2] : name);
     var c = R.last[ln];
     if (c && c !== 'many' && (!m || normName(c.name).charAt(0) === m[1].toLowerCase())) hit = c;
   }
+  if (!hit && g) hit = playAthlete(((compOf(g) || {}).situation || {}).lastPlay, name);   // not in the box score yet: the play's own list
   if (hit && tid && hit.tid && String(hit.tid) !== String(tid)) return null;
   return hit || null;
 }
@@ -4807,7 +4809,7 @@ function lateSpot(id) {
   if (!ts) return;
   delete spotWait[id];
   var wait = Math.max(0, w.notBefore - now) / 1000, t = g.teams[w.side];
-  root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid), ts.name, t, pg.lg, ts.line, wait));
+  root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid, g), ts.name, t, pg.lg, ts.line, wait));
   state.animUntil = Math.max(state.animUntil || 0, now + (wait + 3.6) * 1000);
 }
 function spotlightHTML(p, name, t, lg, line, delay) {
@@ -4828,7 +4830,18 @@ function bigPlayOf(g) {
   var pass = /pass|reception|catch/i.test(ty) || /\bpass\b/i.test(tx), run = !pass && (/rush|run|scramble/i.test(ty) || /\b(run|rush|left end|right end|up the middle|left tackle|right tackle|left guard|right guard)\b/i.test(tx));
   var body = tx.replace(/^\s*\([^)]*\)\s*/, '');                         // drop a leading "(11:32 - 3rd)"
   var who = (pass ? body.match(/\bto ([A-Z][a-zA-Z.'\-]*\.? ?[A-Z][a-zA-Z.'\-]+)/) : body.match(/^([A-Z][a-zA-Z.'\-]*\.? ?[A-Z][a-zA-Z.'\-]+)/)) || [];
-  return { id: lp.id || tx, yd: yd, kind: pass ? 'pass' : (run ? 'run' : ''), who: who[1] || '' };
+  return { id: lp.id || tx, yd: yd, kind: pass ? 'pass' : (run ? 'run' : ''), who: who[1] || '', lp: lp };
+}
+/* the player from the play itself: ESPN lists who was involved, with photo, the moment the play posts
+   (the box score the ticker keeps can be a refresh behind, and misses a player whose first touch this was) */
+function playAthlete(lp, who) {
+  var L = (lp && lp.athletesInvolved) || [], m = String(who || '').match(/([A-Za-z'\-]+)\.?\s*(?:jr|sr|ii|iii|iv)?\.?\s*$/i), ln = m ? normName(m[1]) : '';
+  for (var i = 0; i < L.length; i++) {
+    var a = L[i] || {}, nm = a.displayName || a.fullName || a.shortName || '';
+    if (ln && normName(String(nm).replace(/\s+(jr|sr|ii|iii|iv)\.?$/i, '').split(' ').pop()) === ln)
+      return { id: a.id, name: nm, jersey: a.jersey || '', hs: a.headshot, tid: String((a.team && a.team.id) || '') };
+  }
+  return null;
 }
 var RUNNER = function (c) {
   function pose(legs, cls) {
@@ -5556,7 +5569,7 @@ function tdFxHTML(g, side, lg, ts, dt, delay, lab) {
   if (col.toLowerCase() === alt.toLowerCase() || /^#(000000|0b0b0b|101820)$/i.test(alt)) alt = '#ffffff';
   var lum = function (h) { h = h.replace('#', ''); return 0.3 * parseInt(h.substr(0, 2), 16) + 0.59 * parseInt(h.substr(2, 2), 16) + 0.11 * parseInt(h.substr(4, 2), 16); };
   var acc = alt !== '#ffffff' && lum(alt) > lum(col) ? alt : (lum(col) < 60 ? (alt !== '#ffffff' ? alt : '#e23d3d') : col);   // the bright one of the two, for glow and edges
-  var p = ts ? findPlayer(dt, ts.name, t.tid) : null, url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
+  var p = ts ? findPlayer(dt, ts.name, t.tid, g) : null, url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
   if (url) url = url.replace(/&w=\d+&h=\d+/, '&w=350&h=254');
   var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, '');
   if (!full) full = String(t.short || nickname(t.name) || '').replace(/^\s+|\s+$/g, '');   // no scorer (a safety, usually): the team's name
@@ -6396,7 +6409,7 @@ function ptAnimate(pg) {
     var gain = a > prev.a ? 'away' : (h > prev.h ? 'home' : (String((aw0.team || {}).id) === pid ? 'away' : 'home'));   // who has it now
     var toHtml = turnoverHTML(to, g.teams[gain], pg.lg), w0 = entering ? 1.0 : 0;
     if (CONFIG.spotlight && to.who) {
-      var tp = findPlayer(ptDetail[g.eid], to.who, g.teams[gain].tid);
+      var tp = findPlayer(ptDetail[g.eid], to.who, g.teams[gain].tid, g);
       toHtml += spotlightHTML(tp, to.who, g.teams[gain], pg.lg, to.kind === 'INTERCEPTION!' ? 'Interception' : (to.kind === 'FUMBLE!' ? 'Fumble recovery' : ''), 0.6);
       spotEnd = Math.max(spotEnd, (entering ? 1.0 : 0) + 4.1);
     }
@@ -6427,7 +6440,7 @@ function ptAnimate(pg) {
     var offS = defS === 'home' ? 'away' : 'home';
     var skHtml = sackHTML(sk, g.teams[offS], g.teams[defS], pg.lg), w1 = entering ? 1.0 : 0, bandEl = root.querySelector('.band');
     if (CONFIG.spotlight && sk.who) {
-      skHtml += spotlightHTML(findPlayer(ptDetail[g.eid], sk.who, g.teams[defS].tid), sk.who, g.teams[defS], pg.lg, 'Sack' + (sk.yd ? ' · ' + sk.yd + '-yard loss' : ''), 0.6);
+      skHtml += spotlightHTML(findPlayer(ptDetail[g.eid], sk.who, g.teams[defS].tid, g), sk.who, g.teams[defS], pg.lg, 'Sack' + (sk.yd ? ' · ' + sk.yd + '-yard loss' : ''), 0.6);
       spotEnd = Math.max(spotEnd, w1 + 4.1);
     }
     var addSack = function () { if (!root.parentNode) return; root.insertAdjacentHTML('beforeend', skHtml); if (bandEl) bandEl.className += ' shake'; };
@@ -6443,7 +6456,7 @@ function ptAnimate(pg) {
     if (!offSide) offSide = 'away';
     var bpHtml = bigPlayHTML(bp, g.teams[offSide], pg.lg, offSide === 'home'), wait = entering ? 1.0 : 0;   // after the arrival wipe
     if (CONFIG.spotlight && bp.who && !(a > prev.a || h > prev.h)) {     // a scoring play gets the TOUCHDOWN spotlight instead
-      var bpp = findPlayer(ptDetail[g.eid], bp.who, g.teams[offSide].tid);
+      var bpp = findPlayer(ptDetail[g.eid], bp.who, g.teams[offSide].tid) || playAthlete(bp.lp, bp.who);
       bpHtml += spotlightHTML(bpp, bp.who, g.teams[offSide], pg.lg, bp.yd + '-yard ' + (bp.kind === 'pass' ? 'catch' : 'run'), 0.6);
       spotEnd = Math.max(spotEnd, (entering ? 1.0 : 0) + 4.1);
     }
@@ -6508,7 +6521,7 @@ function ptAnimate(pg) {
       if (CONFIG.spotlight && (lab === 'TOUCHDOWN' || lab === 'FIELD GOAL') && (pg.lg === 'nfl' || pg.lg === 'ncaaf')) {
         var dt = ptDetail[g.eid], ts = tdScorer(g, dt, side, side === 'away' ? prev.a : prev.h);
         if (!ts) ts = scorerFromPlays(g, dt, lab, prev.play);         // the summary's scoring list is behind: the plays themselves
-        if (ts) { root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid), ts.name, t, pg.lg, ts.line, (delay || 0) + 0.5)); spotEnd = Math.max(spotEnd, (delay || 0) + 4.0); }
+        if (ts) { root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid, g), ts.name, t, pg.lg, ts.line, (delay || 0) + 0.5)); spotEnd = Math.max(spotEnd, (delay || 0) + 4.0); }
         else {                                                        // still no name: ask ESPN again now, show the card when it comes
           spotWait[id] = { side: side, prevPts: side === 'away' ? prev.a : prev.h, lab: lab, seen: prev.play, until: new Date().getTime() + 90000, notBefore: new Date().getTime() + ((delay || 0) + 2.2) * 1000 };
           if (dt) dt.at = 0;
