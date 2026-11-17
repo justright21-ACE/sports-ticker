@@ -735,6 +735,32 @@
   .ptv.mu .ptbg { z-index: 0; } .ptv.mu .band, .ptv.mu .cols { z-index: 1; }
   .ptv.mu .muh.lg { top: 8vh; height: 32vh; }                           /* a team logo (NBA / MLB, a school without a helmet) */
   .ptv.mu.mu-nba .band { top: 14vh; }                                   /* basketball: no field, so everything sits in the middle */
+  /* baseball at-bat: score up top, the zone in the middle, the batter on his side of the plate, him + the pitches on the other */
+  .ptv.mu.mlbon .band { top: 1vh; height: 30vh; }
+  .ptv.mu.mlbon .muh, .ptv.mu.mlbon .muh.lg { top: 1vh; height: 18vh; } .ptv.mu.mlbon .band .side .txt { top: 20vh; }
+  body.mview .ptv.mu.mlbon .bigsc { font-size: 13vh !important; } .ptv.mu.mlbon .band .center { top: 3vh; } body.mview .ptv.mu.mlbon .clk { font-size: 4.6vh !important; margin-top: 1vh; }
+  body.mview .ptv.mu.mlbon .side .nm { font-size: 3.6vh !important; }
+  .ptv.mu.mlbon .mub { display: none; }
+  .ptv.mu .mlbz { display: none; } .ptv.mu.mlbon .mlbz { display: block; }
+  .ptv.mu .mwho .mc2 { white-space: nowrap; }
+  @media (max-aspect-ratio: 3/2) { .ptv.mu .mwho { width: 33vw; } .ptv.mu .mwho .mc2 { font-size: 3.6vh; } .ptv.mu .mwho .mc2 em { margin-right: 1vw; } .ptv.mu .mlist .mp { font-size: 1.9vh; } }
+  .ptv.mu .mlbz { position: absolute; left: 0; right: 0; top: 31vh; bottom: 1vh; z-index: 2; }
+  .ptv.mu .mzone { position: absolute; left: 50%; top: 0; height: 100%; width: 60vh; margin-left: -30vh; }
+  .ptv.mu .mzone svg { width: 100%; height: 100%; }
+  .ptv.mu .mbat { position: absolute; top: 1vh; height: 64vh; width: 35vh; } .ptv.mu .mbat svg { width: 100%; height: 100%; }
+  .ptv.mu .mbat.r { left: 50%; margin-left: 13vh; } .ptv.mu .mbat.l { right: 50%; margin-right: 13vh; }
+  .ptv.mu .mwho { position: absolute; top: 2vh; width: 30vw; }
+  .ptv.mu .mwho.l { left: 3vw; } .ptv.mu .mwho.r { right: 3vw; text-align: right; }
+  .ptv.mu .mwho img { width: 11vh; height: 11vh; border-radius: 50%; background: #1d2943; object-fit: cover; }
+  .ptv.mu .mwho .mn { font-size: 4.2vh; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.mu .mwho .ms { font-size: 2.2vh; letter-spacing: 0.15vw; color: #a5aec4; margin-bottom: 1.4vh; }
+  .ptv.mu .mwho .mc2 { font-size: 4.6vh; font-weight: 800; color: #fff; margin-bottom: 1.2vh; }
+  .ptv.mu .mwho .mc2 em { font-style: normal; font-size: 2vh; color: #a5aec4; letter-spacing: 0.2vw; margin: 0 1.6vw 0 0.6vw; }
+  .ptv.mu .mwho .mo u { display: inline-block; width: 2.2vh; height: 2.2vh; border-radius: 50%; border: 0.3vh solid rgba(255,255,255,0.5); margin-right: 0.4vw; vertical-align: middle; }
+  .ptv.mu .mwho .mo u.on { background: #f5b800; border-color: #f5b800; }
+  .ptv.mu .mlist .mp { font-size: 2.3vh; color: #d5dbea; padding: 0.35vh 0; white-space: nowrap; }
+  .ptv.mu .mlist .mp b { display: inline-block; width: 2.8vh; height: 2.8vh; line-height: 2.8vh; border-radius: 50%; text-align: center; color: #fff; font-size: 1.7vh; margin: 0 0.6vw; }
+  .ptv.mu .mlist .mp i { font-style: normal; color: #7d8aa8; margin-left: 0.6vw; }
   .ptv.mu .mub { position: absolute; left: 0; right: 0; top: 64vh; text-align: center; z-index: 1; }   /* baseball: the bases and the count */
   .ptv.mu .mub svg { height: 20vh; vertical-align: middle; }
   .ptv.mu .mub .mc { display: inline-block; vertical-align: middle; margin-left: 4vw; text-align: left; font-size: 5.4vh; font-weight: 700; line-height: 1.25; color: #fff; }
@@ -1695,7 +1721,8 @@ var CONFIG = {
   view: '',              // 'matchup' (matchup.html / ?view=matchup): one game full screen, helmets facing in, score, clock, field, and every animation
   muTeam: '',            // matchup: ?team=CHI / ?team=wisconsin pins a team's game
   ptBadges: true,
-  pageBar: true,         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
+  pageBar: true,
+  mlbZone: true,         // matchup view, baseball: the at-bat from MLB's live feed (batter, strike zone, hot / cold zones, pitches) (?mlbzone=0)         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
   bgBadge: 's1',         // the broadcast badge faint across the NFL primetime screen (?bgbadge=0 off, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
   crunch: true,          // football's last 2:00 of a half: one live big game -> stay on it; several -> each holds like the Bears (?crunch=0)
@@ -1826,6 +1853,7 @@ function readParams() {
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
     if (k === 'badges') CONFIG.ptBadges = v !== '0';
     if (k === 'pbar') CONFIG.pageBar = v !== '0';
+    if (k === 'mlbzone') CONFIG.mlbZone = v !== '0';
     if (k === 'bgbadge') CONFIG.bgBadge = v === '0' ? '' : (v === '2' ? 's2' : (v === 'side' ? 'side' : 's1'));
     if (k === 'topperf') CONFIG.topPerf = v !== '0';
     if (k === 'crunch') CONFIG.crunch = v !== '0';
@@ -3738,6 +3766,108 @@ function muPages() {
   var y = muPick();                                                    // no featured game around at all: the closest live game
   return y ? [muPage(y, 60)] : [];
 }
+/* =========== BASEBALL: THE AT-BAT (matchup view) ===========
+   From MLB's own live feed (statsapi.mlb.com, no key): the batter, which side he bats from, his strike zone,
+   his hot / cold zones, and every pitch of this at-bat where it crossed the plate, numbered and colored by
+   result (ball green, strike red, in play blue), drawn from the pitcher's side like Gameday. */
+var MLB_API = 'https://statsapi.mlb.com/api/', mlbPk = {}, mlbAB = {}, mlbHot = {};
+var MLB_FIELDS = 'liveData,plays,currentPlay,matchup,batter,id,fullName,batSide,code,pitcher,pitchHand,batterHotColdZones,zone,color,temp,value,' +
+                 'playEvents,isPitch,pitchNumber,details,call,description,type,isBall,isStrike,isInPlay,pitchData,startSpeed,strikeZoneTop,strikeZoneBottom,coordinates,pX,pZ,count,balls,strikes,outs';
+function mlbName(n) { return String(n || '').toLowerCase().replace(/[^a-z]/g, ''); }
+function mlbLoad(g) {                                 // the game's MLB id (once), then the current at-bat every ~8 s
+  var id = g.id, t = new Date().getTime(), ab = mlbAB[id];
+  if (ab && t - ab.at < 8000) return;
+  mlbAB[id] = ab = ab || { at: 0 }; ab.at = t;
+  if (mlbPk[id] === undefined) {
+    mlbPk[id] = 0;
+    var d = parseDate(g.date), day = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    getJSON(MLB_API + 'v1/schedule?sportId=1&date=' + day, function (err, data) {
+      var gs = (!err && data && data.dates && data.dates[0] && data.dates[0].games) || [], A = mlbName(g.teams.away.name), H = mlbName(g.teams.home.name);
+      for (var i = 0; i < gs.length; i++) if (mlbName(gs[i].teams.away.team.name) === A && mlbName(gs[i].teams.home.team.name) === H) { mlbPk[id] = gs[i].gamePk; break; }
+      if (!mlbPk[id]) { mlbPk[id] = undefined; return; }
+      ab.at = 0; mlbLoad(g);
+    });
+    return;
+  }
+  if (!mlbPk[id]) return;
+  getJSON(MLB_API + 'v1.1/game/' + mlbPk[id] + '/feed/live?fields=' + MLB_FIELDS, function (err, data) {
+    var cp = !err && data && data.liveData && data.liveData.plays && data.liveData.plays.currentPlay;
+    if (!cp || !cp.matchup) return;
+    var m = cp.matchup, ev = cp.playEvents || [], P = [], top = 0, bot = 0;
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i], pd = e.pitchData || {}, c = pd.coordinates || {}, dt = e.details || {};
+      if (!e.isPitch || c.pX === undefined || c.pZ === undefined) continue;
+      if (pd.strikeZoneTop) { top = pd.strikeZoneTop; bot = pd.strikeZoneBottom; }
+      P.push({ n: e.pitchNumber || P.length + 1, x: +c.pX, z: +c.pZ, mph: pd.startSpeed ? Math.round(pd.startSpeed) : 0,
+               kind: (dt.type && dt.type.description) || '', call: (dt.call && dt.call.description) || dt.description || '',
+               r: dt.isInPlay ? 'play' : (dt.isStrike ? 'k' : (dt.isBall ? 'b' : 'k')) });
+    }
+    ab.batter = m.batter || {}; ab.side = (m.batSide && m.batSide.code) || 'R'; ab.pitcher = m.pitcher || {};
+    ab.top = top || 3.4; ab.bot = bot || 1.6; ab.p = P; ab.count = cp.count || {};
+    if (m.batterHotColdZones && m.batterHotColdZones.length) mlbHot[ab.batter.id] = m.batterHotColdZones;
+    else mlbHotLoad(ab.batter.id);
+    mlbDraw(g);
+  });
+}
+function mlbHotLoad(pid) {                             // his hot / cold zones (batting average), once per player
+  if (!pid || mlbHot[pid] !== undefined) return;
+  mlbHot[pid] = null;
+  getJSON(MLB_API + 'v1/people/' + pid + '/stats?stats=hotColdZones&group=hitting&season=' + new Date().getFullYear(), function (err, data) {
+    var sp = (!err && data && data.stats && data.stats[0] && data.stats[0].splits) || [];
+    for (var i = 0; i < sp.length; i++) if (sp[i].stat && sp[i].stat.name === 'battingAverage') { mlbHot[pid] = sp[i].stat.zones || []; break; }
+    var pg = state.pages[state.pageIndex];
+    if (pg && pg.lg === 'mlb') mlbDraw(pg.game);
+  });
+}
+function mlbBatterSVG(right, col) {                    // a batter in his stance, facing the plate (drawn, not a photo)
+  var f = right ? '' : ' transform="translate(120 0) scale(-1 1)"';
+  return '<svg viewBox="0 0 120 220"><g' + f + ' fill="' + col + '" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linejoin="round">' +
+    '<path d="M40 2 L46 0 L74 64 L69 67Z" fill="#c9a26b" stroke="none"/>' +                                   // the bat, up over the shoulder
+    '<circle cx="62" cy="40" r="15"/><path d="M46 36 Q62 18 78 36 L80 42 L44 42Z" fill="rgba(0,0,0,0.5)"/>' + // head + helmet
+    '<path d="M50 56 Q62 50 76 58 L80 108 Q66 114 50 108 Q46 80 50 56Z"/>' +                                 // body
+    '<path d="M54 60 L66 70 L58 76 Z M74 60 L66 70 L74 74Z"/>' +                                              // arms to the hands
+    '<path d="M52 106 L42 160 L30 212 L44 214 L56 162 L64 120Z"/><path d="M66 112 L80 160 L84 212 L98 212 L92 158 L78 108Z"/></g></svg>';
+}
+function mlbDraw(g) {
+  var box = document.querySelector('.ptv.mu .mlbz'), ab = mlbAB[g.id];
+  if (!box || !ab || !ab.batter) return;
+  var pv = box.parentNode; if (!/\bmlbon\b/.test(pv.className)) pv.className += ' mlbon';
+  var right = ab.side !== 'L', zones = mlbHot[ab.batter.id] || [], W = 300, H = 330, zw = 138, zx = (W - zw) / 2;
+  var ft = 2.1, zt = 60, zh = 210 * ((ab.top - ab.bot) / ft);              // the zone's height in proportion to his
+  zt = 60 + (210 - zh) / 2;
+  var X = function (px) { return W / 2 - px * (zw / 1.417); };              // pitcher's view: the catcher's left is our right
+  var Y = function (pz) { return zt + (ab.top - pz) * (zh / (ab.top - ab.bot)); };
+  var cells = '', i, zc = {};
+  for (i = 0; i < zones.length; i++) zc[+zones[i].zone] = zones[i];
+  for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) {
+    var z = zc[r * 3 + c + 1], sc = 2 - c;                                  // MLB numbers zones from the catcher's side: mirror the columns
+    cells += '<rect x="' + (zx + sc * zw / 3) + '" y="' + (zt + r * zh / 3) + '" width="' + (zw / 3) + '" height="' + (zh / 3) + '" fill="' + (z ? z.color : 'rgba(255,255,255,0.04)') + '" stroke="rgba(255,255,255,0.75)" stroke-width="2"/>' +
+             (z && z.value ? '<text x="' + (zx + sc * zw / 3 + zw / 6) + '" y="' + (zt + r * zh / 3 + zh / 6 + 6) + '" text-anchor="middle" font-size="15" font-weight="700" fill="rgba(255,255,255,0.85)">' + esc(z.value) + '</text>' : '');
+  }
+  var pts = '', list = '', CL = { b: '#2ecc71', k: '#e74c3c', play: '#3b82f6' };
+  for (i = 0; i < ab.p.length; i++) {
+    var p = ab.p[i], px = Math.max(8, Math.min(W - 8, X(p.x))), py = Math.max(8, Math.min(H - 8, Y(p.z)));
+    pts += '<g><circle cx="' + px + '" cy="' + py + '" r="13" fill="' + CL[p.r] + '" stroke="#fff" stroke-width="2.5"/><text x="' + px + '" y="' + (py + 5) + '" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">' + p.n + '</text></g>';
+    list += '<div class="mp"><b style="background:' + CL[p.r] + '">' + p.n + '</b><span>' + esc(p.call) + '</span><i>' + (p.mph ? p.mph + ' ' : '') + esc(p.kind) + '</i></div>';
+  }
+  var bt = g.teams[mlbBatting(g)] || {}, bcol = '#' + String(homeColor(bt, 'mlb') || '555555').replace('#', ''), cnt = ab.count || {}, od = '';
+  var bl = parseInt(bcol.substr(1, 2), 16) * 0.3 + parseInt(bcol.substr(3, 2), 16) * 0.59 + parseInt(bcol.substr(5, 2), 16) * 0.11;
+  if (!(bl >= 45 && bl <= 200)) bcol = bl < 45 ? '#3a4256' : '#8a93a8';          // black / white uniforms: a shade that shows on the dark screen
+  for (i = 0; i < 3; i++) od += '<u' + (i < (+cnt.outs || 0) ? ' class="on"' : '') + '></u>';
+  var hs = 'https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_180,q_auto:best/v1/people/' + ab.batter.id + '/headshot/67/current';
+  box.innerHTML =
+    '<div class="mzone"><svg viewBox="0 0 ' + W + ' ' + H + '">' +
+      '<polygon points="' + (W / 2 - zw / 2) + ',' + (H - 26) + ' ' + (W / 2 + zw / 2) + ',' + (H - 26) + ' ' + (W / 2 + zw / 2) + ',' + (H - 14) + ' ' + (W / 2) + ',' + (H - 4) + ' ' + (W / 2 - zw / 2) + ',' + (H - 14) + '" fill="rgba(255,255,255,0.8)"/>' +
+      cells + pts + '</svg></div>' +
+    '<div class="mbat ' + (right ? 'r' : 'l') + '">' + mlbBatterSVG(right, bcol) + '</div>' +
+    '<div class="mwho ' + (right ? 'l' : 'r') + '"><img src="' + esc(hs) + '" alt="" onerror="this.style.display=\'none\'"><div class="mn">' + esc(ab.batter.fullName || '') + '</div>' +
+      '<div class="ms">BATS ' + (right ? 'RIGHT' : 'LEFT') + ' · vs ' + esc(String(ab.pitcher.fullName || '').split(' ').slice(1).join(' ') || ab.pitcher.fullName || '') + '</div>' +
+      '<div class="mc2">' + (+cnt.balls || 0) + '-' + (+cnt.strikes || 0) + '<em>COUNT</em><span class="mo">' + od + '</span><em>OUTS</em></div>' +
+      '<div class="mlist">' + list + '</div></div>';
+}
+function mlbBatting(g) {                               // the batting team: top of the inning, the visitors
+  return /^(top|mid)/i.test(String(g.detail || g.status || '')) ? 'away' : 'home';
+}
 function muDecorate(pg) {                       // the real helmets on the big screen's two sides, facing each other
   var pv = $('cards').querySelector('.ptv');
   if (!pv) return;
@@ -3750,6 +3880,10 @@ function muDecorate(pg) {                       // the real helmets on the big s
     if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (hu ? '' : ' lg') + (hu && sides[i] === 'home' ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
   }
   var st = (compOf(pg.game) || {}).situation;
+  if (pg.lg === 'mlb' && pg.game.live && CONFIG.mlbZone) {               // the at-bat: batter, strike zone, heat map, pitches
+    pv.insertAdjacentHTML('beforeend', '<div class="mlbz"></div>');     // filled (and the layout switched) once MLB's feed answers
+    mlbDraw(pg.game); mlbLoad(pg.game);
+  }
   if (pg.lg === 'mlb' && pg.game.live && st) {
     var base = function (x, y, on) { return '<polygon points="' + x + ',' + (y - 22) + ' ' + (x + 22) + ',' + y + ' ' + x + ',' + (y + 22) + ' ' + (x - 22) + ',' + y + '" fill="' + (on ? '#f5b800' : 'none') + '" stroke="' + (on ? '#f5b800' : 'rgba(255,255,255,0.5)') + '" stroke-width="5"/>'; };
     var outs = +st.outs || 0, od = '';
