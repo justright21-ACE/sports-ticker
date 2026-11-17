@@ -320,6 +320,9 @@
   #msg small { display: block; font-size: 2.8vh; color: #6f7a94; margin-top: 1.5vh; line-height: 4vh; }
 
   /* ---------- bottom crawl ---------- */
+  /* time left on this screen: the line over the bottom bar drains from full to empty */
+  #pbar { position: absolute; left: 0; right: 0; bottom: 12.92vh; height: 0.5vh; z-index: 6; overflow: hidden; }
+  #pbar b { display: block; height: 100%; -webkit-transform-origin: 0 50%; transform-origin: 0 50%; }
   #crawlbar {
     position: absolute; left: 0; right: 0; bottom: 4vh; height: 9vh;
     background: #0b1020; border-top: 0.35vh solid #f5b800; overflow: hidden;
@@ -1504,6 +1507,7 @@
     <div id="msg">Loading scores&hellip;</div>
   </div>
 
+  <div id="pbar"><b></b></div>
   <div id="crawlbar">
     <div id="crawl"></div>
     <div id="crawllabel">SCORES</div>
@@ -1648,6 +1652,7 @@ var CONFIG = {
   fastRefreshSec: 10,
   fastScreen: true,
   ptBadges: true,
+  pageBar: true,         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
   bgBadge: 's1',         // the broadcast badge faint across the NFL primetime screen (?bgbadge=0 off, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
   crunch: true,          // football's last 2:00 of a half: one live big game -> stay on it; several -> each holds like the Bears (?crunch=0)
@@ -1775,6 +1780,7 @@ function readParams() {
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
     if (k === 'badges') CONFIG.ptBadges = v !== '0';
+    if (k === 'pbar') CONFIG.pageBar = v !== '0';
     if (k === 'bgbadge') CONFIG.bgBadge = v === '0' ? '' : (v === '2' ? 's2' : (v === 'side' ? 'side' : 's1'));
     if (k === 'topperf') CONFIG.topPerf = v !== '0';
     if (k === 'crunch') CONFIG.crunch = v !== '0';
@@ -8844,16 +8850,18 @@ function crunchCheck() {                        // true: stay where we are (or w
     if (!(pg && pg.pt && pg.game && pg.game.id === big[0].g.id)) { state.pageIndex = big[0].i; renderPage(); }
     if (crunchLock.id !== big[0].g.id) crunchLock = { id: big[0].g.id, since: now };
     state.rotTimer = setTimeout(rotate, 10000);
+    pbarRun(0);
     return true;
   }
   if (pg && pg.pt && pg.game && inCrunch(pg.game, pg.lg)) {          // several games: this one gets the Bears hold
     if (crunchLock.id !== pg.game.id) crunchLock = { id: pg.game.id, since: now };
-    if (now - crunchLock.since < CONFIG.mustWatchHoldSec * 1000) { state.rotTimer = setTimeout(rotate, 10000); return true; }
+    if (now - crunchLock.since < CONFIG.mustWatchHoldSec * 1000) { state.rotTimer = setTimeout(rotate, 10000); pbarRun(CONFIG.mustWatchHoldSec * 1000 - (now - crunchLock.since)); return true; }
     return false;
   }
   if (crunchLock.id && pg && pg.game && pg.game.id === crunchLock.id) { // the 2:00 just ended (halftime / final): a last look, then move on
     crunchLock = { id: '', since: 0 };
     state.rotTimer = setTimeout(rotate, 25000);
+    pbarRun(25000);
     return true;
   }
   return false;
@@ -8873,6 +8881,35 @@ function scheduleRotate() {                              // each screen can have
   var secs = state.holdOnce || (pg && pg.hold) || CONFIG.rotateSec;
   state.holdOnce = 0; state.lastHold = secs;
   state.rotTimer = setTimeout(rotate, secs * 1000);
+  pbarRun(secs * 1000);
+}
+/* the line over the bottom bar: how long until the next screen. Short holds (45 s or less): drains the whole
+   time. Longer holds (the Bears, a game's last 2:00): hidden, then shows up for the last 30 s. ms = 0: the
+   screen is staying put (crunch time), so no line. ?pbar=0 off */
+var pbarEnd = -1, pbarTimer = null;
+function pbarRun(ms) {
+  var bar = $('pbar'), b = bar && bar.firstChild;
+  if (!b) return;
+  if (!CONFIG.pageBar) { bar.style.display = 'none'; return; }
+  var end = ms > 0 ? new Date().getTime() + ms : 0;
+  if (end === pbarEnd || (end && pbarEnd > 0 && Math.abs(end - pbarEnd) < 1500)) return;   // the same countdown: leave it running
+  pbarEnd = end;
+  if (pbarTimer) { clearTimeout(pbarTimer); pbarTimer = null; }
+  b.style.webkitTransition = b.style.transition = 'none';
+  b.style.webkitTransform = b.style.transform = 'scaleX(1)';
+  bar.style.visibility = 'hidden';
+  if (!(ms > 0)) return;
+  var show = ms <= 45000 ? ms : 30000;
+  pbarTimer = setTimeout(function () {
+    pbarTimer = null;
+    var cb = $('crawlbar'), cs = cb && window.getComputedStyle ? window.getComputedStyle(cb) : null;
+    bar.style.background = cs ? cs.backgroundColor : '#0b1020';
+    b.style.background = cs ? cs.borderTopColor : '#f5b800';
+    bar.style.visibility = 'visible';
+    void b.offsetWidth;                                                // start from full, then drain
+    b.style.webkitTransition = '-webkit-transform ' + show + 'ms linear'; b.style.transition = 'transform ' + show + 'ms linear';
+    b.style.webkitTransform = b.style.transform = 'scaleX(0)';
+  }, Math.max(0, ms - show));
 }
 
 /* nudge everything a few pixels every 10 min to protect older screens from burn-in */
