@@ -761,6 +761,13 @@
   .ptv.mu .mlist .mp { font-size: 2.3vh; color: #d5dbea; padding: 0.35vh 0; white-space: nowrap; }
   .ptv.mu .mlist .mp b { display: inline-block; width: 2.8vh; height: 2.8vh; line-height: 2.8vh; border-radius: 50%; text-align: center; color: #fff; font-size: 1.7vh; margin: 0 0.6vw; }
   .ptv.mu .mlist .mp i { font-style: normal; color: #7d8aa8; margin-left: 0.6vw; }
+  .ptv.mu .mpit { margin-top: 2.2vh; padding-top: 1.6vh; border-top: 1px solid #243150; white-space: nowrap; }
+  .ptv.mu .mpit img { width: 8vh; height: 8vh; border-radius: 50%; background: #1d2943; object-fit: cover; vertical-align: middle; margin-right: 1vw; }
+  .ptv.mu .mpit div { display: inline-block; vertical-align: middle; text-align: left; }
+  .ptv.mu .mpit i { display: block; font-style: normal; font-size: 1.9vh; letter-spacing: 0.2vw; color: #a5aec4; }
+  .ptv.mu .mpit b { display: block; font-size: 3.3vh; color: #fff; }
+  .ptv.mu .mpit span { display: block; font-size: 2.6vh; font-weight: 700; color: #f5b800; }
+  .ptv.mu .mwho.r .mpit img { margin: 0 0 0 1vw; } .ptv.mu .mwho.r .mpit div { text-align: right; }
   .ptv.mu .mub { position: absolute; left: 0; right: 0; top: 64vh; text-align: center; z-index: 1; }   /* baseball: the bases and the count */
   .ptv.mu .mub svg { height: 20vh; vertical-align: middle; }
   .ptv.mu .mub .mc { display: inline-block; vertical-align: middle; margin-left: 4vw; text-align: left; font-size: 5.4vh; font-weight: 700; line-height: 1.25; color: #fff; }
@@ -3771,7 +3778,7 @@ function muPages() {
    his hot / cold zones, and every pitch of this at-bat where it crossed the plate, numbered and colored by
    result (ball green, strike red, in play blue), drawn from the pitcher's side like Gameday. */
 var MLB_API = 'https://statsapi.mlb.com/api/', mlbPk = {}, mlbAB = {}, mlbHot = {};
-var MLB_FIELDS = 'liveData,plays,currentPlay,matchup,batter,id,fullName,batSide,code,pitcher,pitchHand,batterHotColdZones,zone,color,temp,value,' +
+var MLB_FIELDS = 'liveData,plays,currentPlay,allPlays,matchup,batter,id,fullName,batSide,code,pitcher,pitchHand,batterHotColdZones,zone,color,temp,value,' +
                  'playEvents,isPitch,pitchNumber,details,call,description,type,isBall,isStrike,isInPlay,pitchData,startSpeed,strikeZoneTop,strikeZoneBottom,coordinates,pX,pZ,count,balls,strikes,outs';
 function mlbName(n) { return String(n || '').toLowerCase().replace(/[^a-z]/g, ''); }
 function mlbLoad(g) {                                 // the game's MLB id (once), then the current at-bat every ~8 s
@@ -3802,7 +3809,15 @@ function mlbLoad(g) {                                 // the game's MLB id (once
                kind: (dt.type && dt.type.description) || '', call: (dt.call && dt.call.description) || dt.description || '',
                r: dt.isInPlay ? 'play' : (dt.isStrike ? 'k' : (dt.isBall ? 'b' : 'k')) });
     }
-    ab.batter = m.batter || {}; ab.side = (m.batSide && m.batSide.code) || 'R'; ab.pitcher = m.pitcher || {};
+    ab.batter = m.batter || {}; ab.side = (m.batSide && m.batSide.code) || 'R'; ab.pitcher = m.pitcher || {}; ab.hand = (m.pitchHand && m.pitchHand.code) || '';
+    var all = data.liveData.plays.allPlays || [], pc = 0, ps = 0, pid = ab.pitcher.id;    // his pitches (and strikes) in the game so far
+    for (var a2 = 0; a2 < all.length; a2++) {
+      if (!all[a2].matchup || !all[a2].matchup.pitcher || all[a2].matchup.pitcher.id !== pid) continue;
+      var pe = all[a2].playEvents || [];
+      for (var b2 = 0; b2 < pe.length; b2++) if (pe[b2].isPitch) { pc++; var d2 = pe[b2].details || {}; if (d2.isStrike || d2.isInPlay) ps++; }
+    }
+    if (!all.length) { pc = P.length; for (var c2 = 0; c2 < P.length; c2++) if (P[c2].r !== 'b') ps++; }
+    ab.pc = pc; ab.ps = ps;
     ab.top = top || 3.4; ab.bot = bot || 1.6; ab.p = P; ab.count = cp.count || {};
     if (m.batterHotColdZones && m.batterHotColdZones.length) mlbHot[ab.batter.id] = m.batterHotColdZones;
     else mlbHotLoad(ab.batter.id);
@@ -3861,9 +3876,12 @@ function mlbDraw(g) {
       cells + pts + '</svg></div>' +
     '<div class="mbat ' + (right ? 'r' : 'l') + '">' + mlbBatterSVG(right, bcol) + '</div>' +
     '<div class="mwho ' + (right ? 'l' : 'r') + '"><img src="' + esc(hs) + '" alt="" onerror="this.style.display=\'none\'"><div class="mn">' + esc(ab.batter.fullName || '') + '</div>' +
-      '<div class="ms">BATS ' + (right ? 'RIGHT' : 'LEFT') + ' · vs ' + esc(String(ab.pitcher.fullName || '').split(' ').slice(1).join(' ') || ab.pitcher.fullName || '') + '</div>' +
+      '<div class="ms">BATS ' + (right ? 'RIGHT' : 'LEFT') + '</div>' +
       '<div class="mc2">' + (+cnt.balls || 0) + '-' + (+cnt.strikes || 0) + '<em>COUNT</em><span class="mo">' + od + '</span><em>OUTS</em></div>' +
-      '<div class="mlist">' + list + '</div></div>';
+      '<div class="mlist">' + list + '</div>' +
+      '<div class="mpit"><img src="' + esc(hs.replace('/people/' + ab.batter.id + '/', '/people/' + ab.pitcher.id + '/')) + '" alt="" onerror="this.style.display=\'none\'">' +
+        '<div><i>PITCHING' + (ab.hand ? ' · ' + (ab.hand === 'L' ? 'LEFTY' : 'RIGHTY') : '') + '</i><b>' + esc(ab.pitcher.fullName || '') + '</b>' +
+        '<span>' + (ab.pc || 0) + ' PITCHES · ' + (ab.ps || 0) + ' STRIKES</span></div></div></div>';
 }
 function mlbBatting(g) {                               // the batting team: top of the inning, the visitors
   return /^(top|mid)/i.test(String(g.detail || g.status || '')) ? 'away' : 'home';
