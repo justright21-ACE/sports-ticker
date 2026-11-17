@@ -1593,7 +1593,8 @@ var CONFIG = {
   alwaysScreen: { nfl: ['PHI'] },   // also keep their big screen on primetime nights (without taking over like the Bears)
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
-  fastScreen: true,      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
+  fastScreen: true,
+  clockCheck: true,      // football: catch ESPN's scoreboard clock jumping ahead, using the play-by-play (?clockcheck=0)      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
   inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
   singleGameTab: true,   // one-game NFL nights: the game only on its primetime screen, NFL tab = standings + leaders (?onegame=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
@@ -1716,6 +1717,7 @@ function readParams() {
     if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
+    if (k === 'clockcheck') CONFIG.clockCheck = v !== '0';
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'leaguelogos') CONFIG.leagueLogos = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
@@ -2867,7 +2869,7 @@ function statusText(e, lg) {
     return dayTag + timeStr(d);
   }
   if (e.espn) {                                   // ESPN already writes a good status line
-    if (e.live) return (e.detail || 'LIVE').toUpperCase();
+    if (e.live) return (liveDetail(e, lg) || 'LIVE').toUpperCase();
     if (isFinal(e)) return (e.detail || 'FINAL').toUpperCase() + finalDay(d);
     if (/postpon|cancel|delay|suspend/i.test(st)) return st.toUpperCase();
     if (/TBD/i.test(e.detail)) {                  // kickoff time not set yet
@@ -4093,6 +4095,9 @@ function loadPtDetails(cb) {
                                yards: cd.yards, team: cd.team && (cd.team.abbreviation || cd.team.id) } : null;
         var lpp = cd && cd.plays && cd.plays.length ? cd.plays[cd.plays.length - 1] : null;
         det.lastSpots = lpp && lpp.start && lpp.end ? { id: lpp.id, s: lpp.start.yardsToEndzone, e: lpp.end.yardsToEndzone } : null;
+        var hst = data.header && data.header.competitions && data.header.competitions[0] && data.header.competitions[0].status;   // the play-by-play feed's own clock
+        det.hclk = hst && hst.displayClock ? { per: +(hst.period || 0), secs: mmss(hst.displayClock), txt: hst.displayClock } : null;
+        det.snap = lastSnap(data);
         det.videos = parseVideos(data);
         det.leaders = {};
         var tl = data.leaders || [];
@@ -4227,10 +4232,36 @@ function recOf(cp, type) {
   }
   return '';
 }
+function mmss(t) { var m = String(t || '').match(/^\s*(\d+):(\d+)/); return m ? +m[1] * 60 + +m[2] : -1; }
+function lastSnap(data) {                       // the game clock at the latest snap: period + seconds left
+  var dr = data && data.drives, lists = dr ? (dr.previous || []).concat(dr.current ? [dr.current] : []) : [], best = null;
+  for (var i = 0; i < lists.length; i++) {
+    var pl = lists[i].plays || [];
+    for (var j = 0; j < pl.length; j++) {
+      var p = pl[j], per = +((p.period && p.period.number) || 0), sec = mmss(p.clock && p.clock.displayValue);
+      if (!per || sec < 0) continue;
+      if (!best || per > best.per || (per === best.per && sec < best.secs)) best = { per: per, secs: sec };
+    }
+  }
+  return best;
+}
+/* ESPN's scoreboard clock now and then jumps ahead (0:31 when it's 9:31). For football with the play-by-play
+   loaded: if the scoreboard is more than ~1.5 min of game clock past the last snap in the same quarter, it
+   can't be right, so use the play-by-play feed's clock (when it passes the same test) or the last snap's. */
+function liveDetail(g, lg) {
+  var d = String(g.detail || '');
+  if (!g.live || (lg !== 'nfl' && lg !== 'ncaaf') || !CONFIG.clockCheck) return d;
+  var det = ptDetail[g.eid], m = d.match(/^(\d+:\d+)\s*-\s*(\d+)(\S*)/);
+  if (!det || !det.snap || !m || new Date().getTime() - det.at > 90000) return d;
+  var per = +m[2], secs = mmss(m[1]), sn = det.snap;
+  if (sn.per !== per || sn.secs - secs <= 95) return d;               // fine (or a new quarter: nothing to compare)
+  var h = det.hclk, use = (h && h.per === per && h.secs >= 0 && h.secs <= sn.secs && sn.secs - h.secs <= 95) ? h.secs : sn.secs;
+  return Math.floor(use / 60) + ':' + pad(use % 60) + ' - ' + m[2] + m[3];
+}
 function clockText(g, lg) {
-  var m = String(g.detail || '').match(/^(\d+:\d+)\s*-\s*(\S+)/);
+  var m = liveDetail(g, lg).match(/^(\d+:\d+)\s*-\s*(\S+)/);
   if (m) return m[2].toUpperCase() + (/OT|SO/i.test(m[2]) ? '' : (lg === 'nhl' ? ' PER' : (lg === 'ncaab' ? ' HALF' : ' QTR'))) + ' · ' + m[1];
-  return String(g.detail || (g.live ? 'LIVE' : '')).toUpperCase();
+  return String(liveDetail(g, lg) || (g.live ? 'LIVE' : '')).toUpperCase();
 }
 function num(v) { var n = parseFloat(String(v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
 function ptStatRow(label, a, h, isPct) {
