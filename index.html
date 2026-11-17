@@ -57,6 +57,12 @@
     color: #6f7a94; border-radius: 0.6vh;
   }
   .tab.on { background: #f5b800; color: #05070d; }
+  .tab.bdg { height: 8.4vh; line-height: 8.4vh; padding: 0 0.2vw; position: relative; }
+  .tab.bdg img { height: 8vh; vertical-align: middle; opacity: 0.5; -webkit-filter: grayscale(0.5); filter: grayscale(0.5); }
+  #tabs .tab.bdg, #tabs .tab.bdg.on { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }
+  .tab.bdg.on img { opacity: 1; -webkit-filter: drop-shadow(0 0 0.8vh rgba(245,184,0,0.75)); filter: drop-shadow(0 0 0.8vh rgba(245,184,0,0.75)); }
+  .tab.bdg i { position: absolute; left: 0; top: 0.8vh; margin: 0; }
+  #tabs.s4 .tab.bdg, #tabs.s5 .tab.bdg { height: 6vh; line-height: 6vh; } #tabs.s4 .tab.bdg img, #tabs.s5 .tab.bdg img { height: 5.6vh; }
   .tab.empty { color: #2e3548; }
   /* lots of tabs: step the size down until they fit between the name and the clock */
   #tabs.s1 .tab { font-size: 2.7vh; padding: 0 0.6vw; margin: 0 0.12vw; letter-spacing: 0.04vw; }
@@ -1636,6 +1642,7 @@ var CONFIG = {
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
   fastScreen: true,
+  ptBadges: true,        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
   crunch: true,          // football's last 2:00 of a half: one live big game -> stay on it; several -> each holds like the Bears (?crunch=0)
   clockCheck: true,      // football: catch ESPN's scoreboard clock jumping ahead, using the play-by-play (?clockcheck=0)      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
@@ -1761,6 +1768,7 @@ function readParams() {
     if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
+    if (k === 'badges') CONFIG.ptBadges = v !== '0';
     if (k === 'topperf') CONFIG.topPerf = v !== '0';
     if (k === 'crunch') CONFIG.crunch = v !== '0';
     if (k === 'clockcheck') CONFIG.clockCheck = v !== '0';
@@ -3591,6 +3599,18 @@ function leagueOrder() {
   for (i = 0; i < arr.length; i++) out.push(arr[i].lg);
   return out;
 }
+/* the NFL's primetime / special games get their broadcast badge as the tab (img/badge/, ?badges=0: the words) */
+function ptBadge(kind) {
+  if (!CONFIG.ptBadges || !kind) return '';
+  var k = kind[0], n = String(kind[1] || '');
+  if (/christmas/i.test(n)) return 'christmas';
+  if (k === 'THANKSGIVING') return 'thanksgiving';
+  if (k === 'BLACK FRIDAY') return 'blackfriday';
+  if (k === 'SNF' || k === 'MNF' || k === 'TNF') return k.toLowerCase();
+  if (k === 'INTL') return 'international';
+  if (k === 'KICKOFF' || /^(TUE|WED|THU|FRI|SAT)$/.test(k)) return 'specials';
+  return '';
+}
 function renderTabs(activeLg) {
   var html = '', ftg = featuredGames(), codes = [], liveBy = {};
   for (var p = 0; p < ftg.length; p++) {                // one tab per kind: SNF / MNF / TNF / WS
@@ -3599,7 +3619,10 @@ function renderTabs(activeLg) {
     if (ftg[p].g.live) liveBy[code] = true;
   }
   for (var c2 = 0; c2 < codes.length; c2++) {
-    html += '<span class="tab pt' + (activeLg === 'pt:' + codes[c2] ? ' on' : '') + '">' + (liveBy[codes[c2]] ? '<i></i>' : '') + codes[c2] + '</span>';
+    var bdg = '';
+    for (var p2 = 0; p2 < ftg.length && !bdg; p2++) if (ftg[p2].kind[0] === codes[c2] && ftg[p2].lg === 'nfl') bdg = ptBadge(ftg[p2].kind);
+    html += '<span class="tab pt' + (bdg ? ' bdg' : '') + (activeLg === 'pt:' + codes[c2] ? ' on' : '') + '">' + (liveBy[codes[c2]] ? '<i></i>' : '') +
+            (bdg ? '<img src="img/badge/' + bdg + '.png" alt="' + esc(codes[c2]) + '">' : codes[c2]) + '</span>';
   }
   var gtab = golfOn() ? '<span class="tab' + (golf.ev.major ? ' pt' : '') + (activeLg === 'golf' ? ' on' : '') + '">' + (golf.ev.state === 'in' ? '<i></i>' : '') + esc(golfTab()) + '</span>' : '';
   if (gtab && golf.ev.major) { html += gtab; gtab = ''; }          // a major sits up front with the big games
@@ -3668,6 +3691,8 @@ function ptKind(g) {
   if (mo === 10 && dt === tg + 1) return ['BLACK FRIDAY', 'Black Friday Football'];
   if (mo === 11 && dt === 25) return ['CHRISTMAS', 'Christmas Day Football'];
   if (mo === 11 && dt === 24 && day !== 0) return [PT_DAYS[day] ? PT_DAYS[day][0] : 'MNF', 'Christmas Eve Football'];
+  if (day === 0 && d.getHours() < 11) return ['INTL', 'International Series'];   // a Sunday-morning kickoff here is a game overseas
+  if (day === 4 && mo === 8 && dt <= 10 && night) return ['KICKOFF', 'NFL Kickoff'];   // the season opener
   if (day === 0) return night ? PT_NAMES[0] : null;              // Sunday afternoon: the regular slate
   if (day === 1) return PT_NAMES[1];                             // Monday, any kickoff
   if (day === 4 && night) return PT_NAMES[4];
