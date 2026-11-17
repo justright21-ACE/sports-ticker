@@ -1594,6 +1594,7 @@ var CONFIG = {
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
   fastScreen: true,
+  crunch: true,          // football's last 2:00 of a half: one live big game -> stay on it; several -> each holds like the Bears (?crunch=0)
   clockCheck: true,      // football: catch ESPN's scoreboard clock jumping ahead, using the play-by-play (?clockcheck=0)      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
   inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
   singleGameTab: true,   // one-game NFL nights: the game only on its primetime screen, NFL tab = standings + leaders (?onegame=0 off)
@@ -1717,6 +1718,7 @@ function readParams() {
     if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
+    if (k === 'crunch') CONFIG.crunch = v !== '0';
     if (k === 'clockcheck') CONFIG.clockCheck = v !== '0';
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'leaguelogos') CONFIG.leagueLogos = v !== '0';
@@ -5916,7 +5918,7 @@ function fastRefresh() {
       var hit = detectJump();
       buildPages();
       var jumped = tdJump(hit) ? false : jumpTo(hit);
-      refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate();
+      refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); crunchJump();
       highlightCheck();
       fastBusy = false;
     });
@@ -8518,7 +8520,7 @@ function refreshAll() {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages(); tdPreload();
       var jumped = tdJump(hit) ? false : jumpTo(hit);   // a touchdown elsewhere: the team's animal runs across first
-      refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); renderCrawl(); renderFoot(errs);
+      refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); crunchJump(); renderCrawl(); renderFoot(errs);
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
@@ -8527,10 +8529,57 @@ function refreshAll() {
   next();
 }
 
+/* =========== CRUNCH TIME (football) ===========
+   The last 2:00 of the 2nd quarter, the 4th or overtime. With only one live big-screen game, the TV goes to
+   it and stays until halftime / the final. With more than one, the normal rotation runs, but a game in its last
+   2:00 holds as long as a Bears game (mustWatchHoldSec). ?crunch=0 off. */
+var crunchLock = { id: '', since: 0 };
+function inCrunch(g, lg) {
+  if (!g || !g.live || isHalftime(g) || (lg !== 'nfl' && lg !== 'ncaaf')) return false;
+  var d = liveDetail(g, lg), m = d.match(/^(\d+:\d+)\s*-\s*(\d+)/), per = m ? +m[2] : (+g.per || 0), sec = m ? mmss(m[1]) : clockSecs(g);
+  if (!m && /OT/i.test(d)) per = Math.max(per, 5);
+  if (per !== 2 && per < 4) return false;
+  return sec >= 0 && sec <= 120;
+}
+function crunchJump() {                         // the only live big game just hit its last 2:00: go now, don't wait out this screen
+  if (!CONFIG.crunch || hl.playing || tdr.on) return;
+  var big = liveBigGames(), pg = state.pages[state.pageIndex];
+  if (big.length !== 1 || !inCrunch(big[0].g, big[0].lg) || (pg && pg.pt && pg.game && pg.game.id === big[0].g.id)) return;
+  if (state.rotTimer) clearTimeout(state.rotTimer);
+  crunchCheck();
+}
+function liveBigGames() {                       // the different live games that have a big screen right now
+  var seen = {}, out = [];
+  for (var i = 0; i < state.pages.length; i++) { var p = state.pages[i]; if (p.pt && p.game && p.game.live && !seen[p.game.id]) { seen[p.game.id] = 1; out.push({ g: p.game, lg: p.lg, i: i }); } }
+  return out;
+}
+function crunchCheck() {                        // true: stay where we are (or we just moved to the crunch-time game)
+  if (!CONFIG.crunch) return false;
+  var now = new Date().getTime(), pg = state.pages[state.pageIndex], big = liveBigGames();
+  if (big.length === 1 && inCrunch(big[0].g, big[0].lg)) {           // the only game on: be on it, and stay
+    if (!(pg && pg.pt && pg.game && pg.game.id === big[0].g.id)) { state.pageIndex = big[0].i; renderPage(); }
+    if (crunchLock.id !== big[0].g.id) crunchLock = { id: big[0].g.id, since: now };
+    state.rotTimer = setTimeout(rotate, 10000);
+    return true;
+  }
+  if (pg && pg.pt && pg.game && inCrunch(pg.game, pg.lg)) {          // several games: this one gets the Bears hold
+    if (crunchLock.id !== pg.game.id) crunchLock = { id: pg.game.id, since: now };
+    if (now - crunchLock.since < CONFIG.mustWatchHoldSec * 1000) { state.rotTimer = setTimeout(rotate, 10000); return true; }
+    return false;
+  }
+  if (crunchLock.id && pg && pg.game && pg.game.id === crunchLock.id) { // the 2:00 just ended (halftime / final): a last look, then move on
+    crunchLock = { id: '', since: 0 };
+    state.rotTimer = setTimeout(rotate, 25000);
+    return true;
+  }
+  return false;
+}
 function rotate() {
   if (hl.playing) return;                                 // a highlight is on: it restarts the rotation when it ends
   if (tdr.on) { state.rotTimer = setTimeout(rotate, 3500); return; }   // a touchdown run is crossing the screen
   if (reloadIfWanted()) return;                           // a new version of the ticker: load it between screens
+  if (state.rotTimer) clearTimeout(state.rotTimer);
+  if (crunchCheck()) return;                              // the last 2:00 of a half: stay on the game
   if (state.pages.length > 1) { state.pageIndex = (state.pageIndex + 1) % state.pages.length; renderPage(); }
   scheduleRotate();
 }
