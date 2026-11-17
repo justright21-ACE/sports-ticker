@@ -1146,6 +1146,11 @@
   .ptv .pthead { height: 4.6vh; line-height: 4.6vh; font-size: 2.8vh; color: #9BA3B8; letter-spacing: 0.15vw; text-transform: uppercase; margin-bottom: 1vh; }
   .ptv .pthead b { color: #f5b800; font-weight: 700; margin-right: 1vw; letter-spacing: 0.2vw; }
   .ptv .pthead { overflow: hidden; white-space: nowrap; }
+  .wxi { width: 1.25em; height: 1.25em; vertical-align: -0.28em; margin-right: 0.35em; }
+  .ptv .pthead .wxc { color: #e6ebf5; margin-left: 1.6vw; text-transform: none; letter-spacing: 0.05vw; }
+  .wxc em, .muwx em { font-style: normal; color: #7d8aa8; margin-left: 0.5em; font-size: 0.85em; text-transform: uppercase; }
+  .ptv.mu .muwx { display: block; margin-top: 2.4vh; font-size: 3.4vh; color: #dfe6f5; white-space: nowrap; letter-spacing: 0.05vw; }
+  .ptv.mu.mlbon .muwx { margin-top: 0.8vh; font-size: 2.6vh; }
   .ptv .pthead .r { float: right; }
   .ptv .pthead .hl { text-transform: none; color: #c9d0e0; letter-spacing: 0.05vw; }
   .ptv .pthead .hl b { margin-right: 0.6vw; }
@@ -1729,6 +1734,7 @@ var CONFIG = {
   muTeam: '',            // matchup: ?team=CHI / ?team=wisconsin pins a team's game
   ptBadges: true,
   pageBar: true,
+  weather: true,         // game-time weather (outdoor games, not domes) on the big screens and the matchup view, from Open-Meteo (?weather=0)
   mlbZone: true,         // matchup view, baseball: the at-bat from MLB's live feed (batter, strike zone, hot / cold zones, pitches) (?mlbzone=0)         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
   bgBadge: 's1',         // the broadcast badge faint across the NFL primetime screen (?bgbadge=0 off, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
@@ -1860,6 +1866,7 @@ function readParams() {
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
     if (k === 'badges') CONFIG.ptBadges = v !== '0';
     if (k === 'pbar') CONFIG.pageBar = v !== '0';
+    if (k === 'weather') CONFIG.weather = v !== '0';
     if (k === 'mlbzone') CONFIG.mlbZone = v !== '0';
     if (k === 'bgbadge') CONFIG.bgBadge = v === '0' ? '' : (v === '2' ? 's2' : (v === 'side' ? 'side' : 's1'));
     if (k === 'topperf') CONFIG.topPerf = v !== '0';
@@ -3897,6 +3904,8 @@ function muDecorate(pg) {                       // the real helmets on the big s
     var hu = tdHelmetURL(t, pg.lg), u = hu || tdLogoURL(t);              // a helmet is mirrored to face in; a logo never is (it'd read backwards)
     if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (hu ? '' : ' lg') + (hu && sides[i] === 'home' ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
   }
+  var cen = pv.querySelector('.band .center'), mw = cen ? wxHTML(pg.game, pg.lg, 'muwx') : '';
+  if (mw) cen.insertAdjacentHTML('beforeend', mw);
   var st = (compOf(pg.game) || {}).situation;
   if (pg.lg === 'mlb' && pg.game.live && CONFIG.mlbZone) {               // the at-bat: batter, strike zone, heat map, pitches
     pv.insertAdjacentHTML('beforeend', '<div class="mlbz"></div>');     // filled (and the layout switched) once MLB's feed answers
@@ -4758,6 +4767,108 @@ function halfHTML(g, lg, det, ca, ch) {
   if (n < 3) return '';
   return '<div class="cols half"><div class="panel hp"><div class="ph"><span class="hta">' + esc(a.abbreviation) + '</span><span class="htt">HALFTIME · STAT BATTLE</span><span class="hth">' + esc(h.abbreviation) + '</span></div>' + rows + '</div></div>';
 }
+/* =========== GAME-TIME WEATHER ===========
+   Outdoor games only (football, baseball, soccer; never basketball / hockey / fights, never a dome):
+   during the game the conditions there now, before it the forecast for kickoff. Open-Meteo (free, no key):
+   the venue's city is looked up once, the weather every 10 minutes. ?weather=0 off. */
+var WX_OUT = { nfl: 1, ncaaf: 1, mlb: 1, epl: 1, ucl: 1, mls: 1 };
+var WX_DOMES = { nfl: 'ATL DET NO MIN LV LAR LAC ARI DAL HOU IND', mlb: 'TB TOR MIL HOU ARI TEX MIA' };   // fixed and (usually closed) retractable roofs
+var wxGeo = {}, wxData = {};
+try { wxGeo = JSON.parse(window.localStorage.getItem('fcw_geo')) || {}; } catch (e) {}
+function wxVenue(g, lg) {
+  if (!CONFIG.weather || !WX_OUT[lg] || !g || isFinal(g)) return null;
+  var c = compOf(g) || {}, v = c.venue || {}, ad = v.address || {};
+  if (v.indoor === true) return null;
+  if (v.indoor === undefined && WX_DOMES[lg] && (' ' + WX_DOMES[lg] + ' ').indexOf(' ' + String(g.teams.home.abbreviation || '').toUpperCase() + ' ') >= 0 && !c.neutralSite) return null;
+  if (!ad.city) return null;
+  var st = parseDate(g.date).getTime(), now = new Date().getTime();
+  if (!g.live && (st - now > 48 * 3600000 || now - st > 4 * 3600000)) return null;     // forecasts only for the next two days
+  return { key: (ad.city + '|' + (ad.state || '') + '|' + (ad.country || '')).toLowerCase(), city: ad.city, state: ad.state || '', country: ad.country || '' };
+}
+function wxGet(g, lg) {                                  // what to show, or null (and go fetch it)
+  var V = wxVenue(g, lg);
+  if (!V) return null;
+  var t = new Date().getTime(), geo = wxGeo[V.key], d = wxData[V.key];
+  if (geo === undefined) { wxGeocode(V); return null; }
+  if (!geo) return null;
+  if (!d || t - d.at > 10 * 60000) wxFetch(V.key, geo);
+  if (!d || !d.cur) return null;
+  if (g.live) return { t: d.cur.t, code: d.cur.code, day: d.cur.day, wind: d.cur.wind, dir: d.cur.dir, now: true };
+  var st = parseDate(g.date).getTime() / 1000, best = -1;               // before the game: the hour of kickoff
+  for (var i = 0; i < d.hr.length; i++) if (best < 0 || Math.abs(d.hr[i].at - st) < Math.abs(d.hr[best].at - st)) best = i;
+  return best >= 0 ? d.hr[best] : null;
+}
+var wxBusy = {};
+function wxGeocode(V) {
+  if (wxBusy['g' + V.key]) return;
+  wxBusy['g' + V.key] = 1;
+  getJSON('https://geocoding-api.open-meteo.com/v1/search?count=10&language=en&name=' + encodeURIComponent(V.city), function (err, data) {
+    wxBusy['g' + V.key] = 0;
+    if (err || !data) return;
+    var R = data.results || [], st = String(V.state).toLowerCase(), hit = null;
+    var ST = { al: 'alabama', az: 'arizona', ca: 'california', co: 'colorado', fl: 'florida', ga: 'georgia', il: 'illinois', in: 'indiana', ia: 'iowa', ks: 'kansas', ky: 'kentucky', la: 'louisiana',
+               md: 'maryland', ma: 'massachusetts', mi: 'michigan', mn: 'minnesota', ms: 'mississippi', mo: 'missouri', ne: 'nebraska', nv: 'nevada', nj: 'new jersey', ny: 'new york', nc: 'north carolina',
+               oh: 'ohio', ok: 'oklahoma', or: 'oregon', pa: 'pennsylvania', sc: 'south carolina', tn: 'tennessee', tx: 'texas', ut: 'utah', va: 'virginia', wa: 'washington', wv: 'west virginia', wi: 'wisconsin',
+               ar: 'arkansas', ct: 'connecticut', id: 'idaho', mt: 'montana', nm: 'new mexico', nd: 'north dakota', sd: 'south dakota', wy: 'wyoming', hi: 'hawaii', dc: 'district of columbia', ri: 'rhode island', vt: 'vermont', nh: 'new hampshire', me: 'maine', de: 'delaware', ak: 'alaska' };
+    var stn = ST[st] || st;
+    for (var i = 0; i < R.length && !hit; i++) if (stn && String(R[i].admin1 || '').toLowerCase() === stn) hit = R[i];
+    for (i = 0; i < R.length && !hit; i++) if (!stn && (!V.country || String(R[i].country || '').toLowerCase().indexOf(String(V.country).toLowerCase()) === 0 || /usa|united states/i.test(V.country) === /united states/i.test(R[i].country || ''))) hit = R[i];
+    if (!hit && R.length && !stn) hit = R[0];
+    wxGeo[V.key] = hit ? [+hit.latitude.toFixed(3), +hit.longitude.toFixed(3)] : 0;
+    try { window.localStorage.setItem('fcw_geo', JSON.stringify(wxGeo)); } catch (e) {}
+    if (hit) wxFetch(V.key, wxGeo[V.key]);
+  });
+}
+function wxFetch(key, geo) {
+  if (wxBusy['w' + key]) return;
+  wxBusy['w' + key] = 1;
+  getJSON('https://api.open-meteo.com/v1/forecast?latitude=' + geo[0] + '&longitude=' + geo[1] +
+          '&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day&hourly=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation_probability,is_day' +
+          '&forecast_days=3&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=GMT&timeformat=unixtime', function (err, d) {
+    wxBusy['w' + key] = 0;
+    if (err || !d || !d.current) return;
+    var cu = d.current, h = d.hourly || {}, hr = [];
+    for (var i = 0; i < (h.time || []).length; i++) hr.push({ at: h.time[i], t: Math.round(h.temperature_2m[i]), code: h.weather_code[i], wind: Math.round(h.wind_speed_10m[i]), dir: h.wind_direction_10m[i], pop: h.precipitation_probability ? h.precipitation_probability[i] : null, day: h.is_day ? h.is_day[i] : 1 });
+    var first = !wxData[key];
+    wxData[key] = { at: new Date().getTime(), cur: { t: Math.round(cu.temperature_2m), code: cu.weather_code, wind: Math.round(cu.wind_speed_10m), dir: cu.wind_direction_10m, day: cu.is_day }, hr: hr };
+    var pg = state.pages[state.pageIndex];
+    if (first && pg && pg.pt) try { refreshRender(false); } catch (e) {}  // the first time: show it now, not at the next refresh
+  });
+}
+function wxWord(code, day) {
+  if (code === 0) return day ? 'Sunny' : 'Clear';
+  if (code <= 2) return 'Partly cloudy';
+  if (code === 3) return 'Cloudy';
+  if (code === 45 || code === 48) return 'Fog';
+  if (code >= 51 && code <= 57) return 'Drizzle';
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return code >= 65 && code <= 67 || code === 82 ? 'Heavy rain' : 'Rain';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return code === 75 || code === 86 ? 'Heavy snow' : 'Snow';
+  if (code >= 95) return 'Thunderstorms';
+  return '';
+}
+function wxIcon(code, day) {                        // a small drawn icon
+  var sun = '<circle cx="12" cy="12" r="5" fill="#f5c542"/><g stroke="#f5c542" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.6" y1="4.6" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.4" y2="19.4"/><line x1="4.6" y1="19.4" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.4" y2="4.6"/></g>';
+  var moon = '<path d="M15 3a9 9 0 1 0 6 15A7 7 0 0 1 15 3z" fill="#dfe6f5"/>';
+  var cloud = '<path d="M7 19h10a4 4 0 0 0 .4-8A6 6 0 0 0 6 10.5 4.3 4.3 0 0 0 7 19z" fill="#cfd6e6"/>';
+  var o = '<svg class="wxi" viewBox="0 0 24 24">';
+  if (code === 0) return o + (day ? sun : moon) + '</svg>';
+  if (code <= 2) return o + '<g transform="translate(-3 -4) scale(0.75)">' + (day ? sun : moon) + '</g>' + cloud + '</svg>';
+  if (code === 3 || code === 45 || code === 48) return o + cloud + (code !== 3 ? '<g stroke="#cfd6e6" stroke-width="1.6"><line x1="4" y1="21.5" x2="20" y2="21.5"/></g>' : '') + '</svg>';
+  var drops = '', flakes = '';
+  for (var i = 0; i < 3; i++) { drops += '<line x1="' + (8 + i * 4) + '" y1="20" x2="' + (7 + i * 4) + '" y2="23" stroke="#5ab0ff" stroke-width="1.6" stroke-linecap="round"/>'; flakes += '<circle cx="' + (8 + i * 4) + '" cy="21.5" r="1.2" fill="#fff"/>'; }
+  if (code >= 95) return o + '<g transform="translate(0 -3)">' + cloud + '</g><polygon points="12,15 9,20 12,20 10,24 15,18 12,18 14,15" fill="#f5c542"/></svg>';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return o + '<g transform="translate(0 -3)">' + cloud + '</g>' + flakes + '</svg>';
+  return o + '<g transform="translate(0 -3)">' + cloud + '</g>' + drops + '</svg>';
+}
+function wxDir(deg) { return deg == null ? '' : ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(((+deg % 360) + 360) % 360 / 45) % 8]; }
+function wxHTML(g, lg, cls) {                          // "[icon] 41° Cloudy · Wind 12 NW" (before the game: "at kickoff", rain chance)
+  var w = wxGet(g, lg);
+  if (!w) return '';
+  var word = wxWord(w.code, w.day), bits = [w.t + '°' + (word ? ' ' + word : '')];
+  if (w.wind >= 5) bits.push('Wind ' + w.wind + ' ' + wxDir(w.dir));
+  if (!w.now && w.pop != null && w.pop >= 20) bits.push(w.pop + '% ' + (w.code >= 71 && w.code <= 86 && w.code !== 80 && w.code !== 81 && w.code !== 82 ? 'snow' : 'rain'));
+  return '<span class="' + (cls || 'wxc') + '">' + wxIcon(w.code, w.day) + esc(bits.join(' · ')) + (w.now ? '' : '<em>' + (lg === 'mlb' ? 'first pitch' : 'kickoff') + '</em>') + '</span>';
+}
 function ptHTML(g, kind, lg) {
   lg = lg || 'nfl';
   var c = compOf(g) || {}, a = g.teams.away, h = g.teams.home, s = c.situation || {};
@@ -4771,6 +4882,7 @@ function ptHTML(g, kind, lg) {
   var ven = c.venue ? (c.venue.fullName || '') + (c.venue.address && c.venue.address.city ? ', ' + c.venue.address.city : '') : '';
   var wk = ex.week && ex.week.number ? 'Week ' + ex.week.number : '';
   var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
+  if (CONFIG.weather && wxGet(g, lg)) wx = '';                        // ours is on the header line already
   function timeouts(n) {
     if (n === undefined || n === null || isNaN(n) || pre || fin || !foot || isHalftime(g)) return '';   // halftime: both reset to 3
     var o = ''; for (var i = 0; i < 3; i++) o += '<span class="to' + (i < n ? '' : ' used') + '"></span>';
@@ -4956,7 +5068,7 @@ function ptHTML(g, kind, lg) {
          (rvPh || rvS ? '<i>' + (rvPh ? 'Photo' + (rvS ? ' and series' : '') : 'Series') + ': Wikipedia</i>' : '') + '</div></div>' + p2;
   }
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
-  var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
+  var head = '<div class="pthead">' + wxHTML(g, lg, 'r wxc') + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
              '<b>' + esc(kind[1] + (g.tag ? ' · ' + (kind[2] ? g.tag : shortRound(g.tag)) : '')) + '</b>' + (rv ? '<b class="rvh">' + trophyIcon(rv, 'tri') + esc(rv.name) + '</b>' : '') +
              esc((ln || rv ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   var half = halfHTML(g, lg, det, ca, ch);
@@ -6942,6 +7054,7 @@ function wsHTML(g, kind) {
   var bc = (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || c.broadcast || '';
   var ven = c.venue ? (c.venue.fullName || '') : '';
   var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
+  if (CONFIG.weather && wxGet(g, lg)) wx = '';                        // ours is on the header line already
   var top = /^(top|mid)/i.test(g.detail || ''), batting = g.live ? (top ? 'away' : 'home') : '';
   var serNow = (c.series && c.series.summary) || g.series || '';
   var title = /WORLD SERIES/.test(g.tag || '') ? String(g.tag).replace(/\bGM\b/, 'GAME') : String((kind && kind[1]) || 'GAME DAY').toUpperCase();
@@ -7046,7 +7159,7 @@ function wsHTML(g, kind) {
     ln = '<b>LINE</b>' + esc([bt.sp, bt.tot ? 'O/U ' + bt.tot : ''].join(' · ').replace(/^ · | · $/g, '')) +
          (bt.cov ? ' &nbsp;<span class="ok">' + esc(bt.cov) + '</span>' : '') + (bt.ou && fin ? ' · ' + esc(bt.ou) : '') + (bt.wp ? ' · ' + esc(bt.wp) + ' win' : '');
   } else if (bt.wp) ln = '<b>WIN</b>' + esc(bt.wp);
-  var head = '<div class="pthead">' + (ln ? '<span class="r hl">' + ln + '</span>' : '') +
+  var head = '<div class="pthead">' + wxHTML(g, 'mlb', 'r wxc') + (ln ? '<span class="r hl">' + ln + '</span>' : '') +
              '<b>' + esc(title) + '</b>' + esc((ln && !pre ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   return '<div class="ptv ws' + (g.live ? ' is-live' : '') + '">' + head + band +
     '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
