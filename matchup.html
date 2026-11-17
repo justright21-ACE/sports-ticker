@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The FanCave Wire · Matchup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Barlow+Condensed:500,600,700&display=swap">
+<style>
+  /* The FanCave Wire, matchup view: two helmets, the score and the clock. Same data as the ticker (ESPN).
+     ?team=CHI (or a school: ?team=wisconsin) pins a team's game; ?lg=ncaaf for college; ?face=in mirrors the
+     right helmet so they face each other (its letters read backwards). Without ?team: the Bears if they're
+     on, else the closest live NFL game, else the next one coming up. */
+  html, body { margin: 0; height: 100%; background: #05070d; color: #fff; overflow: hidden;
+    font-family: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif; cursor: none; }
+  #glow { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+  #wrap { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+  .side { position: absolute; top: 18vh; width: 27vw; height: 46vh; text-align: center; }
+  .side.a { left: 2vw; } .side.h { right: 2vw; }
+  .side img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain;
+    -webkit-filter: drop-shadow(0 2vh 3vh rgba(0,0,0,0.6)); filter: drop-shadow(0 2vh 3vh rgba(0,0,0,0.6)); }
+  .face-in .side.h img { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  .side .nm { position: absolute; left: 0; right: 0; bottom: -10vh; font-size: 5.5vh; font-weight: 700; letter-spacing: 0.6vw; color: rgba(255,255,255,0.55); }
+  .side .pos { display: none; position: absolute; left: 50%; bottom: -14.5vh; width: 2.2vh; height: 2.2vh; margin-left: -1.1vh; border-radius: 50%; background: #f5b800; box-shadow: 0 0 1.6vh #f5b800; }
+  .side.ball .pos { display: block; }
+  #score { position: absolute; left: 29vw; right: 29vw; top: 28vh; text-align: center; font-weight: 700; font-size: 21vh; line-height: 1; white-space: nowrap; letter-spacing: -0.5vw; }
+  #score span { display: inline-block; min-width: 13vw; }
+  #score span.a { text-align: right; } #score span.h { text-align: left; }
+  #score i { font-style: normal; color: rgba(255,255,255,0.3); margin: 0 1.2vw; font-weight: 500; }
+  #score span.pop { -webkit-animation: pop 1.2s ease-out; animation: pop 1.2s ease-out; }
+  @-webkit-keyframes pop { 0% { -webkit-transform: scale(1.35); color: #f5b800; } 100% { -webkit-transform: scale(1); color: #fff; } }
+  @keyframes pop { 0% { transform: scale(1.35); color: #f5b800; } 100% { transform: scale(1); color: #fff; } }
+  #clock { position: absolute; left: 30vw; right: 30vw; top: 57vh; text-align: center; font-size: 8vh; font-weight: 600; letter-spacing: 0.5vw; color: #f5b800; white-space: nowrap; }
+  #clock.fin { color: rgba(255,255,255,0.7); }
+  #clock b { display: inline-block; width: 1.6vh; height: 1.6vh; border-radius: 50%; background: #e23d3d; margin: 0 1.2vw 0.9vh 0; vertical-align: middle; -webkit-animation: blink 1.4s infinite; animation: blink 1.4s infinite; }
+  @-webkit-keyframes blink { 50% { opacity: 0.25; } } @keyframes blink { 50% { opacity: 0.25; } }
+  #msg { position: absolute; left: 0; right: 0; top: 45vh; text-align: center; font-size: 5vh; color: rgba(255,255,255,0.5); }
+  @media (max-aspect-ratio: 3/2) { #score { font-size: 16vh; top: 34vh; } #score span { min-width: 10vw; } .side { width: 27vw; height: 32vh; top: 28vh; } #clock { top: 55vh; font-size: 6vh; } .side .nm { font-size: 4.5vh; bottom: -8vh; } .side .pos { bottom: -11.5vh; } }
+</style>
+</head>
+<body>
+<div id="glow"></div>
+<div id="wrap">
+  <div class="side a"><img id="ha" alt=""><div class="nm" id="na"></div><i class="pos"></i></div>
+  <div class="side h"><img id="hh" alt=""><div class="nm" id="nh"></div><i class="pos"></i></div>
+  <div id="score"></div>
+  <div id="clock"></div>
+  <div id="msg">Loading&hellip;</div>
+</div>
+<script>
+var API = 'https://site.api.espn.com/apis/site/v2/sports/football/';
+var NFL_HELMETS = ' WSH ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LA LAC LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN ';
+var CH = (function () {
+  var L = 'miami (oh)=miami-oh|montana=montana|alabama a&m=alabama-am|alabama state=alabama-state|delaware state=delaware-state|florida a&m=florida-am|grambling=grambling|houston christian=houston-christian|idaho=idaho|idaho state=idaho-state|illinois state=illinois-state|incarnate word=incarnate-word|indiana state=indiana-state|jackson state=jackson-state|montana state=montana-state|north carolina a&t=north-carolina-at|north carolina central=north-carolina-central|north dakota=north-dakota|northern iowa=northern-iowa|south carolina state=south-carolina-state|south dakota state=south-dakota-state|southern illinois=southern-illinois|tarleton state=tarleton-state|tennessee state=tennessee-state|tennessee tech=tennessee-tech|texas southern=texas-southern|uc davis=uc-davis|utah tech=utah-tech|villanova=villanova|grambling state=grambling|tarleton=tarleton-state|air force=air-force|akron=akron|alabama=alabama|app state=app-state|appalachian state=app-state|arizona=arizona|arizona state=arizona-state|arkansas=arkansas|arkansas state=arkansas-state|army=army|auburn=auburn|ball state=ball-state|baylor=baylor|boise state=boise-state|boston college=boston-college|bowling green=bowling-green|buffalo=buffalo|byu=byu|california=california|central michigan=central-michigan|charlotte=charlotte|cincinnati=cincinnati|clemson=clemson|coastal carolina=coastal-carolina|colorado=colorado|colorado state=colorado-state|delaware=delaware|duke=duke|east carolina=east-carolina|eastern michigan=eastern-michigan|florida atlantic=florida-atlantic|fau=florida-atlantic|fiu=fiu|florida international=fiu|florida=florida|florida state=florida-state|fresno state=fresno-state|georgia=georgia|georgia southern=georgia-southern|georgia state=georgia-state|georgia tech=georgia-tech|hawaii=hawaii|houston=houston|illinois=illinois|indiana=indiana|iowa=iowa|iowa state=iowa-state|jacksonville state=jacksonville-state|james madison=james-madison|kansas=kansas|kansas state=kansas-state|kennesaw state=kennesaw-state|kent state=kent-state|kentucky=kentucky|liberty=liberty|louisiana=louisiana|louisiana lafayette=louisiana|louisiana-lafayette=louisiana|louisiana tech=louisiana-tech|louisville=louisville|lsu=lsu|marshall=marshall|maryland=maryland|memphis=memphis|miami hurricanes=miami-hurricanes|miami (fl)=miami-hurricanes|michigan=michigan|michigan state=michigan-state|middle tennessee=middle-tennessee|minnesota=minnesota|mississippi state=mississippi-state|missouri=missouri|missouri state=missouri-state|navy=navy|nc state=nc-state|north carolina state=nc-state|nebraska=nebraska|nevada=nevada|new mexico=new-mexico|new mexico state=new-mexico-state|north carolina=north-carolina|north dakota state=north-dakota-state|north texas=north-texas|northern illinois=northern-illinois|northwestern=northwestern|notre dame=notre-dame|ohio=ohio|ohio state=ohio-state|oklahoma=oklahoma|oklahoma state=oklahoma-state|old dominion=old-dominion|ole miss=ole-miss|oregon=oregon|oregon state=oregon-state|penn state=penn-state|pittsburgh=pittsburgh|pitt=pittsburgh|purdue=purdue|rice=rice|rutgers=rutgers|sacramento state=sacramento-state|sam houston=sam-houston|sam houston state=sam-houston|san diego state=san-diego-state|san jose state=san-jose-state|smu=smu|south alabama=south-alabama|south carolina=south-carolina|south florida=south-florida|usf=south-florida|southern miss=southern-miss|southern mississippi=southern-miss|stanford=stanford|syracuse=syracuse|tcu=tcu|temple=temple|tennessee=tennessee|texas=texas|texas a&m=texas-am|texas am=texas-am|texas state=texas-state|texas tech=texas-tech|toledo=toledo|troy=troy|tulane=tulane|tulsa=tulsa|uab=uab|ucf=ucf|ucla=ucla|uconn=uconn|connecticut=uconn|ul monroe=ul-monroe|louisiana monroe=ul-monroe|ulm=ul-monroe|louisiana-monroe=ul-monroe|umass=umass|massachusetts=umass|unlv=unlv|usc=usc|utah=utah|utah state=utah-state|utep=utep|utrgv=utrgv|utsa=utsa|vanderbilt=vanderbilt|virginia=virginia|virginia tech=virginia-tech|wake forest=wake-forest|washington=washington|washington state=washington-state|west virginia=west-virginia|western kentucky=western-kentucky|western michigan=western-michigan|wisconsin=wisconsin|wyoming=wyoming'.split('|'), out = [];
+  for (var i = 0; i < L.length; i++) { var kv = L[i].split('='); out.push([kv[0], kv[1]]); }
+  out.sort(function (a, b) { return b[0].length - a[0].length; });
+  return out;
+})();
+var Q = {};
+(function () { var p = location.search.replace(/^\?/, '').split('&'); for (var i = 0; i < p.length; i++) { var kv = p[i].split('='); if (kv[0]) Q[decodeURIComponent(kv[0]).toLowerCase()] = decodeURIComponent((kv[1] || '').replace(/\+/g, ' ')); } })();
+if (Q.face === 'in') document.body.className = 'face-in';
+var pinned = '', last = {};
+
+function $(id) { return document.getElementById(id); }
+function get(url, cb) {
+  var x = new XMLHttpRequest();
+  x.open('GET', url + (url.indexOf('?') < 0 ? '?' : '&') + '_=' + new Date().getTime(), true);
+  x.onreadystatechange = function () { if (x.readyState !== 4) return; var d = null; try { d = JSON.parse(x.responseText); } catch (e) {} cb(x.status === 200 && d ? null : 1, d); };
+  x.send();
+}
+function schoolKey(n) { return String(n || '').toLowerCase().replace(/[éè]/g, 'e').replace(/í/g, 'i').replace(/ñ/g, 'n').replace(/['’ʻ‘]/g, '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '') + ' '; }
+function helmet(t, lg) {
+  if (lg === 'nfl') {
+    var a = String(t.abbreviation || '').toUpperCase(); if (a === 'LAR') a = 'LA';
+    if (NFL_HELMETS.indexOf(' ' + a + ' ') >= 0) return 'img/helmet/' + a + '.png';
+  } else {
+    var nk = schoolKey(t.displayName);
+    for (var j = 0; j < CH.length; j++) {
+      if (nk.indexOf(CH[j][0] + ' ') !== 0) continue;
+      if (/^(state|a&m|a&t|tech|southern|christian|central|\(oh\))$/.test(nk.substr(CH[j][0].length + 1).split(' ')[0])) continue;
+      return 'img/helmet/c-' + CH[j][1] + '.png';
+    }
+  }
+  return (t.logos && t.logos[0] && t.logos[0].href) || t.logo || '';
+}
+function side(c, ha) { var L = c.competitors || []; for (var i = 0; i < L.length; i++) if (L[i].homeAway === ha) return L[i]; return {}; }
+function matches(ev, team) {
+  var c = ev.competitions[0], t = String(team).toLowerCase();
+  for (var s = 0; s < 2; s++) { var tm = (c.competitors[s] || {}).team || {};
+    if (String(tm.abbreviation || '').toLowerCase() === t || schoolKey(tm.displayName).indexOf(t + ' ') === 0 || String(tm.shortDisplayName || '').toLowerCase() === t) return true; }
+  return false;
+}
+function pick(evs) {
+  var want = Q.team || '', live = [], up = [], fin = [], i;
+  if (pinned) for (i = 0; i < evs.length; i++) if (evs[i].id === pinned && evs[i].status.type.state !== 'post') return evs[i];
+  for (i = 0; i < evs.length; i++) {
+    var e = evs[i], st = e.status.type.state;
+    if (want && !matches(e, want)) continue;
+    if (st === 'in') live.push(e); else if (st === 'pre') up.push(e); else fin.push(e);
+  }
+  if (!want) for (i = 0; i < live.length; i++) if (matches(live[i], 'chi')) return live[i];
+  var mar = function (e) { var c = e.competitions[0]; return Math.abs((+side(c, 'home').score || 0) - (+side(c, 'away').score || 0)); };
+  live.sort(function (a, b) { return mar(a) - mar(b); });
+  up.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+  fin.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+  if (live.length) return live[0];
+  if (fin.length && new Date().getTime() - new Date(fin[0].date).getTime() < 5 * 3600000) return fin[0];   // just ended: keep the final up a while
+  return up[0] || fin[0] || null;
+}
+function clockText(ev) {
+  var s = ev.status, t = s.type, per = +s.period || 0;
+  if (t.state === 'post') return { txt: (/OT/i.test(t.shortDetail || '') ? 'FINAL / OT' : 'FINAL'), fin: true };
+  if (t.state === 'pre') {
+    var d = new Date(ev.date), days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], h = d.getHours(), m = d.getMinutes();
+    var same = new Date().toDateString() === d.toDateString();
+    return { txt: (same ? 'TODAY' : days[d.getDay()]) + ' ' + ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + (h < 12 ? ' AM' : ' PM') };
+  }
+  if (/half/i.test(t.description || '') || /halftime/i.test(t.shortDetail || '')) return { txt: 'HALFTIME', live: true };
+  var q = per > 4 ? (per === 5 ? 'OT' : (per - 4) + 'OT') : ['', '1ST', '2ND', '3RD', '4TH'][per] || '';
+  if (/end of/i.test(t.detail || '')) return { txt: 'END OF ' + q, live: true };
+  return { txt: q + (q ? ' · ' : '') + (s.displayClock || ''), live: true };
+}
+function hexA(c, a) { c = String(c || '333333').replace('#', ''); if (!/^[0-9a-f]{6}$/i.test(c)) c = '333333'; return 'rgba(' + parseInt(c.substr(0, 2), 16) + ',' + parseInt(c.substr(2, 2), 16) + ',' + parseInt(c.substr(4, 2), 16) + ',' + a + ')'; }
+function show(ev, lg) {
+  if (!ev) { $('msg').innerHTML = 'No game right now'; $('msg').style.display = ''; return; }
+  $('msg').style.display = 'none';
+  if (ev.status.type.state === 'in') pinned = ev.id;
+  var c = ev.competitions[0], A = side(c, 'away'), H = side(c, 'home'), ta = A.team || {}, th = H.team || {};
+  var ua = helmet(ta, lg), uh = helmet(th, lg);
+  if ($('ha').getAttribute('src') !== ua) $('ha').src = ua;
+  if ($('hh').getAttribute('src') !== uh) $('hh').src = uh;
+  $('na').innerHTML = ta.abbreviation || ''; $('nh').innerHTML = th.abbreviation || '';
+  $('glow').style.background = 'radial-gradient(ellipse at 18% 45%, ' + hexA(ta.color, 0.55) + ', transparent 55%), radial-gradient(ellipse at 82% 45%, ' + hexA(th.color, 0.55) + ', transparent 55%), #05070d';
+  var pre = ev.status.type.state === 'pre', sa = pre ? '' : (A.score || '0'), sh = pre ? '' : (H.score || '0');
+  if (!$('score').innerHTML || last.id !== ev.id) $('score').innerHTML = '<span class="a"></span><i>' + (pre ? '@' : '–') + '</i><span class="h"></span>';
+  var sp = $('score').getElementsByTagName('span');
+  if (sp[0].innerHTML !== sa) { if (last.id === ev.id && sp[0].innerHTML !== '') { sp[0].className = 'a'; void sp[0].offsetWidth; sp[0].className = 'a pop'; } sp[0].innerHTML = sa; }
+  if (sp[1].innerHTML !== sh) { if (last.id === ev.id && sp[1].innerHTML !== '') { sp[1].className = 'h'; void sp[1].offsetWidth; sp[1].className = 'h pop'; } sp[1].innerHTML = sh; }
+  var ck = clockText(ev);
+  $('clock').className = ck.fin ? 'fin' : '';
+  $('clock').innerHTML = (ck.live ? '<b></b>' : '') + ck.txt;
+  var poss = c.situation && c.situation.possession, sides = document.querySelectorAll('.side');
+  sides[0].className = 'side a' + (poss && String(poss) === String(ta.id) && ck.live ? ' ball' : '');
+  sides[1].className = 'side h' + (poss && String(poss) === String(th.id) && ck.live ? ' ball' : '');
+  last = { id: ev.id };
+  return ev.status.type.state;
+}
+function tick() {
+  var lg = Q.lg === 'ncaaf' || Q.lg === 'college' ? 'ncaaf' : 'nfl';
+  var url = API + (lg === 'nfl' ? 'nfl/scoreboard' : 'college-football/scoreboard?groups=80&limit=300');
+  get(url, function (err, d) {
+    if (err || !d) { setTimeout(tick, 20000); return; }
+    var ev = pick(d.events || []);
+    if (!ev && lg === 'nfl' && Q.team && !Q.lg) { Q.lg = 'ncaaf'; return tick(); }   // not an NFL team: try college
+    var st = show(ev, lg);
+    setTimeout(tick, st === 'in' ? 10000 : 60000);
+  });
+}
+tick();
+</script>
+</body>
+</html>
