@@ -373,6 +373,33 @@
 
   /* =========== COLLEGE TOP 25 SCREEN =========== */
   .rank { padding: 0 0.6vw; }
+  /* NFL top performers */
+  .perf { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; padding: 0 0.4vw; -webkit-align-content: flex-start; align-content: flex-start; }
+  .perf .pf { box-sizing: border-box; width: 24.2%; height: 33vh; margin: 0 0.4% 1.4vh; background: #111a2e; border-radius: 1vh; padding: 1.8vh 1.1vw 1vh; overflow: hidden; }
+  .perf .pf:nth-child(n+5) { width: 32.53%; }
+  .perf .pfh { font-size: 2.1vh; font-weight: 800; letter-spacing: 0.25vw; color: #f5c542; margin-bottom: 1.4vh; white-space: nowrap; }
+  .perf .pftop { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-box-align: center; -webkit-align-items: center; align-items: center; margin-bottom: 1.4vh; }
+  .perf .pfph { position: relative; width: 11vh; height: 11vh; border-radius: 50%; background: #1d2943; -webkit-flex: none; flex: none; }
+  .perf .pfph img { position: absolute; left: 50%; bottom: 0; height: 100%; border-radius: 0 0 5.5vh 5.5vh; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+  .perf .pflg { position: absolute; right: -0.4vh; bottom: -0.4vh; width: 4.2vh; height: 4.2vh; }
+  .perf .pflg .logo { width: 4.2vh; height: 4.2vh; margin: 0; }
+  .perf .pfwho { -webkit-flex: 1; flex: 1; min-width: 0; padding: 0 0.6vw 0 0.9vw; }
+  .perf .pffirst { font-size: 2vh; color: #c9d1e3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .perf .pfname { font-size: 3vh; font-weight: 800; color: #fff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+  .perf .pfsub { font-size: 1.7vh; color: #a5aec4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.4vh; }
+  .perf .pfbig { font-size: 7vh; font-weight: 800; color: #fff; line-height: 1; text-align: right; -webkit-flex: none; flex: none; }
+  .perf .pfbig i { display: block; font-style: normal; font-size: 1.6vh; letter-spacing: 0.2vw; color: #a5aec4; margin-top: 0.4vh; }
+  .perf .pfr { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-box-align: center; -webkit-align-items: center; align-items: center; font-size: 2.4vh; color: #d5dbea; padding: 0.9vh 0; border-top: 1px solid #1f2a44; }
+  .perf .pfr .logo { width: 2.8vh; height: 2.8vh; margin: 0 0.6vw 0 0; }
+  .perf .pfn { width: 1.6vw; color: #7d8aa8; font-weight: 700; }
+  .perf .pfnm { -webkit-flex: 1; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .perf .pfv { font-weight: 800; color: #fff; }
+  .perf .pft { color: #7d8aa8; font-size: 1.7vh; }
+  .perf .pf:nth-child(-n+4) .pfph { width: 9vh; height: 9vh; } .perf .pf:nth-child(-n+4) .pfbig { font-size: 5.8vh; } .perf .pf:nth-child(-n+4) .pfname { font-size: 2.6vh; }
+  .narrow .perf .pf, .narrow .perf .pf:nth-child(n+5) { width: 32.53%; height: 22.5vh; padding-top: 1.3vh; }
+  .narrow .perf .pfh { margin-bottom: 0.8vh; } .narrow .perf .pftop { margin-bottom: 0.6vh; }
+  .narrow .perf .pfph { width: 7.5vh; height: 7.5vh; } .narrow .perf .pfbig { font-size: 4.8vh; } .narrow .perf .pfname { font-size: 2.3vh; }
+  .narrow .perf .pfr { font-size: 1.9vh; padding: 0.45vh 0; }
   .rkcol { float: left; width: 48.6%; }
   .rkcol + .rkcol { margin-left: 2.8%; }
   .rkrow { position: relative; height: 4.3vh; line-height: 4.3vh; padding: 0 0.8vw; border-bottom: 0.2vh solid #1b2338; white-space: nowrap; }
@@ -1594,6 +1621,7 @@ var CONFIG = {
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
   fastScreen: true,
+  topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
   crunch: true,          // football's last 2:00 of a half: one live big game -> stay on it; several -> each holds like the Bears (?crunch=0)
   clockCheck: true,      // football: catch ESPN's scoreboard clock jumping ahead, using the play-by-play (?clockcheck=0)      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
   inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
@@ -1718,6 +1746,7 @@ function readParams() {
     if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
+    if (k === 'topperf') CONFIG.topPerf = v !== '0';
     if (k === 'crunch') CONFIG.crunch = v !== '0';
     if (k === 'clockcheck') CONFIG.clockCheck = v !== '0';
     if (k === 'injuries') CONFIG.injuries = v !== '0';
@@ -2336,7 +2365,9 @@ function readExtras(ev, c) {
   if (s && ty.state === 'in') {
     var dd = s.downDistanceText || s.shortDownDistanceText;
     var who = s.possession ? abbrById[s.possession] : '';
-    if (dd) { sit = (who ? who + ' ball, ' : '') + dd + (s.isRedZone ? ' (RED ZONE)' : ''); parts.push(sit); }
+    var lpx = String((s.lastPlay && s.lastPlay.text) || ''), rzm = String(dd || '').match(/at\s+([A-Za-z&]+)\s+(\d+)\s*$/);
+    var rzx = s.isRedZone && !/touchdown|field goal|extra point|two-point|safety|kick/i.test(lpx) && !(rzm && (+rzm[2] > 20 || rzm[1].toUpperCase() === String(who || '').toUpperCase()));
+    if (dd) { sit = (who ? who + ' ball, ' : '') + dd + (rzx ? ' (RED ZONE)' : ''); parts.push(sit); }
   }
   var L = c.leaders || [];                         // football: game leaders by category
   for (i = 0; i < L.length && i < 3; i++) {
@@ -3312,15 +3343,26 @@ function recHTML(t, rk) {
   return t.rec || r ? '<span class="rec">' + r + esc(t.rec || '') + '</span>' : '';
 }
 /* which side has the ball inside the 20 (football, live), or null */
+var rzSeen = {};
 function redZoneOf(e, lg) {
   if (!e.live || (lg !== 'nfl' && lg !== 'ncaaf')) return null;
   var c = compOf(e), s = c && c.situation;
-  if (!s || !s.isRedZone) return null;
-  // right after a score ESPN often still says "red zone" until the kickoff: that's left over, not a drive
+  if (!s) return null;
+  var spot = String(s.downDistanceText || s.shortDownDistanceText || ''), key = spot + '|' + String(s.possession || '');
+  // a score: whatever situation ESPN shows at that moment is left over from the scoring drive until the next snap / kickoff
+  var tot = num(scoreOf(e, 'away')) + num(scoreOf(e, 'home')), seen = rzSeen[e.id];
+  if (!seen) seen = rzSeen[e.id] = { tot: tot, stale: '' };
+  if (tot !== seen.tot) { seen.tot = tot; seen.stale = key; }
+  if (seen.stale && seen.stale !== key) seen.stale = '';
+  if (seen.stale) return null;
+  if (!s.isRedZone || !spot) return null;
   var lp = s.lastPlay || {}, lpt = String(lp.text || '') + ' ' + String((lp.type && lp.type.text) || '');
-  if (/touchdown|field goal|extra point|two-point|2-pt|safety|kickoff|kicks? off|onside/i.test(lpt)) return null;
+  if (/touchdown|field goal|extra point|two-point|2-pt|safety|kickoff|kicks? off|onside|end of (the )?(half|quarter|game)/i.test(lpt)) return null;
   var aw = sideComp(c, 'away') || {}, side = String((aw.team || {}).id) === String(s.possession) ? 'away' : 'home';
-  return { side: side, team: e.teams[side], spot: s.downDistanceText || s.shortDownDistanceText || '' };
+  // and the ball really is inside the other team's 20 ("3rd & 5 at BAL 18")
+  var m = spot.match(/at\s+([A-Za-z&]+)\s+(\d+)\s*$/), off = e.teams[side] || {};
+  if (m && (+m[2] > 20 || String(m[1]).toUpperCase() === String(off.abbreviation || '').toUpperCase())) return null;
+  return { side: side, team: off, spot: spot };
 }
 function cardHTML(e, lg) {
   var a = e.teams.away, h = e.teams.home, sa = scoreOf(e, 'away'), sh = scoreOf(e, 'home');
@@ -3423,7 +3465,7 @@ function buildPages() {
     var lg = order[i], wg = windowGames(lg);
     if (hiddenLeague(lg)) continue;                    // WNBA regular season: close games only (they have their own screen)
     if (lg === 'nfl' && singleNflNight()) {          // one primetime game: it has its own screen; this tab = standings + leaders
-      pages = pages.concat(nflPowerPage()).concat(standingsPages(lg));
+      pages = pages.concat(perfPage()).concat(nflPowerPage()).concat(standingsPages(lg));
       var lgrp = ['off', 'def'];
       for (var lq = 0; lq < lgrp.length; lq++) {
         var anyC = false;
@@ -3436,7 +3478,7 @@ function buildPages() {
       if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
       else if (rankingsFor(lg) && !seasonOver(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
         pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
-      if (lg === 'nfl') pages = pages.concat(nflPowerPage());
+      if (lg === 'nfl') pages = pages.concat(perfPage()).concat(nflPowerPage());
       if (lg === 'epl') pages = pages.concat(eplTablePage());
       pages = pages.concat(standingsPages(lg));
       continue;
@@ -3481,7 +3523,7 @@ function buildPages() {
     if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
     else if (rankingsFor(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
       pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
-    if (lg === 'nfl') pages = pages.concat(nflPowerPage());
+    if (lg === 'nfl') pages = pages.concat(perfPage()).concat(nflPowerPage());
     if (lg === 'epl') pages = pages.concat(eplTablePage());
     pages = pages.concat(standingsPages(lg));
   }
@@ -4468,6 +4510,7 @@ function ptHTML(g, kind, lg) {
          (det.series ? '<div class="note"><b>SEASON SERIES</b>' + esc(det.series) + '</div>' : '') +
          (lg === 'nfl' && h2hText(g) ? '<div class="note"><b>LAST MEETING</b>' + esc(h2hText(g)) + '</div>' : '');
   } else if (foot && g.live && (s.downDistanceText || s.shortDownDistanceText)) {
+    var rzOk = !!(CONFIG.redZone && redZoneOf(g, lg));                 // checked: not ESPN's leftover flag after a score
     var pt = String(s.possessionText || '').match(/^([A-Z]+)\s+(\d+)$/), field = '';
     var offAway = String(s.possession) === String((ca.team || {}).id);
     if (pt || /50/.test(s.possessionText || '')) {
@@ -4483,10 +4526,10 @@ function ptHTML(g, kind, lg) {
         } else if (lpS.statYardage && !/punt|kick|penalty|no play|intercept|fumble|touchdown|field goal|extra point/i.test(String(lpS.text || '') + ' ' + ((lpS.type || {}).text || ''))) {
           arc = [offAway ? fromLeft - +lpS.statYardage : fromLeft + +lpS.statYardage, fromLeft];   // same drive: back up by the gain
         }
-        field = '<div class="field3' + (s.isRedZone ? ' rz' : '') + '">' + fieldSVG({ awayC: homeColor(a, lg), homeC: hc, los: fromLeft, fd: toGo && !/goal/i.test(s.downDistanceText || '') ? fdL : null,
+        field = '<div class="field3' + (rzOk ? ' rz' : '') + '">' + fieldSVG({ awayC: homeColor(a, lg), homeC: hc, los: fromLeft, fd: toGo && !/goal/i.test(s.downDistanceText || '') ? fdL : null,
           tgt: offAway ? 'home' : 'away', arc: arc, offC: homeColor(offAway ? a : h, lg), awayAb: a.abbreviation, homeAb: h.abbreviation }) + '</div>';
       } else
-      field = '<div class="field' + (s.isRedZone ? ' rz' : '') + '"><div class="ez' + (offAway ? '' : ' tgt') + '" style="left:0;background:#' + (homeColor(a, lg) || '33405c') + '"></div>' +
+      field = '<div class="field' + (rzOk ? ' rz' : '') + '"><div class="ez' + (offAway ? '' : ' tgt') + '" style="left:0;background:#' + (homeColor(a, lg) || '33405c') + '"></div>' +
               '<div class="ez' + (offAway ? ' tgt' : '') + '" style="right:0;background:#' + (hc || '33405c') + '"></div>' + yls +
               '<div class="los" style="left:' + X(fromLeft) + '"></div>' + (toGo && !/goal/i.test(s.downDistanceText || '') ? '<div class="fd" style="left:' + X(fdL) + '"></div>' : '') +
               '<div class="fb" style="left:' + X(fromLeft) + '"><b></b><i></i></div><div class="lab" style="left:9%">' + esc(a.abbreviation) +
@@ -4497,11 +4540,11 @@ function ptHTML(g, kind, lg) {
       var di = det.driveInfo || {}, offT = offAway ? a : h, ballOn = String(s.possessionText || '').replace(/^\s+|\s+$/g, '');
       var dn = String(s.shortDownDistanceText || s.downDistanceText || '').replace(/ at .*$/i, '');
       var cell = function (v, l) { return '<span class="dc"><b>' + esc(v === undefined || v === null || v === '' ? '–' : String(v)) + '</b><i>' + l + '</i></span>'; };
-      p2 = '<div class="drv">' + logoHTML(offT, lg) + '<div class="drt"><div class="ph">' + (s.isRedZone ? 'RED ZONE · ' : '') + 'CURRENT DRIVE</div>' +
+      p2 = '<div class="drv">' + logoHTML(offT, lg) + '<div class="drt"><div class="ph">' + (rzOk ? 'RED ZONE · ' : '') + 'CURRENT DRIVE</div>' +
            cell(dn, 'DOWN') + cell(di.start, 'START') + cell(ballOn, 'BALL ON') + cell(di.plays, 'PLAYS') + '</div></div>' + field +
            (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(wasReversed(s.lastPlay.text) ? 'After review: ' + finalText(s.lastPlay.text) : s.lastPlay.text) + '</span></div>' : '') + qtable;
     } else
-    p2 = '<div class="ph">ON THE FIELD' + (s.isRedZone ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
+    p2 = '<div class="ph">ON THE FIELD' + (rzOk ? ' · RED ZONE' : '') + '</div><div class="dd">' + esc(s.downDistanceText || s.shortDownDistanceText) +
          '<small>' + esc((who ? who + ' ball' : '') + (det.drive ? (who ? ' · ' : '') + 'Drive: ' + det.drive : '')) + '</small></div>' + field +
          (s.lastPlay && s.lastPlay.text ? '<div class="note lp"><b>LAST PLAY</b><span>' + esc(wasReversed(s.lastPlay.text) ? 'After review: ' + finalText(s.lastPlay.text) : s.lastPlay.text) + '</span></div>' : '') + qtable;
   } else {
@@ -6941,6 +6984,135 @@ function nflPowerHTML() {
   }
   return '<div class="rank pr"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
 }
+/* =========== NFL TOP PERFORMERS ===========
+   When the Sunday night game ends, a page in the NFL rotation shows the week's best: passing, rushing and
+   receiving yards, receptions, touchdowns, tackles, interceptions (from every finished game's box score,
+   Thursday on). It updates when the Monday night game ends and stays until 24 hours after that; the next
+   week starts over from Thursday. ?topperf=0 off. */
+var PERF_KEY = 'fcw_perf', perf = { at: 0, st: null };
+try { perf.st = JSON.parse(window.localStorage.getItem(PERF_KEY)); } catch (e) {}
+function perfSave() { try { window.localStorage.setItem(PERF_KEY, JSON.stringify(perf.st)); } catch (e) {} }
+var PERF_CATS = [
+  { k: 'passYds', t: 'PASSING YARDS', u: 'YDS', sub: function (p) { return p.cmp ? p.cmp + ' · ' + p.passTd + ' TD' : ''; }, tb: 'passTd' },
+  { k: 'rushYds', t: 'RUSHING YARDS', u: 'YDS', sub: function (p) { return p.car ? p.car + ' CAR · ' + p.rushTd + ' TD' : ''; }, tb: 'rushTd' },
+  { k: 'recYds', t: 'RECEIVING YARDS', u: 'YDS', sub: function (p) { return p.rec + ' REC · ' + p.recTd + ' TD'; }, tb: 'rec' },
+  { k: 'rec', t: 'RECEPTIONS', u: 'REC', sub: function (p) { return p.recYds + ' YDS'; }, tb: 'recYds' },
+  { k: 'td', t: 'TOUCHDOWNS', u: 'TD', sub: function (p) { var a = []; if (p.rushTd) a.push(p.rushTd + ' RUSH'); if (p.recTd) a.push(p.recTd + ' REC'); if (p.retTd) a.push(p.retTd + ' RET'); if (p.dTd) a.push(p.dTd + ' DEF'); return a.join(' · '); }, tb: 'scrim' },
+  { k: 'tkl', t: 'TACKLES', u: 'TKL', sub: function (p) { return p.solo + ' SOLO' + (p.sacks ? ' · ' + p.sacks + ' SK' : ''); }, tb: 'solo' },
+  { k: 'int', t: 'INTERCEPTIONS', u: 'INT', sub: function (p) { return p.intYds + ' YDS' + (p.intTd ? ' · TD' : ''); }, tb: 'intYds' }
+];
+function perfRows(data) {                        // one game's box score -> a row per player
+  var out = {}, P = (data && data.boxscore && data.boxscore.players) || [];
+  for (var t = 0; t < P.length; t++) {
+    var tm = P[t].team || {}, team = { abbreviation: tm.abbreviation || '', tid: String(tm.id || ''), logo: tm.logo || (tm.logos && tm.logos[0] && tm.logos[0].href) || '', color: tm.color || '' };
+    var cats = P[t].statistics || [];
+    for (var c = 0; c < cats.length; c++) {
+      var cat = cats[c], keys = cat.keys || [], labels = cat.labels || [], ath = cat.athletes || [];
+      var col = function (k, l) { for (var i = 0; i < keys.length; i++) if (keys[i] === k) return i; for (i = 0; i < labels.length; i++) if (String(labels[i]).toUpperCase() === l) return i; return -1; };
+      for (var a = 0; a < ath.length; a++) {
+        var at = ath[a].athlete || {}, st = ath[a].stats || [], id = String(at.id || at.displayName || '');
+        if (!id) continue;
+        var p = out[id] || (out[id] = { id: id, name: at.displayName || '', short: at.shortName || at.displayName || '', pos: (at.position && at.position.abbreviation) || '',
+          photo: (at.headshot && at.headshot.href) || '', team: team, passYds: 0, passTd: 0, cmp: '', car: 0, rushYds: 0, rushTd: 0, rec: 0, recYds: 0, recTd: 0,
+          tkl: 0, solo: 0, sacks: 0, int: 0, intYds: 0, intTd: 0, retTd: 0, dTd: 0 });
+        var v = function (k, l) { var i = col(k, l); return i >= 0 ? num(st[i]) : 0; };
+        if (cat.name === 'passing') { p.passYds = v('passingYards', 'YDS'); p.passTd = v('passingTouchdowns', 'TD'); var ci = col('completions/passingAttempts', 'C/ATT'); p.cmp = ci >= 0 ? String(st[ci]) : ''; }
+        else if (cat.name === 'rushing') { p.car = v('rushingAttempts', 'CAR'); p.rushYds = v('rushingYards', 'YDS'); p.rushTd = v('rushingTouchdowns', 'TD'); }
+        else if (cat.name === 'receiving') { p.rec = v('receptions', 'REC'); p.recYds = v('receivingYards', 'YDS'); p.recTd = v('receivingTouchdowns', 'TD'); }
+        else if (cat.name === 'defensive') { p.tkl = v('totalTackles', 'TOT'); p.solo = v('soloTackles', 'SOLO'); p.sacks = v('sacks', 'SACKS'); p.dTd = Math.max(p.dTd, v('defensiveTouchdowns', 'TD')); }
+        else if (cat.name === 'interceptions') { p.int = v('interceptions', 'INT'); p.intYds = v('interceptionYards', 'YDS'); p.intTd = v('interceptionTouchdowns', 'TD'); }
+        else if (cat.name === 'kickReturns') p.retTd += v('kickReturnTouchdowns', 'TD');
+        else if (cat.name === 'puntReturns') p.retTd += v('puntReturnTouchdowns', 'TD');
+      }
+    }
+  }
+  var rows = [];
+  for (var id2 in out) {
+    var r = out[id2]; r.dTd = Math.max(r.dTd, r.intTd);
+    r.td = r.rushTd + r.recTd + r.retTd + r.dTd; r.scrim = r.rushYds + r.recYds;
+    if (r.passYds || r.rushYds || r.rec || r.td || r.tkl || r.int) rows.push(r);
+  }
+  return rows;
+}
+function perfWindow(evs) {                      // [sunday night game, monday games] for the week
+  var snf = null, mon = [];
+  for (var i = 0; i < evs.length; i++) {
+    var d = parseDate(evs[i].date), dow = d.getDay();
+    if (dow === 0 && d.getHours() >= 18 && (!snf || d > parseDate(snf.date))) snf = evs[i];
+    if (dow === 1) mon.push(evs[i]);
+  }
+  if (!snf) for (i = 0; i < evs.length; i++) { var d2 = parseDate(evs[i].date); if (d2.getDay() === 0 && (!snf || d2 > parseDate(snf.date))) snf = evs[i]; }
+  return { snf: snf, mon: mon };
+}
+function evFinal(e) { return !!(e && e.status && e.status.type && e.status.type.state === 'post'); }
+function loadPerf(cb) {
+  var now = new Date(), t = now.getTime(), dow = now.getDay(), S = perf.st;
+  if (DEMO || !CONFIG.topPerf || !inList(CONFIG.leagues, 'nfl')) return cb();
+  if (S && S.exp && t > S.exp && !S.done) { perf.st = S = { week: S.week, stype: S.stype, done: true, games: {} }; perfSave(); }   // over: don't reopen this week
+  var active = S && S.open && !S.done, sundayNight = (dow === 0 && now.getHours() >= 17) || dow === 1 || dow === 2;
+  if (!active && !sundayNight) return cb();
+  if (t - perf.at < (active ? 4 * 60000 : 6 * 60000)) return cb();
+  perf.at = t;
+  var url = ESPN_API + 'football/nfl/scoreboard' + (active && S.week ? '?seasontype=' + S.stype + '&week=' + S.week : '');
+  getJSON(url, function (err, data) {
+    if (err || !data || !data.events) return cb();
+    var evs = data.events, wk = (data.week && data.week.number) || 0, stype = (data.season && data.season.type) || 2;
+    if (S && S.done && S.week === wk && S.stype === stype) return cb();   // this week's page already ran its 24 hours
+    if (!S || S.week !== wk || S.stype !== stype || S.done) { if (active) return cb(); S = perf.st = { week: wk, stype: stype, open: false, exp: 0, monEnd: 0, games: {} }; }
+    var w = perfWindow(evs);
+    if (w.snf && evFinal(w.snf)) S.open = true;
+    if (S.open && !S.monEnd) {
+      var monDone = w.mon.length > 0;
+      for (var i = 0; i < w.mon.length; i++) if (!evFinal(w.mon[i])) monDone = false;
+      if (monDone || (!w.mon.length && w.snf && evFinal(w.snf))) { S.monEnd = t; S.exp = t + 24 * 3600000; }
+    }
+    S.through = w.mon.length && S.monEnd ? 'mon' : 'sun';
+    var todo = [];
+    for (i = 0; i < evs.length; i++) if (evFinal(evs[i]) && !S.games[evs[i].id]) todo.push(evs[i].id);
+    if (!S.open || !todo.length) { perfSave(); return cb(); }
+    var k = 0, max = Math.min(todo.length, 5);
+    (function next() {
+      if (k >= max) { perfSave(); return cb(); }
+      var id = todo[k++];
+      getJSON(ESPN_API + 'football/nfl/summary?event=' + id, function (e2, sd) {
+        if (!e2 && sd && sd.boxscore) S.games[id] = perfRows(sd);
+        next();
+      });
+    })();
+  });
+}
+function perfLeaders() {                         // category -> top 3 players
+  var S = perf.st, all = [], out = [];
+  if (!S) return out;
+  for (var g in S.games) all = all.concat(S.games[g] || []);
+  for (var c = 0; c < PERF_CATS.length; c++) {
+    var C = PERF_CATS[c], L = [];
+    for (var i = 0; i < all.length; i++) if (all[i][C.k] > 0) L.push(all[i]);
+    L.sort(function (a, b) { return (b[C.k] - a[C.k]) || (b[C.tb] - a[C.tb]); });
+    if (L.length) out.push({ c: C, top: L.slice(0, 3), ties: L.length > 3 && L[2][C.k] === L[3][C.k] ? L.filter(function (x) { return x[C.k] === L[2][C.k]; }).length - (L[1][C.k] === L[2][C.k] ? 2 : 1) : 0 });
+  }
+  return out;
+}
+function perfPage() {
+  var S = perf.st, n = 0;
+  if (!CONFIG.topPerf || !S || !S.open || S.done || (S.exp && new Date().getTime() > S.exp)) return [];
+  for (var g in S.games) n++;
+  return n >= 2 ? [{ lg: 'nfl', perf: true, hold: CONFIG.rankHoldSec + 10, num: 'perf', of: 1, games: [] }] : [];
+}
+function perfHTML() {
+  var L = perfLeaders(), h = '';
+  for (var i = 0; i < L.length; i++) {
+    var x = L[i], p = x.top[0], C = x.c, rest = '';
+    for (var j = 1; j < x.top.length; j++) { var q = x.top[j];
+      rest += '<div class="pfr"><span class="pfn">' + (j + 1) + '</span>' + logoHTML(q.team, 'nfl') + '<span class="pfnm">' + esc(q.short) + '</span><span class="pfv">' + q[C.k] + '</span></div>'; }
+    if (x.ties > 0) rest += '<div class="pfr pft">+' + x.ties + ' more with ' + x.top[2][C.k] + '</div>';
+    h += '<div class="pf"><div class="pfh">' + C.t + '</div><div class="pftop">' +
+      '<div class="pfph">' + (p.photo ? '<img src="' + esc(p.photo) + '" alt="" onerror="this.style.display=\'none\'">' : '') + '<span class="pflg">' + logoHTML(p.team, 'nfl') + '</span></div>' +
+      '<div class="pfwho"><div class="pffirst">' + esc(String(p.name).split(' ')[0]) + '</div><div class="pfname">' + esc(String(p.name).split(' ').slice(1).join(' ') || p.name) + '</div><div class="pfsub">' + esc((p.team.abbreviation || '') + (p.pos ? ' · ' + p.pos : '')) + (C.sub(p) ? ' · ' + esc(C.sub(p)) : '') + '</div></div>' +
+      '<div class="pfbig">' + p[C.k] + '<i>' + C.u + '</i></div></div>' + rest + '</div>';
+  }
+  return '<div class="perf">' + h + '</div>';
+}
 /* =================== PREMIER LEAGUE TABLE =================== */
 var eplTable = { at: 0, rows: [] };
 function loadEplTable(cb) {
@@ -7994,6 +8166,13 @@ function renderPage() {
     try { $('cards').innerHTML = eplTableHTML(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
+  if (pg.perf) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">' + (perf.st.stype === 3 ? 'Playoffs' : 'Week ' + esc(perf.st.week)) + ' Top Performers · through ' +
+      (perf.st.through === 'mon' ? 'Monday Night' : 'Sunday Night') + '</span>';
+    try { $('cards').innerHTML = perfHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.power) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">Power Rankings · ESPN Football Power Index · as of ' + esc(timeStr(new Date(nflPower.at))) + '</span>';
@@ -8514,7 +8693,7 @@ function refreshAll() {
         'Retrying automatically&hellip;</small>';
     }
     var wait = state.failures ? 30 : (anyLive ? CONFIG.refreshLiveSec : CONFIG.refreshIdleSec);
-    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadH2h(function () { loadGolf(function () { loadEplTable(function () { loadFighters(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
+    loadTeams(function () { loadNews(function () { loadBreaking(function () { loadNflPower(function () { loadPerf(function () { loadH2h(function () { loadGolf(function () { loadEplTable(function () { loadFighters(function () { loadMajorCfb(function () { loadMajorCbb(function () { loadChampBackfill(function () { loadMissingLines(function () { loadCrawlFull(function () { loadPtDetails(function () { loadRankings(function () { loadStandings(function () { loadChiNext(function () { loadBracket(function () { loadInjuries(function () { loadNflLeaders(function () { loadIdle(function () { loadCfpConf(function () { loadSeasonCal(function () { loadCup(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
@@ -8524,7 +8703,7 @@ function refreshAll() {
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
       setTimeout(refreshAll, wait * 1000);
-    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
+    }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); }); });
   }
   next();
 }
