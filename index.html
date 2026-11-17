@@ -1593,6 +1593,7 @@ var CONFIG = {
   alwaysScreen: { nfl: ['PHI'] },   // also keep their big screen on primetime nights (without taking over like the Bears)
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
+  fastScreen: true,      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
   inactives: true,       // primetime NFL games: inactives sequence in the 3 hours before kickoff (?inactives=0 off)
   singleGameTab: true,   // one-game NFL nights: the game only on its primetime screen, NFL tab = standings + leaders (?onegame=0 off)
   favScreens: true,      // your teams' games get their own tab + big screen when no primetime game is on (?favscreen=0 off)
@@ -1714,6 +1715,7 @@ function readParams() {
     if (k === 'onegame') CONFIG.singleGameTab = v !== '0';
     if (k === 'inactives') CONFIG.inactives = v !== '0';
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
+    if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
     if (k === 'injuries') CONFIG.injuries = v !== '0';
     if (k === 'leaguelogos') CONFIG.leagueLogos = v !== '0';
     if (k === 'redzone') CONFIG.redZone = v !== '0';
@@ -4071,7 +4073,8 @@ function loadPtDetails(cb) {
     if (i >= games.length) return cb();
     var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
     var mwl = path[g.id] === 'football/college-football' ? 'ncaaf' : 'nfl';
-    var ttl = g.live ? (isMustWatch(g, mwl) && CONFIG.fastRefreshSec ? 9000 : (closeIds[g.id] ? 45000 : 25000)) : 10 * 60000;   // Bears/USC fast; CLOSE a bit gentler
+    var osg = CONFIG.fastScreen ? onScreenLive() : null;
+    var ttl = g.live ? ((isMustWatch(g, mwl) || (osg && osg.g.id === g.id)) && CONFIG.fastRefreshSec ? 9000 : (closeIds[g.id] ? 45000 : 25000)) : 10 * 60000;   // Bears/USC fast; CLOSE a bit gentler
     if (!CONFIG.primetimeDetail || !g.eid || DEMO || (c && now - c.at < ttl)) return step();
     getJSON(ESPN_API + (path[g.id] || 'football/nfl') + '/summary?event=' + g.eid, function (err, data) {
       if (!err && data) {
@@ -5824,15 +5827,47 @@ function refreshRender(jumped) {
   renderPage();
 }
 var fastBusy = false;
+function onScreenLive() {                       // the live game on the big screen right now (not at halftime), if any
+  var pg = state.pages[state.pageIndex];
+  if (!pg || !pg.pt || !pg.game || !pg.game.live || isHalftime(pg.game) || !ESPN_PATHS[pg.lg]) return null;
+  return { g: pg.game, lg: pg.lg };
+}
+function fastOne(it, cb) {                      // just that game's league + day, straight from ESPN, merged in wherever the game lives
+  var lg = it.lg, url = ESPN_API + ESPN_PATHS[lg] + '/scoreboard?dates=' + ymd(parseDate(it.g.date)).replace(/-/g, '');
+  if (lg === 'ncaaf') url += '&groups=80&limit=200';
+  if (lg === 'ncaab') url += '&groups=50&limit=400';
+  getJSON(url, function (err, data) {
+    var evs = (!err && data && data.events) || [];
+    for (var i = 0; i < evs.length; i++) {
+      if (String(evs[i].id) !== String(it.g.eid || '') && String(evs[i].id) !== String(it.g.id)) continue;
+      var ng = fromEspn(evs[i], lg);
+      if (!ng) break;
+      var lists = [state.data[lg] ? state.data[lg].games : [], lg === 'ncaab' ? tourCbb.games : [], lg === 'ncaab' ? majorCbb.games : []];
+      for (var L = 0; L < lists.length; L++) for (var b = 0; b < lists[L].length; b++) if (lists[L][b].id === ng.id) {
+        var old = lists[L][b], cp = {};
+        for (var key in ng) cp[key] = ng[key];
+        cp.open = old.open; cp.extra = old.extra; cp.sit = old.sit;
+        if (old.tourn) { cp.tourn = old.tourn; cp.tag = old.tag; cp.raw = evs[i]; }
+        if (old.raw && !cp.raw) cp.raw = evs[i];
+        lists[L][b] = cp;
+      }
+      break;
+    }
+    cb();
+  });
+}
 function fastRefresh() {
   if (!CONFIG.fastRefreshSec || fastBusy || state.refreshing || DEMO) return;
   var mw = mustWatchLive(), i = 0, days = {}, todo = [];
   for (var k = 0; k < mw.length; k++) { var dk = mw[k].lg + '|' + ymd(parseDate(mw[k].g.date)); if (!days[dk]) { days[dk] = 1; todo.push(mw[k]); } }
+  var os = CONFIG.fastScreen ? onScreenLive() : null;                // whatever's live on the big screen: every 10 s too
+  if (os && !days[os.lg + '|' + ymd(parseDate(os.g.date))]) { os.one = true; todo.push(os); }
   if (!todo.length) return;
   fastBusy = true;
   function step() {
     if (i >= todo.length) return done();
     var it = todo[i++];
+    if (it.one) return fastOne(it, step);
     espnDay(it.lg, ymd(parseDate(it.g.date)), function (err, games) {
       if (!err && games && state.data[it.lg]) {
         var cur = state.data[it.lg].games;
