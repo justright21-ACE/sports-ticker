@@ -708,6 +708,10 @@
   .ptv.done .side.lose { opacity: 0.5; -webkit-transition: opacity 0.6s 1.8s; transition: opacity 0.6s 1.8s; }
   /* big play (15+ yard run or pass): a runner sprints across, or a ball flies into a pair of hands */
   .ptv { position: relative; }
+  .ptv .ptbg { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 4; pointer-events: none; text-align: center; overflow: hidden; }
+  .ptv .ptbg img { position: absolute; left: 50%; top: 50%; height: 78%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); opacity: 0.07; }
+  .ptv .ptbg.s2 img { opacity: 0.13; }
+  .ptv .ptbg.side img { left: auto; right: -4%; top: 56%; height: 92%; opacity: 0.09; -webkit-transform: translate(0, -50%) rotate(-8deg); transform: translate(0, -50%) rotate(-8deg); }
   .ptv .bigplay { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 7; overflow: hidden; pointer-events: none; }
   .ptv .bigplay .lbl2 { position: absolute; left: 50%; top: 0.8vh; width: 70vh; margin-left: -35vh; text-align: center; font-size: 4.6vh; line-height: 6vh; font-weight: 800;
     letter-spacing: 0.4vw; color: #ffffff; border-radius: 0.8vh; -webkit-animation: ptBigLbl 2.6s ease-out 1 both; animation: ptBigLbl 2.6s ease-out 1 both; }
@@ -1642,7 +1646,8 @@ var CONFIG = {
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
   fastScreen: true,
-  ptBadges: true,        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
+  ptBadges: true,
+  bgBadge: '',           // preview: the broadcast badge faint across the NFL primetime screen (?bgbadge=1 light, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
   crunch: true,          // football's last 2:00 of a half: one live big game -> stay on it; several -> each holds like the Bears (?crunch=0)
   clockCheck: true,      // football: catch ESPN's scoreboard clock jumping ahead, using the play-by-play (?clockcheck=0)      // the live game on the big screen right now is re-checked every 10 s too, not just the Bears / USC (?fastscreen=0)
@@ -1769,6 +1774,7 @@ function readParams() {
     if (k === 'fast' && v === '0') CONFIG.fastRefreshSec = 0;
     if (k === 'fastscreen') CONFIG.fastScreen = v !== '0';
     if (k === 'badges') CONFIG.ptBadges = v !== '0';
+    if (k === 'bgbadge') CONFIG.bgBadge = v === '0' ? '' : (v === '2' ? 's2' : (v === 'side' ? 'side' : 's1'));
     if (k === 'topperf') CONFIG.topPerf = v !== '0';
     if (k === 'crunch') CONFIG.crunch = v !== '0';
     if (k === 'clockcheck') CONFIG.clockCheck = v !== '0';
@@ -8312,6 +8318,8 @@ function renderPage() {
     $('heading').innerHTML = '';
     try {
       $('cards').innerHTML = pg.lg === 'mlb' ? wsHTML(pg.game, pg.kind) : ptHTML(pg.game, pg.kind, pg.lg);
+      var bgb = CONFIG.bgBadge && pg.lg === 'nfl' ? ptBadge(pg.kind) : '', pv0 = bgb && $('cards').querySelector('.ptv');
+      if (pv0) pv0.insertAdjacentHTML('beforeend', '<div class="ptbg ' + CONFIG.bgBadge + '"><img src="img/badge/' + bgb + '.png" alt=""></div>');   // the broadcast badge, faint, over the screen
       try { fitInjuries(); } catch (e3) {}
       try { ptAnimate(pg); } catch (e2) {}
     } catch (err) {                                      // never let this screen stop the ticker
