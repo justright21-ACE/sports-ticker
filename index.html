@@ -1149,8 +1149,11 @@
   .wxi { width: 1.25em; height: 1.25em; vertical-align: -0.28em; margin-right: 0.35em; }
   .ptv .pthead .wxc { color: #e6ebf5; margin-left: 1.6vw; text-transform: none; letter-spacing: 0.05vw; }
   .wxc em, .muwx em { font-style: normal; color: #7d8aa8; margin-left: 0.5em; font-size: 0.85em; text-transform: uppercase; }
-  .ptv.mu .muwx { display: block; margin-top: 2.4vh; font-size: 3.4vh; color: #dfe6f5; white-space: nowrap; letter-spacing: 0.05vw; }
-  .ptv.mu.mlbon .muwx { margin-top: 0.8vh; font-size: 2.6vh; }
+  .ptv.mu .muwx { position: absolute; left: 32vw; right: 32vw; top: 47.6vh; z-index: 3; text-align: center; font-size: 3.2vh; color: #dfe6f5;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.05vw; }
+  .ptv.mu.mlbon .muwx { top: 20.4vh; font-size: 2.6vh; }
+  .ptv.mu:not(.is-live) .center .clk, body.mview .ptv.mu:not(.is-live) .center .clk { font-size: 3.4vh !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* before the game: the network, small, between the helmets */
+  @media (max-aspect-ratio: 3/2) { .ptv.mu .muwx { top: 37.4vh; left: 28vw; right: 28vw; font-size: 2.6vh; } }
   .ptv .pthead .r { float: right; }
   .ptv .pthead .hl { text-transform: none; color: #c9d0e0; letter-spacing: 0.05vw; }
   .ptv .pthead .hl b { margin-right: 0.6vw; }
@@ -3904,8 +3907,8 @@ function muDecorate(pg) {                       // the real helmets on the big s
     var hu = tdHelmetURL(t, pg.lg), u = hu || tdLogoURL(t);              // a helmet is mirrored to face in; a logo never is (it'd read backwards)
     if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (hu ? '' : ' lg') + (hu && sides[i] === 'home' ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
   }
-  var cen = pv.querySelector('.band .center'), mw = cen ? wxHTML(pg.game, pg.lg, 'muwx') : '';
-  if (mw) cen.insertAdjacentHTML('beforeend', mw);
+  var bnd = pv.querySelector('.band'), mw = bnd ? wxHTML(pg.game, pg.lg, 'muwx') : '';
+  if (mw) bnd.insertAdjacentHTML('beforeend', mw);                       // its own row, between the two team names
   var st = (compOf(pg.game) || {}).situation;
   if (pg.lg === 'mlb' && pg.game.live && CONFIG.mlbZone) {               // the at-bat: batter, strike zone, heat map, pitches
     pv.insertAdjacentHTML('beforeend', '<div class="mlbz"></div>');     // filled (and the layout switched) once MLB's feed answers
@@ -4775,6 +4778,12 @@ var WX_OUT = { nfl: 1, ncaaf: 1, mlb: 1, epl: 1, ucl: 1, mls: 1 };
 var WX_DOMES = { nfl: 'ATL DET NO MIN LV LAR LAC ARI DAL HOU IND', mlb: 'TB TOR MIL HOU ARI TEX MIA' };   // fixed and (usually closed) retractable roofs
 var wxGeo = {}, wxData = {};
 try { wxGeo = JSON.parse(window.localStorage.getItem('fcw_geo')) || {}; } catch (e) {}
+function wxIndoor(g, lg) {                       // basketball / hockey / fights, or a dome / usually-closed roof
+  if (!WX_OUT[lg]) return true;
+  var c = compOf(g) || {}, v = c.venue || {};
+  if (v.indoor === true) return true;
+  return v.indoor === undefined && !!WX_DOMES[lg] && (' ' + WX_DOMES[lg] + ' ').indexOf(' ' + String(g.teams.home.abbreviation || '').toUpperCase() + ' ') >= 0 && !c.neutralSite;
+}
 function wxVenue(g, lg) {
   if (!CONFIG.weather || !WX_OUT[lg] || !g || isFinal(g)) return null;
   var c = compOf(g) || {}, v = c.venue || {}, ad = v.address || {};
@@ -4882,7 +4891,7 @@ function ptHTML(g, kind, lg) {
   var ven = c.venue ? (c.venue.fullName || '') + (c.venue.address && c.venue.address.city ? ', ' + c.venue.address.city : '') : '';
   var wk = ex.week && ex.week.number ? 'Week ' + ex.week.number : '';
   var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
-  if (CONFIG.weather && wxGet(g, lg)) wx = '';                        // ours is on the header line already
+  if (CONFIG.weather && (wxGet(g, lg) || wxIndoor(g, lg))) wx = '';   // ours is on the header line already (and no weather under a roof)
   function timeouts(n) {
     if (n === undefined || n === null || isNaN(n) || pre || fin || !foot || isHalftime(g)) return '';   // halftime: both reset to 3
     var o = ''; for (var i = 0; i < 3; i++) o += '<span class="to' + (i < n ? '' : ' used') + '"></span>';
@@ -7054,7 +7063,7 @@ function wsHTML(g, kind) {
   var bc = (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || c.broadcast || '';
   var ven = c.venue ? (c.venue.fullName || '') : '';
   var wx = ex.weather ? ((ex.weather.temperature != null ? ex.weather.temperature + '° ' : '') + (ex.weather.displayValue || '')) : '';
-  if (CONFIG.weather && wxGet(g, lg)) wx = '';                        // ours is on the header line already
+  if (CONFIG.weather && (wxGet(g, lg) || wxIndoor(g, lg))) wx = '';   // ours is on the header line already (and no weather under a roof)
   var top = /^(top|mid)/i.test(g.detail || ''), batting = g.live ? (top ? 'away' : 'home') : '';
   var serNow = (c.series && c.series.summary) || g.series || '';
   var title = /WORLD SERIES/.test(g.tag || '') ? String(g.tag).replace(/\bGM\b/, 'GAME') : String((kind && kind[1]) || 'GAME DAY').toUpperCase();
