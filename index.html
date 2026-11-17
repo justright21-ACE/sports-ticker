@@ -867,6 +867,7 @@
   .bwin .bwfb { position: absolute; left: 0; top: 0; right: 0; bottom: 0; -webkit-animation: bwBob 0.55s ease-in-out 2.6s infinite alternate; animation: bwBob 0.55s ease-in-out 2.6s infinite alternate; }
   .bwin .bwfb img { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 100%; max-height: 100%; }
   .bwin .bwfig.r img { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  .bwin .bwfig.r.nf img { -webkit-transform: none; transform: none; }
   @-webkit-keyframes bwFig { 0% { -webkit-transform: translateY(115%); } 70% { -webkit-transform: translateY(-7%); } 100% { -webkit-transform: translateY(0); } }
   @keyframes bwFig { 0% { transform: translateY(115%); } 70% { transform: translateY(-7%); } 100% { transform: translateY(0); } }
   @-webkit-keyframes bwBob { from { -webkit-transform: translateY(0); } to { -webkit-transform: translateY(-3%); } }
@@ -6299,11 +6300,13 @@ var CELEBRATE = {
   'ncaaf:WIS': { name: 'BADGERS', bg: '#C5050C', st: '#ffffff', ring: '#ffffff', l1: 'BADGERS WIN!', l2: 'ON, WISCONSIN!',
                  c1: '#ffffff', s1: '#5e0003', c2: '#ffffff', s2: '#282728', conf: ['#ffffff', '#282728', '#ffd6d8', '#dadfe1'], jump: true }
 };
+var TD_FLIP_ASSET = { 'n-chargers': 'img/td/n-chargers-flip.png' };   // logos with words: a copy with the picture turned and the words still readable
 function winFigHTML(t, lg, ring) {             // the team's animal / figure jumps up in both bottom corners (the right one faces in)
   var k = tdKind(t, lg), u = k === 'logo' ? tdLogoURL(t) : (CONFIG.tdPhotos ? tdPhoto(k) : '');
   if (!u) return '';
   var im = '<img src="' + esc(u) + '" alt="" style="-webkit-filter:drop-shadow(0 0 2vh ' + ring + ');filter:drop-shadow(0 0 2vh ' + ring + ')">';
-  return '<div class="bwfig l"><div class="bwfb">' + im + '</div></div><div class="bwfig r"><div class="bwfb">' + im + '</div></div>';
+  var imR = TD_FLIP_ASSET[k] ? im.replace(esc(u), esc(TD_FLIP_ASSET[k])) : im, nf = k === 'logo' || TD_FLIP_ASSET[k] ? ' nf' : '';   // words never come out backwards
+  return '<div class="bwfig l"><div class="bwfb">' + im + '</div></div><div class="bwfig r' + nf + '"><div class="bwfb">' + imR + '</div></div>';
 }
 function primeWinCfg(t, lg) {                 // a celebration built from the team's own colors, the logo popping out big
   var look = teamLook(t, lg) || {}, hx = function (v, d) { v = String(v || d).replace('#', ''); return /^[0-9a-f]{6}$/i.test(v) ? '#' + v : '#' + d; };
