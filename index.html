@@ -3665,23 +3665,60 @@ function muPick() {
   if (fin.length && now - parseDate(fin[0].g.date).getTime() < 5 * 3600000) return fin[0];
   return up[0] || fin[0] || null;
 }
-function muFetch() {                            // a pinned school that isn't in the ticker's college list
+function muFetch() {                            // the whole college slate (a pinned school / the ABC night game may not be in the ticker's list)
   var t = new Date().getTime();
   if (t - muExtra.at < 60000) return;
   muExtra.at = t;
-  getJSON(ESPN_API + 'football/college-football/scoreboard?groups=80&limit=300', function (err, data) {
+  getJSON(ESPN_API + 'football/college-football/scoreboard?dates=' + ymd(new Date(t - 4 * 3600000)).replace(/-/g, '') + '&groups=80&limit=300', function (err, data) {
     if (err || !data) return;
     var out = [], evs = data.events || [];
     for (var i = 0; i < evs.length; i++) { var g = fromEspn(evs[i], 'ncaaf'); if (g) { g.raw = evs[i]; out.push(g); } }
     muExtra.games = out;
   });
 }
-function muPages() {
-  var x = muPick();
-  if (!x) return [];
-  if (x.g.live) muPin = x.g.id;
+/* the games the matchup view is for: NFL primetime / special games, the Bears, USC, Wisconsin, and the
+   Saturday-night college game on ABC */
+function muTv(g) {
+  var c = compOf(g) || {}, b = c.broadcasts || [], o = String(g.tv || '');
+  for (var i = 0; i < b.length; i++) o += ' ' + (b[i].names || []).join(' ') + ' ' + ((b[i].media && b[i].media.shortName) || '');
+  return o;
+}
+function muFeatured(x) {
+  var g = x.g, A = g.teams.away, H = g.teams.home;
+  if (x.lg === 'nfl') return !!ptKind(g) || muIs(A, 'chi') || muIs(H, 'chi');
+  if (muIs(A, 'usc') || muIs(H, 'usc') || muIs(A, 'wisconsin') || muIs(H, 'wisconsin')) return true;
+  var d = parseDate(g.date);
+  return d.getDay() === 6 && d.getHours() >= 17 && /\bABC\b/.test(muTv(g));
+}
+function muPage(x, hold) {
   var kind = (x.lg === 'nfl' ? ptKind(x.g) : null) || [x.lg === 'nfl' ? 'NFL' : 'NCAAF', x.lg === 'nfl' ? 'NFL' : 'College Football', 1];
-  return [{ pt: true, game: x.g, lg: x.lg, kind: kind, key: 'mu:' + x.g.id, hold: 60, num: 'mu', of: 1, games: [] }];
+  return { pt: true, game: x.g, lg: x.lg, kind: kind, key: 'mu:' + x.g.id, hold: hold, num: 'mu', of: 1, games: [] };
+}
+function muPages() {
+  var now = new Date().getTime(), i;
+  if (new Date().getDay() === 6) muFetch();                           // Saturday: the whole college slate, for the ABC night game
+  if (CONFIG.muTeam) {                                                 // ?team=: that team's game, nothing else
+    var x = muPick();
+    if (!x) return [];
+    if (x.g.live) muPin = x.g.id;
+    return [muPage(x, 60)];
+  }
+  var all = muAll(), feat = [], live = [], fin = [], up = [];
+  for (i = 0; i < all.length; i++) if (muFeatured(all[i])) feat.push(all[i]);
+  for (i = 0; i < feat.length; i++) {
+    var g = feat[i].g;
+    if (g.live) live.push(feat[i]);
+    else if (isFinal(g)) { if (now - seenFinal(g.id, now) < 45 * 60000 && now - parseDate(g.date).getTime() < 6 * 3600000) fin.push(feat[i]); }
+    else if (parseDate(g.date).getTime() > now - 3 * 3600000) up.push(feat[i]);
+  }
+  var byDate = function (a, b) { return parseDate(a.g.date) - parseDate(b.g.date) || (a.g.id < b.g.id ? -1 : 1); };
+  live.sort(byDate); fin.sort(byDate); up.sort(byDate);
+  var out = [], L = live.length ? live : fin;                          // two or more on at once: 90 s each
+  for (i = 0; i < L.length; i++) out.push(muPage(L[i], 90));
+  if (out.length) return out;
+  if (up.length) return [muPage(up[0], 60)];                           // nothing on: the next one, with its kickoff time
+  var y = muPick();                                                    // no featured game around at all: the closest live game
+  return y ? [muPage(y, 60)] : [];
 }
 function muDecorate(pg) {                       // the real helmets on the big screen's two sides, facing each other
   var pv = $('cards').querySelector('.ptv');
@@ -4261,7 +4298,7 @@ function primetimeGames() {
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
   var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')).concat(bowlGames()), i = 0, path = {};
-  if (CONFIG.view === 'matchup' && state.pages[0] && state.pages[0].pt) { if (state.pages[0].lg === 'nfl') games.push(state.pages[0].game); else cfb.push(state.pages[0].game); }
+  if (CONFIG.view === 'matchup') for (var mq = 0; mq < state.pages.length; mq++) if (state.pages[mq].pt) { if (state.pages[mq].lg === 'nfl') games.push(state.pages[mq].game); else cfb.push(state.pages[mq].game); }
   for (var j = 0; j < cfb.length; j++) { games.push(cfb[j]); path[cfb[j].id] = 'football/college-football'; }
   var cbb = closeGames('ncaab').concat(tourGames());
   for (var jb = 0; jb < cbb.length; jb++) { games.push(cbb[jb]); path[cbb[jb].id] = 'basketball/mens-college-basketball'; }
@@ -6101,7 +6138,7 @@ function fastOne(it, cb) {                      // just that game's league + day
       if (String(evs[i].id) !== String(it.g.eid || '') && String(evs[i].id) !== String(it.g.id)) continue;
       var ng = fromEspn(evs[i], lg);
       if (!ng) break;
-      var lists = [state.data[lg] ? state.data[lg].games : [], lg === 'ncaab' ? tourCbb.games : [], lg === 'ncaab' ? majorCbb.games : []];
+      var lists = [state.data[lg] ? state.data[lg].games : [], lg === 'ncaab' ? tourCbb.games : [], lg === 'ncaab' ? majorCbb.games : [], lg === 'ncaaf' ? muExtra.games : []];
       for (var L = 0; L < lists.length; L++) for (var b = 0; b < lists[L].length; b++) if (lists[L][b].id === ng.id) {
         var old = lists[L][b], cp = {};
         for (var key in ng) cp[key] = ng[key];
@@ -8940,6 +8977,12 @@ function inCrunch(g, lg) {                      // the last 2:00 of a half / the
 }
 function crunchJump() {                         // the only live big game just hit its last 2:00: go now, don't wait out this screen
   if (!CONFIG.crunch || hl.playing || tdr.on) return;
+  if (CONFIG.view === 'matchup') {
+    var cp = state.pages[state.pageIndex];
+    if (cp && cp.pt && inCrunch(cp.game, cp.lg)) return;
+    for (var q = 0; q < state.pages.length; q++) if (state.pages[q].pt && inCrunch(state.pages[q].game, state.pages[q].lg)) { if (state.rotTimer) clearTimeout(state.rotTimer); crunchCheck(); return; }
+    return;
+  }
   var big = liveBigGames(), pg = state.pages[state.pageIndex];
   if (big.length !== 1 || !inCrunch(big[0].g, big[0].lg) || (pg && pg.pt && pg.game && pg.game.id === big[0].g.id)) return;
   if (state.rotTimer) clearTimeout(state.rotTimer);
@@ -8952,6 +8995,20 @@ function liveBigGames() {                       // the different live games that
 }
 function crunchCheck() {                        // true: stay where we are (or we just moved to the crunch-time game)
   if (!CONFIG.crunch) return false;
+  if (CONFIG.view === 'matchup') {                                    // matchup view: a game in its last 2:00 holds the screen until halftime / the final
+    var cur = state.pages[state.pageIndex], ci = cur && cur.pt && inCrunch(cur.game, cur.lg) ? state.pageIndex : -1;
+    for (var q = 0; q < state.pages.length && ci < 0; q++) if (state.pages[q].pt && inCrunch(state.pages[q].game, state.pages[q].lg)) ci = q;
+    if (ci < 0) {
+      if (crunchLock.id && cur && cur.game && cur.game.id === crunchLock.id) {   // its 2:00 just ended (halftime / the final): a last look, the win
+        crunchLock = { id: '', since: 0 }; state.rotTimer = setTimeout(rotate, 25000); return true;
+      }
+      return false;
+    }
+    if (ci !== state.pageIndex) { state.pageIndex = ci; renderPage(); }
+    crunchLock = { id: state.pages[ci].game.id, since: crunchLock.since || new Date().getTime() };
+    state.rotTimer = setTimeout(rotate, 10000);
+    return true;
+  }
   var now = new Date().getTime(), pg = state.pages[state.pageIndex], big = liveBigGames();
   if (big.length === 1 && inCrunch(big[0].g, big[0].lg)) {           // the only game on: be on it, and stay
     if (!(pg && pg.pt && pg.game && pg.game.id === big[0].g.id)) { state.pageIndex = big[0].i; renderPage(); }
