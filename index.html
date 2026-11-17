@@ -8534,11 +8534,15 @@ function refreshAll() {
    it and stays until halftime / the final. With more than one, the normal rotation runs, but a game in its last
    2:00 holds as long as a Bears game (mustWatchHoldSec). ?crunch=0 off. */
 var crunchLock = { id: '', since: 0 };
-function inCrunch(g, lg) {
-  if (!g || !g.live || isHalftime(g) || (lg !== 'nfl' && lg !== 'ncaaf')) return false;
-  var d = liveDetail(g, lg), m = d.match(/^(\d+:\d+)\s*-\s*(\d+)/), per = m ? +m[2] : (+g.per || 0), sec = m ? mmss(m[1]) : clockSecs(g);
-  if (!m && /OT/i.test(d)) per = Math.max(per, 5);
-  if (per !== 2 && per < 4) return false;
+function inCrunch(g, lg) {                      // the last 2:00 of a half / the end of the game, by sport
+  var hoops = lg === 'nba' || lg === 'ncaab' || lg === 'wnba';
+  if (!g || !g.live || isHalftime(g) || !(lg === 'nfl' || lg === 'ncaaf' || hoops || lg === 'nhl')) return false;
+  var d = String(liveDetail(g, lg) || ''), m = d.match(/^(\d+:\d+|\d+(?:\.\d+)?)\s*-\s*(\d+)/), per = m ? +m[2] : (+g.per || 0);
+  var sec = m ? (m[1].indexOf(':') > 0 ? mmss(m[1]) : +m[1]) : clockSecs(g);
+  if (!m && /OT/i.test(d)) per = Math.max(per, lg === 'ncaab' ? 3 : (lg === 'nhl' ? 4 : 5));
+  if (lg === 'ncaab') { if (per < 1) return false; }                // college hoops: both halves
+  else if (lg === 'nhl') { if (per < 3) return false; }              // hockey: the 3rd period and OT
+  else if (per !== 2 && per < 4) return false;                       // football / NBA: 2nd quarter, 4th, OT
   return sec >= 0 && sec <= 120;
 }
 function crunchJump() {                         // the only live big game just hit its last 2:00: go now, don't wait out this screen
