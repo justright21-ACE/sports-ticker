@@ -397,6 +397,20 @@
   .perf .pfv { font-weight: 800; color: #fff; }
   .perf .pft { color: #7d8aa8; font-size: 1.7vh; }
   .perf .pf:nth-child(-n+4) .pfph { width: 9vh; height: 9vh; } .perf .pf:nth-child(-n+4) .pfbig { font-size: 5.8vh; } .perf .pf:nth-child(-n+4) .pfname { font-size: 2.6vh; }
+  /* league leaders, same look: 5 categories = 3 + 2, 4 = 2 x 2; the leader big, 2-5 underneath */
+  .perf.lead2 .pf, .perf.lead2 .pf:nth-child(n+5) { width: 32.53%; height: 33vh; }
+  .perf.lead2.n5 .pf:nth-child(n+4), .perf.lead2.n4 .pf, .perf.lead2.n2 .pf { width: 49.2%; }
+  .perf.lead2 .pf { padding-top: 1.4vh; } .perf.lead2 .pfh { margin-bottom: 0.9vh; }
+  .perf.lead2 .pfph, .perf.lead2 .pf:nth-child(-n+4) .pfph { width: 8.6vh; height: 8.6vh; } .perf.lead2 .pfbig, .perf.lead2 .pf:nth-child(-n+4) .pfbig { font-size: 6vh; }
+  .perf.lead2 .pfname, .perf.lead2 .pf:nth-child(-n+4) .pfname { font-size: 2.8vh; }
+  .perf.lead2 .pftop { margin-bottom: 0.6vh; }
+  .perf.lead2 .pfr { font-size: 2vh; line-height: 2.7vh; padding: 0.35vh 0; }
+  .perf.lead2 .pfr .logo { width: 2.6vh; height: 2.6vh; }
+  .perf.lead2 .pfr em { font-style: normal; font-size: 1.6vh; color: #7d8aa8; margin-left: 0.5vw; }
+  .perf .pfr.fav, .perf .pf.fav .pftop { background: rgba(245,184,0,0.12); }
+  .narrow .perf.lead2 .pf, .narrow .perf.lead2 .pf:nth-child(n+4) { width: 49.2%; height: 21.6vh; }
+  .narrow .perf.lead2 .pfr:nth-child(n+5) { display: none; }
+  .narrow .perf.lead2 .pf:nth-child(-n+4) .pfph { width: 7vh; height: 7vh; } .narrow .perf.lead2 .pf:nth-child(-n+4) .pfbig { font-size: 4.4vh; } .narrow .perf.lead2 .pf:nth-child(-n+4) .pfname { font-size: 2.3vh; }
   .narrow .perf .pf, .narrow .perf .pf:nth-child(n+5) { width: 32.53%; height: 22.5vh; padding-top: 1.3vh; }
   .narrow .perf .pfh { margin-bottom: 0.8vh; } .narrow .perf .pftop { margin-bottom: 0.6vh; }
   .narrow .perf .pfph { width: 7.5vh; height: 7.5vh; } .narrow .perf .pfbig { font-size: 4.8vh; } .narrow .perf .pfname { font-size: 2.3vh; }
@@ -6017,7 +6031,7 @@ function leaderCats(data) {
 }
 function leaderRow(l) {
   var at = l.athlete || {}, tm = at.team || l.team || {};
-  return { name: at.shortName || at.displayName || at.fullName || '', team: tm.abbreviation || '', val: l.displayValue || (l.value !== undefined ? String(l.value) : ''), ref: !at.displayName && !at.shortName && at.$ref,
+  return { name: at.shortName || at.displayName || at.fullName || '', full: at.displayName || at.fullName || '', pos: (at.position && at.position.abbreviation) || '', team: tm.abbreviation || '', val: l.displayValue || (l.value !== undefined ? String(l.value) : ''), ref: !at.displayName && !at.shortName && at.$ref,
            hs: headshotOf(at, 'nfl') || ((at.$ref || '').match(/athletes\/(\d+)/) ? headshotOf({ id: (at.$ref || '').match(/athletes\/(\d+)/)[1] }, 'nfl') : '') };
 }
 function loadNflLeaders(cb) {
@@ -6043,7 +6057,7 @@ function loadNflLeaders(cb) {
         if (j >= refs.length) return extras(cats);
         var rw = refs[j++];
         getJSON(String(rw.ref).replace(/^http:/, 'https:'), function (e2, a) {
-          if (!e2 && a) { rw.name = a.shortName || a.displayName || ''; rw.team = (a.team && a.team.abbreviation) || rw.team; rw.hs = headshotOf(a, 'nfl') || rw.hs; }
+          if (!e2 && a) { rw.name = a.shortName || a.displayName || ''; rw.full = a.displayName || rw.full; rw.pos = (a.position && a.position.abbreviation) || rw.pos; rw.team = (a.team && a.team.abbreviation) || rw.team; rw.hs = headshotOf(a, 'nfl') || rw.hs; }
           resolve();
         });
       })();
@@ -6101,19 +6115,27 @@ function statTableTop(data, statNames) {
   rows.sort(function (p, q) { return q.n - p.n; });
   return rows.slice(0, LEADER_TOP);
 }
-function leadersHTML(grp) {
-  var all = nflLeaders.cats, cats = [], html = '<div class="lead ' + (grp || 'off') + '">';
+var LEADER_UNITS = { passingYards: 'YDS', passingTouchdowns: 'TD', QBR: 'QBR', passerRating: 'RTG', rushingYards: 'YDS', rushingTouchdowns: 'TD',
+                     receivingYards: 'YDS', receivingTouchdowns: 'TD', sacks: 'SACKS', interceptions: 'INT' };
+function leadersHTML(grp) {                     // like the top performers: the leader big with his photo, 2-5 underneath
+  var all = nflLeaders.cats, cats = [], favs = favList('nfl'), html = '';
   for (var c0 = 0; c0 < all.length; c0++) if (!grp || (all[c0].grp || 'off') === grp) cats.push(all[c0]);
   for (var c = 0; c < cats.length; c++) {
-    html += '<div class="lbox"><div class="lh">' + esc(cats[c].title) + '</div>';
-    for (var r = 0; r < cats[c].rows.length; r++) {
-      var rw = cats[c].rows[r], fav = inList(favList('nfl'), String(rw.team).toUpperCase());
-      html += '<div class="lr' + (fav ? ' fav' : '') + '"><span class="ln">' + (r + 1) + '</span>' + hsHTML(rw.hs) + '<span class="lp">' + esc(rw.name) + '</span>' +
-              (rw.team ? '<span class="lt">' + esc(rw.team) + '</span>' : '') + '<span class="lv">' + esc(rw.val) + '</span></div>';
+    var R = cats[c].rows, p = R[0];
+    if (!p) continue;
+    var full = String(p.full || p.name), sp = full.indexOf(' '), first = sp > 0 && p.full ? full.substr(0, sp) : '', last = sp > 0 && p.full ? full.substr(sp + 1) : full;
+    var tm = { abbreviation: p.team }, rest = '';
+    for (var r = 1; r < R.length; r++) {
+      var q = R[r], fav = inList(favs, String(q.team).toUpperCase());
+      rest += '<div class="pfr' + (fav ? ' fav' : '') + '"><span class="pfn">' + (r + 1) + '</span>' + logoHTML({ abbreviation: q.team }, 'nfl') +
+              '<span class="pfnm">' + esc(q.name) + (q.team ? '<em>' + esc(q.team) + '</em>' : '') + '</span><span class="pfv">' + esc(q.val) + '</span></div>';
     }
-    html += '</div>';
+    html += '<div class="pf' + (inList(favs, String(p.team).toUpperCase()) ? ' fav' : '') + '"><div class="pfh">' + esc(cats[c].title) + '</div><div class="pftop">' +
+      '<div class="pfph">' + (p.hs ? '<img src="' + esc(p.hs) + '" alt="" onerror="this.style.display=\'none\'">' : '') + '<span class="pflg">' + logoHTML(tm, 'nfl') + '</span></div>' +
+      '<div class="pfwho">' + (first ? '<div class="pffirst">' + esc(first) + '</div>' : '') + '<div class="pfname">' + esc(last) + '</div><div class="pfsub">' + esc(p.team + (p.pos ? ' · ' + p.pos : '')) + '</div></div>' +
+      '<div class="pfbig">' + esc(p.val) + '<i>' + (LEADER_UNITS[cats[c].key] || '') + '</i></div></div>' + rest + '</div>';
   }
-  return html + '</div>';
+  return '<div class="perf lead2 n' + cats.length + '">' + html + '</div>';
 }
 /* =================== PRIMETIME INACTIVES ===================
    Before a primetime NFL game: a title card, then each team's logo and its inactive players. Uses the
