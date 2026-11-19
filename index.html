@@ -745,6 +745,61 @@
   .ptv.mu .mwho .mc2 { white-space: nowrap; }
   @media (max-aspect-ratio: 3/2) { .ptv.mu .mwho { width: 33vw; } .ptv.mu .mwho .mc2 { font-size: 3.6vh; } .ptv.mu .mwho .mc2 em { margin-right: 1vw; } .ptv.mu .mlist .mp { font-size: 1.9vh; } }
   .ptv.mu .mlbz { position: absolute; left: 0; right: 0; top: 31vh; bottom: 1vh; z-index: 2; }
+  /* matchup view, basketball: the band moves up, the bottom holds scorers | the court | team stats */
+  .ptv.mu.bbon .band { top: 1vh; height: 33vh; }
+  .ptv.mu.bbon .muh, .ptv.mu.bbon .muh.lg { top: 1vh; height: 17vh; } .ptv.mu.bbon .band .side .txt { top: 19vh; }
+  body.mview .ptv.mu.bbon .side .nm { font-size: 3.4vh !important; }
+  .ptv.mu.bbon .band .center { top: 1vh; } body.mview .ptv.mu.bbon .bigsc { font-size: 12vh !important; } body.mview .ptv.mu.bbon .clk { font-size: 4.2vh !important; margin-top: 0.6vh; }
+  .ptv.mu.bbon .cols { display: none; }
+  .ptv.mu .bbq { margin: 1.4vh auto 0; border-collapse: collapse; font-size: 2.3vh; color: rgba(255,255,255,0.8); }
+  .ptv.mu .bbq th { font-weight: 600; color: rgba(255,255,255,0.45); padding: 0 1vw 0.3vh; font-size: 1.8vh; }
+  .ptv.mu .bbq td { padding: 0.1vh 1vw; text-align: center; } .ptv.mu .bbq td.ab { text-align: left; font-weight: 700; color: #fff; padding-left: 0; }
+  .ptv.mu .bbq .t { color: #fff; font-weight: 800; border-left: 1px solid rgba(255,255,255,0.2); }
+  .ptv.mu .bbtl { margin-top: 1vh; font-size: 2vh; color: rgba(255,255,255,0.75); white-space: nowrap; letter-spacing: 0.1vw; }
+  .ptv.mu .bbtl .tod b { display: inline-block; width: 1.3vh; height: 1.3vh; border-radius: 50%; margin: 0 0.25vh; border: 0.2vh solid rgba(255,255,255,0.45); vertical-align: middle; }
+  .ptv.mu .bbtl .tod b.on { background: #f5b800; border-color: #f5b800; }
+  .ptv.mu .bbtl .fl { margin-left: 1.2vw; } .ptv.mu .bbtl .fl em { font-style: normal; font-weight: 800; color: #fff; }
+  .ptv.mu .bbtl .bn { margin-left: 0.8vw; background: #f5b800; color: #111; font-weight: 800; padding: 0.1vh 0.6vw; border-radius: 0.5vh; font-size: 1.7vh; }
+  .ptv.mu .bbp { position: absolute; left: 0; right: 0; top: 35vh; bottom: 1.5vh; z-index: 2; }
+  .ptv.mu .bbl, .ptv.mu .bbc, .ptv.mu .bbr { position: absolute; top: 0; bottom: 0; }
+  .ptv.mu .bbl { left: 2vw; width: 29vw; } .ptv.mu .bbr { right: 2vw; width: 29vw; } .ptv.mu .bbc { left: 33vw; width: 34vw; }
+  .ptv.mu .bbh { font-size: 2vh; font-weight: 800; letter-spacing: 0.35vw; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 1.2vh; }
+  .ptv.mu .bbpl { position: relative; height: 11.6vh; margin-bottom: 1.4vh; background: rgba(255,255,255,0.05); border-left: 0.6vh solid #888; border-radius: 0.8vh; overflow: hidden; }
+  .ptv.mu .bbph { position: absolute; left: 0; top: 0; width: 15vh; height: 100%; overflow: hidden; }
+  .ptv.mu .bbph img { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; }
+  .ptv.mu .bbpn { position: absolute; left: 16.2vh; right: 16vh; top: 2vh; white-space: nowrap; overflow: hidden; }
+  .ptv.mu .bbpn b { display: block; font-size: 2.9vh; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.mu .bbpn i { display: block; font-style: normal; font-size: 1.8vh; color: rgba(255,255,255,0.55); margin-top: 0.6vh; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.mu .bbps { position: absolute; right: 9.2vh; top: 1.6vh; width: 7vh; text-align: center; }
+  .ptv.mu .bbps.sm { right: 4.6vh; width: 4.6vh; } .ptv.mu .bbps.sm + .bbps.sm { right: 0; }
+  .ptv.mu .bbps b { display: block; font-size: 5vh; line-height: 1; color: #fff; } .ptv.mu .bbps.sm b { font-size: 2.8vh; margin-top: 1.4vh; color: rgba(255,255,255,0.85); }
+  .ptv.mu .bbps i { display: block; font-style: normal; font-size: 1.5vh; color: rgba(255,255,255,0.5); margin-top: 0.5vh; letter-spacing: 0.1vw; }
+  .ptv.mu .bbct { display: block; width: 100%; height: 48vh; }
+  .ptv.mu .bbpulse { -webkit-animation: pulse 1.6s infinite; animation: pulse 1.6s infinite; }
+  .ptv.mu .bbcap { position: relative; height: 9vh; margin-top: 1.2vh; background: rgba(255,255,255,0.06); border-radius: 0.8vh; overflow: hidden; }
+  .ptv.mu .bbcap.none { line-height: 9vh; text-align: center; font-size: 2.2vh; color: rgba(255,255,255,0.45); }
+  .ptv.mu .bbph.sm { width: 12.4vh; }
+  .ptv.mu .bbcn { position: absolute; left: 13.6vh; right: 12vh; top: 1.4vh; white-space: nowrap; overflow: hidden; }
+  .ptv.mu .bbcn b { display: block; font-size: 2.8vh; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.mu .bbcn i { display: block; font-style: normal; font-size: 1.9vh; color: rgba(255,255,255,0.6); margin-top: 0.6vh; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.mu .bbres { position: absolute; right: 1.4vh; top: 2.2vh; height: 4.6vh; line-height: 4.6vh; padding: 0 1.2vh; border-radius: 0.7vh; font-weight: 800; font-size: 2.6vh; }
+  .ptv.mu .bbres.ok { background: #3ddc84; color: #06240f; } .ptv.mu .bbres.no { background: #ff4d5e; color: #2a0006; font-size: 2.1vh; }
+  .ptv.mu .bbst { margin-bottom: 2.3vh; }
+  .ptv.mu .bbsl { position: relative; height: 4.6vh; }
+  .ptv.mu .bbsl b { position: absolute; top: 0; font-size: 3.6vh; line-height: 4.6vh; color: rgba(255,255,255,0.7); } .ptv.mu .bbsl b:first-child { left: 0; } .ptv.mu .bbsl b:last-child { right: 0; }
+  .ptv.mu .bbsl b.up { color: #fff; }
+  .ptv.mu .bbsl span { position: absolute; left: 22%; right: 22%; top: 0.3vh; text-align: center; font-size: 1.9vh; font-weight: 700; letter-spacing: 0.15vw; color: rgba(255,255,255,0.6); white-space: nowrap; }
+  .ptv.mu .bbsl span i { display: block; font-style: normal; font-weight: 400; font-size: 1.6vh; color: rgba(255,255,255,0.4); margin-top: 0.3vh; letter-spacing: 0; }
+  .ptv.mu .bbbar { height: 1.3vh; margin-top: 0.7vh; background: rgba(255,255,255,0.08); border-radius: 0.65vh; overflow: hidden; white-space: nowrap; font-size: 0; }
+  .ptv.mu .bbbar span { display: inline-block; height: 100%; }
+  .ptv.mu .bbbar span + span { border-left: 0.3vh solid #05070d; -webkit-box-sizing: border-box; box-sizing: border-box; }
+  @media (max-aspect-ratio: 3/2) { .ptv.mu .bbl { left: 1.5vw; width: 31vw; } .ptv.mu .bbr { right: 1.5vw; width: 31vw; } .ptv.mu .bbc { left: 34vw; width: 32vw; }
+    .ptv.mu .bbct { height: 30vw; }
+    .ptv.mu .bbph { width: 8.4vw; } .ptv.mu .bbpn { left: 9.2vw; right: 11.6vw; } .ptv.mu .bbps { right: 6.4vw; width: 5vw; } .ptv.mu .bbps b { font-size: 4.2vh; }
+    .ptv.mu .bbps.sm { right: 3.1vw; width: 3.2vw; } .ptv.mu .bbps.sm + .bbps.sm { right: 0; } .ptv.mu .bbps.sm b { font-size: 2.4vh; } .ptv.mu .bbps i { font-size: 1.3vh; }
+    .ptv.mu .bbpn b { font-size: 2.3vh; } .ptv.mu .bbpn i { font-size: 1.4vh; }
+    .ptv.mu .bbph.sm { width: 7vw; } .ptv.mu .bbcn { left: 7.8vw; right: 7vw; } .ptv.mu .bbcn b { font-size: 2.3vh; } .ptv.mu .bbcn i { font-size: 1.5vh; } .ptv.mu .bbres { font-size: 2.1vh; padding: 0 0.8vh; }
+    .ptv.mu .bbsl b { font-size: 3vh; } .ptv.mu .bbsl span { font-size: 1.5vh; } .ptv.mu .bbsl span i { font-size: 1.3vh; } .ptv.mu .bbtl { font-size: 1.6vh; } .ptv.mu .bbtl .tod b { width: 1vh; height: 1vh; } }
   .ptv.mu .mzone { position: absolute; left: 50%; top: 0; height: 100%; width: 60vh; margin-left: -30vh; }
   .ptv.mu .mzone svg { width: 100%; height: 100%; }
   .ptv.mu .mbat { position: absolute; top: 1vh; height: 64vh; width: 35vh; } .ptv.mu .mbat svg { width: 100%; height: 100%; }
@@ -1741,6 +1796,7 @@ var CONFIG = {
   ptBadges: true,
   pageBar: true,
   weather: true,         // game-time weather (outdoor games, not domes) on the big screens and the matchup view, from Open-Meteo (?weather=0)
+  bbPanel: true,         // matchup view, basketball: top scorers, the last shot on a court, team stats, quarters, timeouts / fouls (?bbpanel=0)
   mlbZone: true,         // matchup view, baseball: the at-bat from MLB's live feed (batter, strike zone, hot / cold zones, pitches) (?mlbzone=0)         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
   bgBadge: 's1',         // the broadcast badge faint across the NFL primetime screen (?bgbadge=0 off, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
@@ -1877,6 +1933,7 @@ function readParams() {
     if (k === 'pbar') CONFIG.pageBar = v !== '0';
     if (k === 'weather') CONFIG.weather = v !== '0';
     if (k === 'mlbzone') CONFIG.mlbZone = v !== '0';
+    if (k === 'bbpanel') CONFIG.bbPanel = v !== '0';
     if (k === 'bgbadge') CONFIG.bgBadge = v === '0' ? '' : (v === '2' ? 's2' : (v === 'side' ? 'side' : 's1'));
     if (k === 'topperf') CONFIG.topPerf = v !== '0';
     if (k === 'crunch') CONFIG.crunch = v !== '0';
@@ -4000,6 +4057,15 @@ function muDecorate(pg) {                       // the real helmets on the big s
   var bnd = pv.querySelector('.band'), mw = bnd ? wxHTML(pg.game, pg.lg, 'muwx') : '';
   if (mw) bnd.insertAdjacentHTML('beforeend', mw);                       // its own row, between the two team names
   var st = (compOf(pg.game) || {}).situation;
+  var bbd = ptDetail[pg.game.eid] && ptDetail[pg.game.eid].bb;
+  if ((pg.lg === 'nba' || pg.lg === 'ncaab') && CONFIG.bbPanel && bbd && (pg.game.live || isFinal(pg.game))) {   // scorers, the last shot on a court, team stats
+    pv.className += ' bbon';
+    var ctr = pv.querySelector('.band .center');
+    if (ctr) ctr.insertAdjacentHTML('beforeend', bbLineHTML(pg.game, pg.lg));
+    var bper = +(((compOf(pg.game) || {}).status || pg.game.raw && pg.game.raw.status || {}).period) || bbd.per;
+    for (var bs = 0; bs < 2; bs++) { var btx = pv.querySelector('.band .side.' + sides[bs] + ' .txt'); if (btx) btx.insertAdjacentHTML('beforeend', bbTeamLine(bbd, sides[bs], bper, pg.game.live)); }
+    pv.insertAdjacentHTML('beforeend', bbPanelHTML(pg.game, pg.lg, bbd));
+  }
   if (pg.lg === 'mlb' && pg.game.live && CONFIG.mlbZone) {               // the at-bat: batter, strike zone, heat map, pitches
     pv.insertAdjacentHTML('beforeend', '<div class="mlbz"></div>');     // filled (and the layout switched) once MLB's feed answers
     mlbDraw(pg.game); mlbLoad(pg.game);
@@ -4623,6 +4689,7 @@ function loadPtDetails(cb) {
         det.snap = lastSnap(data);
         det.videos = parseVideos(data);
         det.box = perfRows(data);                                        // every player's line: the leaders panels pick the best games
+        if (/^basketball\//.test(path[g.id] || '')) det.bb = bbParse(data, g, /college/.test(path[g.id]) ? 'ncaab' : (/wnba/.test(path[g.id]) ? 'wnba' : 'nba'));
         det.leaders = {};
         var tl = data.leaders || [];
         for (var u = 0; u < tl.length; u++) if (tl[u].team && tl[u].team.id) det.leaders[tl[u].team.id] = tl[u].leaders || [];
@@ -4640,6 +4707,182 @@ function loadPtDetails(cb) {
     });
   }
   step();
+}
+/* Basketball, from ESPN's game summary: each player's line, the last shots (ESPN puts every shot on
+   the court in feet: x 0-50 across, y out from the rim, which sits at (25, 0)), and the team fouls and
+   timeouts counted from the play-by-play. */
+function bbParse(data, g, lg) {
+  var out = { lg: lg, players: [], byId: {}, shots: [], fouls: { away: 0, home: 0 }, late: { away: 0, home: 0 }, tos: { away: [0, 0], home: [0, 0] }, per: 0, clk: '' };
+  var sideOf = function (tid) { tid = String(tid || ''); return tid && tid === String(g.teams.away.tid) ? 'away' : (tid && tid === String(g.teams.home.tid) ? 'home' : ''); };
+  var P = (data && data.boxscore && data.boxscore.players) || [], t, a, k;
+  for (t = 0; t < P.length; t++) {
+    var tid = String((P[t].team && P[t].team.id) || ''), cat = (P[t].statistics || [])[0] || {};
+    var keys = cat.keys || cat.names || [], labels = cat.labels || [], ath = cat.athletes || [];
+    var col = function (kk, l) { for (var i = 0; i < keys.length; i++) if (keys[i] === kk) return i; for (i = 0; i < labels.length; i++) if (String(labels[i]).toUpperCase() === l) return i; return -1; };
+    var iP = col('points', 'PTS'), iR = col('rebounds', 'REB'), iA = col('assists', 'AST'), iF = col('fieldGoalsMade-fieldGoalsAttempted', 'FG'), i3 = col('threePointFieldGoalsMade-threePointFieldGoalsAttempted', '3PT');
+    for (a = 0; a < ath.length; a++) {
+      var at = ath[a].athlete || {}, st = ath[a].stats || [];
+      if (!at.id || !st.length) continue;
+      var p = { id: String(at.id), name: at.displayName || '', short: at.shortName || at.displayName || '', photo: (at.headshot && at.headshot.href) || '', jersey: at.jersey || '',
+                tid: tid, side: sideOf(tid), pts: iP >= 0 ? num(st[iP]) : 0, reb: iR >= 0 ? num(st[iR]) : 0, ast: iA >= 0 ? num(st[iA]) : 0,
+                fg: iF >= 0 ? String(st[iF]) : '', tp: i3 >= 0 ? String(st[i3]) : '' };
+      out.players.push(p); out.byId[p.id] = p;
+    }
+  }
+  var pl = (data && data.plays) || [], last = pl.length ? pl[pl.length - 1] : null;
+  out.per = last && last.period ? +last.period.number || 0 : 0;
+  out.clk = last && last.clock ? last.clock.displayValue || '' : '';
+  var col2 = lg === 'ncaab', half = function (n) { return col2 ? (n <= 1 ? 1 : 2) : n; }, curH = half(out.per);
+  var names = { away: [], home: [] }, sd;
+  for (sd in names) { var tm = g.teams[sd] || {}, cand = [tm.abbreviation, tm.loc, tm.short, tm.name, nickname(tm.name)]; for (k = 0; k < cand.length; k++) if (cand[k] && String(cand[k]).length > 2) names[sd].push(String(cand[k]).toUpperCase()); }
+  var byName = function (txt) { txt = String(txt || '').toUpperCase(); for (var s in names) for (var j = 0; j < names[s].length; j++) if (txt.indexOf(names[s][j]) === 0 || txt.indexOf(' ' + names[s][j] + ' ') >= 0) return s; return ''; };
+  for (k = 0; k < pl.length; k++) {
+    var x = pl[k], ty = String((x.type && x.type.text) || ''), per = x.period ? +x.period.number || 0 : 0, side = sideOf(x.team && x.team.id);
+    if (/timeout/i.test(ty) && !/official|tv|media/i.test(ty + ' ' + (x.text || ''))) {
+      side = side || byName(x.text);
+      if (side) out.tos[side][col2 ? (per <= 1 ? 0 : 1) : (per <= 2 ? 0 : 1)]++;
+      continue;
+    }
+    if (/foul/i.test(ty) && side && half(per) === curH && !(lg !== 'ncaab' && /offensive|charge|technical|3.?sec|three.?sec|delay/i.test(ty))) {
+      out.fouls[side]++;
+      var fc = String((x.clock && x.clock.displayValue) || ''), fs = mmss(fc);
+      if (fs < 0 && /^\d+(\.\d+)?$/.test(fc)) fs = parseFloat(fc);          // under a minute the clock reads 45.3
+      if (!col2 && fs >= 0 && fs <= 120) out.late[side]++;
+      continue;
+    }
+    if (!x.shootingPlay || /free ?throw/i.test(ty + ' ' + (x.text || ''))) continue;
+    var c = x.coordinate || {}, cx = +c.x, cy = +c.y;
+    if (isNaN(cx) || isNaN(cy) || cx < -5 || cx > 55 || cy < -10 || cy > 95) continue;     // a play ESPN didn't place
+    var who = x.participants && x.participants[0] && x.participants[0].athlete && String(x.participants[0].athlete.id || '');
+    var made = !!x.scoringPlay, tx = String(x.text || ''), ptsA = +x.pointsAttempted || (/three point|3-pt|3pt/i.test(tx + ty) ? 3 : 2);
+    out.shots.push({ x: cx, y: cy, made: made, pts: ptsA, side: side, who: who || '', name: (tx.match(/^(.+?)\s+(makes|misses|made|missed|blocks?)\b/i) || [])[1] || '',
+                     ty: ty, per: per, clk: (x.clock && x.clock.displayValue) || '', ft: +((tx.match(/(\d+)-foot/) || [])[1]) || Math.round(Math.sqrt((cx - 25) * (cx - 25) + cy * cy)), blk: /block/i.test(tx) });
+  }
+  if (out.shots.length > 12) out.shots = out.shots.slice(out.shots.length - 12);
+  return out;
+}
+function bbPerLabel(n, lg) {
+  var reg = lg === 'ncaab' ? 2 : 4;
+  if (n > reg) return (n - reg > 1 ? (n - reg) : '') + 'OT';
+  return lg === 'ncaab' ? (n === 1 ? '1ST HALF' : '2ND HALF') : 'Q' + n;
+}
+function bbHead(p, lg) {                          // a bigger headshot than the round ones in the lists
+  var u = p ? headshotOf({ id: p.id, headshot: p.photo }, lg) : '';
+  return String(u).replace('w=132&h=96', 'w=264&h=192');
+}
+/* timeouts left: the NBA gives 7 a game (2 more each overtime); men's college 4, no more than 3 of them into the second half, 1 more each overtime */
+function bbTimeouts(bb, side, per) {
+  var u = bb.tos[side], ot;
+  if (bb.lg === 'ncaab') { ot = Math.max(0, per - 2); return { left: per >= 2 ? Math.max(0, Math.min(4 - u[0], 3) - u[1] + ot) : Math.max(0, 4 - u[0]), max: 4 + ot }; }
+  ot = Math.max(0, per - 4); return { left: Math.max(0, 7 + 2 * ot - u[0] - u[1]), max: 7 + 2 * ot };
+}
+/* the other team's fouls put this one in the bonus: NBA on the 5th team foul of a quarter (4th in OT, the 2nd in a quarter's last
+   two minutes); men's college on the 7th of a half (double bonus on the 10th) */
+function bbBonus(bb, side, per) {
+  var o = side === 'away' ? 'home' : 'away', f = bb.fouls[o];
+  if (bb.lg === 'ncaab') return f >= 10 ? 'DOUBLE BONUS' : (f >= 7 ? 'BONUS' : '');
+  return f >= (per > 4 ? 4 : 5) || bb.late[o] >= 2 ? 'BONUS' : '';
+}
+/* the half court, rim at the top: 10 units a foot, ESPN's (x, y) lands at (10x, 52.5 + 10y) */
+function bbCourtSVG(g, lg, bb, s) {
+  var col = lg === 'ncaab', kw = col ? 60 : 80, r3 = col ? 221.5 : 237.5, cx3 = col ? 33.5 : 30, cy3 = col ? 99 : 142;
+  var hc = barColor(g.teams.home, lg) || '8a94a8', L = 'rgba(255,255,255,0.42)';
+  var o = '<svg class="bbct" viewBox="0 0 500 470" preserveAspectRatio="xMidYMid meet">' +
+    '<defs><radialGradient id="bbfl" cx="50%" cy="20%" r="85%"><stop offset="0" stop-color="#1d2740"/><stop offset="1" stop-color="#0b1020"/></radialGradient></defs>' +
+    '<rect x="2" y="2" width="496" height="466" rx="6" fill="url(#bbfl)" stroke="' + L + '" stroke-width="4"/>' +
+    '<rect x="' + (250 - kw) + '" y="2" width="' + (2 * kw) + '" height="188" fill="#' + hc + '" fill-opacity="0.22" stroke="' + L + '" stroke-width="4"/>' +
+    '<path d="M190 190 A60 60 0 0 0 310 190" fill="none" stroke="' + L + '" stroke-width="4"/>' +
+    '<path d="M190 190 A60 60 0 0 1 310 190" fill="none" stroke="' + L + '" stroke-width="3" stroke-dasharray="10 10"/>' +
+    '<path d="M' + cx3 + ' 2 L' + cx3 + ' ' + cy3 + ' A' + r3 + ' ' + r3 + ' 0 0 0 ' + (500 - cx3) + ' ' + cy3 + ' L' + (500 - cx3) + ' 2" fill="none" stroke="' + L + '" stroke-width="4"/>' +
+    '<path d="M210 40 L210 52.5 A40 40 0 0 0 290 52.5 L290 40" fill="none" stroke="' + L + '" stroke-width="3"/>' +
+    '<path d="M190 468 A60 60 0 0 1 310 468" fill="none" stroke="' + L + '" stroke-width="4"/>' +
+    '<line x1="220" y1="40" x2="280" y2="40" stroke="#ffffff" stroke-width="5"/>' +
+    '<circle cx="250" cy="52.5" r="8" fill="none" stroke="#ff7a1a" stroke-width="4"/>';
+  var pos = function (sh) { return { x: Math.max(14, Math.min(486, sh.x * 10)), y: Math.max(14, Math.min(456, 52.5 + sh.y * 10)) }; };
+  var sc = { away: barColor(g.teams.away, lg) || 'cfd6e6', home: hc };
+  for (var i = 0; i < bb.shots.length - 1; i++) {                       // the shots before it, faint
+    var e = bb.shots[i], q = pos(e), cc = '#' + (sc[e.side] || 'cfd6e6');
+    o += e.made ? '<circle cx="' + q.x + '" cy="' + q.y + '" r="8" fill="' + cc + '" fill-opacity="0.55"/>'
+                : '<path d="M' + (q.x - 7) + ' ' + (q.y - 7) + ' L' + (q.x + 7) + ' ' + (q.y + 7) + ' M' + (q.x + 7) + ' ' + (q.y - 7) + ' L' + (q.x - 7) + ' ' + (q.y + 7) + '" stroke="' + cc + '" stroke-opacity="0.55" stroke-width="4"/>';
+  }
+  if (s) {                                                               // the last one: the ball, and its flight to the rim
+    var p = pos(s), rc = s.made ? '#3ddc84' : '#ff4d5e';
+    o += '<line x1="' + p.x + '" y1="' + p.y + '" x2="250" y2="52.5" stroke="#ffffff" stroke-opacity="0.75" stroke-width="3.5" stroke-dasharray="9 8"/>' +
+      '<circle class="bbpulse" cx="' + p.x + '" cy="' + p.y + '" r="30" fill="none" stroke="' + rc + '" stroke-width="5"/>' +
+      '<circle cx="' + p.x + '" cy="' + p.y + '" r="17" fill="#f08a24" stroke="#5a2a00" stroke-width="2.5"/>' +
+      '<path d="M' + (p.x - 17) + ' ' + p.y + ' L' + (p.x + 17) + ' ' + p.y + ' M' + p.x + ' ' + (p.y - 17) + ' L' + p.x + ' ' + (p.y + 17) +
+        ' M' + (p.x - 11) + ' ' + (p.y - 13) + ' Q' + (p.x - 3) + ' ' + p.y + ' ' + (p.x - 11) + ' ' + (p.y + 13) +
+        ' M' + (p.x + 11) + ' ' + (p.y - 13) + ' Q' + (p.x + 3) + ' ' + p.y + ' ' + (p.x + 11) + ' ' + (p.y + 13) + '" fill="none" stroke="#5a2a00" stroke-width="2.2"/>';
+  }
+  return o + '</svg>';
+}
+function bbShotLine(s) {                          // "26-ft 3-pointer", "14-ft pullup jump shot", "driving layup"
+  var ty = String(s.ty || '').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s+shot$/i, '').replace(/^\s+|\s+$/g, '').toLowerCase() || 'shot';
+  if (s.pts === 3) return (s.ft ? s.ft + '-ft ' : '') + '3-pointer';
+  return (s.ft > 3 ? s.ft + '-ft ' : '') + ty;
+}
+function bbPanelHTML(g, lg, bb) {
+  var A = g.teams.away, H = g.teams.home, cA = '#' + (barColor(A, lg) || 'cfd6e6'), cH = '#' + (barColor(H, lg) || '8a94a8');
+  // top scorers: two a team
+  var top = function (side) { var r = []; for (var i = 0; i < bb.players.length; i++) if (bb.players[i].side === side) r.push(bb.players[i]);
+    r.sort(function (x, y) { return y.pts - x.pts || y.reb + y.ast - x.reb - x.ast; }); return r.slice(0, 2); };
+  var left = '<div class="bbh">TOP SCORERS</div>';
+  var sides = ['away', 'home'];
+  for (var si = 0; si < 2; si++) {
+    var t = g.teams[sides[si]], tp = top(sides[si]), pc = '#' + panelColor(t, lg);
+    for (var j = 0; j < tp.length; j++) {
+      var p = tp[j], hs = bbHead(p, lg);
+      left += '<div class="bbpl" style="border-left-color:' + (si ? cH : cA) + '"><span class="bbph" style="background:' + pc + '">' + (hs ? '<img src="' + esc(hs) + '" onerror="this.style.display=\'none\'" alt="">' : '') + '</span>' +
+        '<span class="bbpn"><b>' + esc(p.short || p.name) + '</b><i>' + (p.fg ? esc(p.fg) + ' FG' : esc(t.abbreviation)) + (p.tp && !/^0-0$/.test(p.tp) ? ' · ' + esc(p.tp) + ' 3PT' : '') + '</i></span>' +
+        '<span class="bbps"><b>' + p.pts + '</b><i>PTS</i></span><span class="bbps sm"><b>' + p.reb + '</b><i>REB</i></span><span class="bbps sm"><b>' + p.ast + '</b><i>AST</i></span></div>';
+    }
+  }
+  // the court and the last shot
+  var s = bb.shots.length ? bb.shots[bb.shots.length - 1] : null, mid = bbCourtSVG(g, lg, bb, s), cap = '';
+  if (s) {
+    var sp = s.who && bb.byId[s.who], st = g.teams[s.side] || {}, shs = sp ? bbHead(sp, lg) : '';
+    cap = '<div class="bbcap"><span class="bbph sm" style="background:#' + panelColor(st, lg) + '">' + (shs ? '<img src="' + esc(shs) + '" onerror="this.style.display=\'none\'" alt="">' : '') + '</span>' +
+      '<span class="bbcn"><b>' + esc((sp && (sp.short || sp.name)) || s.name || 'Last shot') + '</b><i>' + esc(bbShotLine(s)) + ' · ' + esc(bbPerLabel(s.per, lg)) + (s.clk ? ' ' + esc(s.clk) : '') + '</i></span>' +
+      '<span class="bbres ' + (s.made ? 'ok' : 'no') + '">' + (s.made ? (s.pts === 3 ? '+3' : '+2') : (s.blk ? 'BLOCKED' : 'MISS')) + '</span></div>';
+  } else cap = '<div class="bbcap none">No shots charted yet</div>';
+  // team stats: split bars, away on the left like the logos
+  var sa = (ptDetail[g.eid] && ptDetail[g.eid].stats) || {}, xa = sa[A.tid] || {}, xh = sa[H.tid] || {};
+  var rows = [['FIELD GOAL %', 'fieldGoalPct', 'fieldGoalsMade-fieldGoalsAttempted'], ['3-POINT %', 'threePointFieldGoalPct', 'threePointFieldGoalsMade-threePointFieldGoalsAttempted'],
+              ['REBOUNDS', 'totalRebounds', ''], ['TURNOVERS', 'turnovers', ''], ['ASSISTS', 'assists', '']];
+  var right = '<div class="bbh">TEAM STATS</div>';
+  for (var r = 0; r < rows.length; r++) {
+    var va = xa[rows[r][1]], vh = xh[rows[r][1]];
+    if (rows[r][1] === 'turnovers') { if (va === undefined) va = xa.totalTurnovers; if (vh === undefined) vh = xh.totalTurnovers; }
+    if (va === undefined && vh === undefined) continue;
+    var na = num(va), nh = num(vh), tot = na + nh, wa = tot ? Math.round(na / tot * 100) : 50, low = rows[r][1] === 'turnovers';
+    var better = na === nh ? '' : ((na > nh) !== low ? 'a' : 'h'), pct = /Pct$/.test(rows[r][1]);
+    right += '<div class="bbst"><div class="bbsl"><b class="' + (better === 'a' ? 'up' : '') + '">' + esc(va === undefined ? '–' : va + (pct ? '%' : '')) + '</b>' +
+      '<span>' + rows[r][0] + (rows[r][2] && xa[rows[r][2]] ? '<i>' + esc(xa[rows[r][2]]) + ' · ' + esc(xh[rows[r][2]] || '') + '</i>' : '') + '</span>' +
+      '<b class="' + (better === 'h' ? 'up' : '') + '">' + esc(vh === undefined ? '–' : vh + (pct ? '%' : '')) + '</b></div>' +
+      '<div class="bbbar"><span style="width:' + wa + '%;background:' + cA + '"></span><span style="width:' + (100 - wa) + '%;background:' + cH + '"></span></div></div>';
+  }
+  return '<div class="bbp"><div class="bbl">' + left + '</div><div class="bbc"><div class="bbh">LAST SHOT</div>' + mid + cap + '</div><div class="bbr">' + right + '</div></div>';
+}
+/* quarter by quarter, under the clock */
+function bbLineHTML(g, lg) {
+  var c = compOf(g) || {}, cs = c.competitors || [], ca = {}, ch = {};
+  for (var i = 0; i < cs.length; i++) { if (cs[i].homeAway === 'home') ch = cs[i]; else ca = cs[i]; }
+  var reg = lg === 'ncaab' ? 2 : 4, la = ca.linescores || [], lh = ch.linescores || [], n = Math.max(reg, la.length, lh.length), th = '<th></th>', ra = '', rh = '';
+  for (var q = 0; q < n; q++) {
+    th += '<th>' + (q < reg ? q + 1 : (q - reg ? 'OT' + (q - reg + 1) : 'OT')) + '</th>';
+    var va = la[q] ? (la[q].displayValue !== undefined ? la[q].displayValue : la[q].value) : null, vh = lh[q] ? (lh[q].displayValue !== undefined ? lh[q].displayValue : lh[q].value) : null;
+    ra += '<td>' + (va === null || va === undefined ? '–' : esc(va)) + '</td>'; rh += '<td>' + (vh === null || vh === undefined ? '–' : esc(vh)) + '</td>';
+  }
+  return '<table class="bbq"><tr>' + th + '<th class="t">T</th></tr><tr><td class="ab">' + esc(g.teams.away.abbreviation) + '</td>' + ra + '<td class="t">' + esc(scoreOf(g, 'away')) + '</td></tr>' +
+    '<tr><td class="ab">' + esc(g.teams.home.abbreviation) + '</td>' + rh + '<td class="t">' + esc(scoreOf(g, 'home')) + '</td></tr></table>';
+}
+/* under each team's name: timeouts left as dots, team fouls this period, BONUS */
+function bbTeamLine(bb, side, per, live) {
+  if (!live) return '';
+  var tl = bbTimeouts(bb, side, per), d = '';
+  for (var i = 0; i < tl.max; i++) d += '<b' + (i < tl.left ? ' class="on"' : '') + '></b>';
+  var bn = bbBonus(bb, side, per);
+  return '<div class="bbtl"><span class="tod">' + d + '</span><span class="fl">FOULS <em>' + bb.fouls[side] + '</em></span>' + (bn ? '<span class="bn">' + bn + '</span>' : '') + '</div>';
 }
 /* Timeouts from ESPN's own play-by-play: every charged timeout this game, as { per, side }. The
    scoreboard's homeTimeouts / awayTimeouts can lag behind, so the big screen also counts them
