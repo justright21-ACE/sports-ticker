@@ -5780,7 +5780,7 @@ function detectJump() {
   }
   for (i = 0; i < ftg.length; i++) {
     var g = ftg[i].g, lg = ftg[i].lg;
-    if (lg === 'ncaab' && g.tourn) {                                // tournament hoops: only the winner's jump
+    if ((lg === 'ncaab' && g.tourn) || ((lg === 'nba' || lg === 'nhl') && (CELEBRATE[lg + ':' + g.teams.away.abbreviation] || CELEBRATE[lg + ':' + g.teams.home.abbreviation]))) {   // tournament hoops / Bulls, Spurs, Hawks: only the winner's jump
       var wt = evTrack[g.id], won = !!winFor(g, lg);
       if (!hit && won && CONFIG.celebrate && !winShown[g.id] && (wt ? !wt.won : winFresh(g, lg))) hit = { id: g.id, was: wt || {}, why: 'win' };
       next[g.id] = { lg: lg, fin: isFinal(g), won: won, close: false, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
@@ -6750,8 +6750,17 @@ var CELEBRATE = {
   'ncaaf:USC': { name: 'TROJANS', bg: '#990000', st: '#FFC72C', ring: '#FFC72C', l1: 'TROJANS WIN!', l2: 'FIGHT ON!',
                  c1: '#FFC72C', s1: '#4a0000', c2: '#ffffff', s2: '#4a0000', conf: ['#FFC72C', '#ffffff', '#ffdf80', '#ff6b6b'], hand: true },
   'ncaaf:WIS': { name: 'BADGERS', bg: '#C5050C', st: '#ffffff', ring: '#ffffff', l1: 'BADGERS WIN!', l2: 'ON, WISCONSIN!',
-                 c1: '#ffffff', s1: '#5e0003', c2: '#ffffff', s2: '#282728', conf: ['#ffffff', '#282728', '#ffd6d8', '#dadfe1'], jump: true }
+                 c1: '#ffffff', s1: '#5e0003', c2: '#ffffff', s2: '#282728', conf: ['#ffffff', '#282728', '#ffd6d8', '#dadfe1'], jump: true },
+  /* Bulls, Spurs, Blackhawks: only on their own big screen (when they have one that day); never makes one */
+  'nba:CHI':   { name: 'BULLS', bg: '#CE1141', st: '#000000', ring: '#000000', l1: 'BULLS WIN!', l2: 'BULLS WIN!',
+                 c1: '#ffffff', s1: '#000000', c2: '#000000', s2: '#ffffff', conf: ['#000000', '#ffffff', '#ff4d6d', '#CE1141'], screenOnly: true },
+  'nba:SA':    { name: 'SPURS', bg: '#000000', st: '#C4CED4', ring: '#C4CED4', l1: 'SPURS WIN!', l2: 'GO SPURS GO!',
+                 c1: '#ffffff', s1: '#5b6770', c2: '#C4CED4', s2: '#000000', conf: ['#C4CED4', '#ffffff', '#8a8d8f', '#000000'], screenOnly: true },
+  'nhl:CHI':   { name: 'BLACKHAWKS', bg: '#CF0A2C', st: '#000000', ring: '#FFD100', l1: 'HAWKS WIN!', l2: 'HAWKS WIN!',
+                 c1: '#ffffff', s1: '#000000', c2: '#FFD100', s2: '#000000', conf: ['#000000', '#ffffff', '#FFD100', '#00833E'], screenOnly: true }
 };
+TD_ANIMALS.nba = { CHI: 'logo', SA: 'logo' };    // their logos jump up in the celebration's corners (never mirrored)
+TD_ANIMALS.nhl = { CHI: 'logo' };
 var TD_FLIP_ASSET = { 'n-chargers': 'img/td/n-chargers-flip.png' };   // logos with words: a copy with the picture turned and the words still readable
 function winFigHTML(t, lg, ring) {             // the team's animal / figure jumps up in both bottom corners (the right one faces in)
   var k = tdKind(t, lg), u = k === 'logo' ? tdLogoURL(t) : (CONFIG.tdPhotos ? tdPhoto(k) : '');
