@@ -3981,6 +3981,8 @@ function muPages() {
   for (i = 0; i < L.length; i++) out.push(muPage(L[i], 90));
   if (out.length) return out;
   var gd = CONFIG.gotd ? gotdPick() : null;                            // no football on: the game of the day
+  var tonight = up.length && ymd(parseDate(up[0].g.date)) === ymd(new Date()) ? up[0] : null;
+  if (tonight && !(gd && gd.g.live && parseDate(tonight.g.date).getTime() - now > 60 * 60000)) return [muPage(tonight, 60)];   // football later today beats it (a live game of the day keeps the screen until the hour before kickoff)
   if (gd) return [muPage(gd, 60)];
   if (up.length) return [muPage(up[0], 60)];                           // nothing on: the next one, with its kickoff time
   if (off) return [];
