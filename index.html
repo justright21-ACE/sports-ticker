@@ -734,7 +734,7 @@
   .ptv.mu .field3 .fsvg { height: 27vh; }
   .ptv.mu .ptbg { z-index: 0; } .ptv.mu .band, .ptv.mu .cols { z-index: 1; }
   .ptv.mu .muh.lg { top: 8vh; height: 32vh; }                           /* a team logo (NBA / MLB, a school without a helmet) */
-  .ptv.mu.mu-nba .band { top: 14vh; }                                   /* basketball: no field, so everything sits in the middle */
+  .ptv.mu.mu-nba .band, .ptv.mu.mu-nhl .band, .ptv.mu.mu-ncaab .band, .ptv.mu.mu-epl .band, .ptv.mu.mu-ucl .band { top: 14vh; }   /* no field: everything sits in the middle */
   /* baseball at-bat: score up top, the zone in the middle, the batter on his side of the plate, him + the pitches on the other */
   .ptv.mu.mlbon .band { top: 1vh; height: 30vh; }
   .ptv.mu.mlbon .muh, .ptv.mu.mlbon .muh.lg { top: 1vh; height: 18vh; } .ptv.mu.mlbon .band .side .txt { top: 20vh; }
@@ -1733,7 +1733,10 @@ var CONFIG = {
   mustWatchHoldSec: 300,
   fastRefreshSec: 10,
   fastScreen: true,
-  view: '',              // 'matchup' (matchup.html / ?view=matchup): one game full screen, helmets facing in, score, clock, field, and every animation
+  view: '',
+  gotd: true,            // matchup view: with no featured football on, the game of the day (?gotd=0: the next football game instead)
+  gotdPin: '',           // ?gotdpin=duke: make that team's game today's game of the day
+  sportRank: ['nfl', 'ncaaf', 'nba', 'ncaab', 'mlb', 'nhl', 'ucl', 'epl'],   // the game of the day's tie-breaker between sports (?sportrank=nba,mlb,...)              // 'matchup' (matchup.html / ?view=matchup): one game full screen, helmets facing in, score, clock, field, and every animation
   muTeam: '',            // matchup: ?team=CHI / ?team=wisconsin pins a team's game
   ptBadges: true,
   pageBar: true,
@@ -1845,6 +1848,9 @@ function readParams() {
     if (k === 'wnba') CONFIG.wnbaCloseOnly = v !== 'all';
     if (k === 'view' && v === 'matchup') CONFIG.view = 'matchup';
     if (k === 'team' && v) CONFIG.muTeam = v.toLowerCase();
+    if (k === 'gotd') CONFIG.gotd = v !== '0';
+    if (k === 'gotdpin' && v) CONFIG.gotdPin = v.toLowerCase();
+    if (k === 'sportrank' && v) CONFIG.sportRank = v.toLowerCase().split(',');
     if (k === 'cbb' && v) CONFIG.cbb = v.toLowerCase();
     if (k === 'cbbgood') CONFIG.cbbGood = v !== '0';
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
@@ -3696,7 +3702,7 @@ function muAll() {
   add(state.data.ncaaf && state.data.ncaaf.games, 'ncaaf');
   try { add(cfbGames(), 'ncaaf'); add(bowlGames(), 'ncaaf'); } catch (e) {}
   add(muExtra.games, 'ncaaf');
-  if (footballOff(new Date()) || CONFIG.muTeam) { add(state.data.nba && state.data.nba.games, 'nba'); add(state.data.mlb && state.data.mlb.games, 'mlb'); }
+  if (CONFIG.muTeam) { add(state.data.nba && state.data.nba.games, 'nba'); add(state.data.mlb && state.data.mlb.games, 'mlb'); add(state.data.nhl && state.data.nhl.games, 'nhl'); add(state.data.ncaab && state.data.ncaab.games, 'ncaab'); }
   return out;
 }
 function muIs(t, q) {
@@ -3751,9 +3757,91 @@ function muFeatured(x) {
   var d = parseDate(g.date);
   return d.getDay() === 6 && d.getHours() >= 17 && /\bABC\b/.test(muTv(g));
 }
+/* =========== GAME OF THE DAY (matchup view, when no featured football game is on) ===========
+   One game for the whole day, picked once (when the day's scores are in) and then locked:
+     1. one of your teams in the postseason      2. a title game (NBA Finals, Stanley Cup Final, World Series,
+     Final Four / national title, a cup final)   3. one of your teams      4. any other playoff / tournament game
+     5. the best matchup (ranked vs ranked, the best records, national TV)
+   Ties go to the sport ranked higher (CONFIG.sportRank, ?sportrank=nba,mlb,...), then the better matchup.
+   When it's over (45 min after the final) the next one on the day's list takes over. */
+var GOTD_KEY = 'fcw_gotd', gotd = null, gotdBoot = new Date().getTime();
+try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
+var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
+function gotdDay() { return ymd(new Date(new Date().getTime() - 4 * 3600000)); }
+function gotdPool() {                                   // every head-to-head game today in the ranked sports (not football)
+  var out = [], seen = {}, R = CONFIG.sportRank, today = gotdDay();
+  var add = function (L, lg) {
+    for (var i = 0; i < (L || []).length; i++) { var g = L[i]; if (!g || seen[g.id] || !g.teams || !g.teams.away || !g.teams.home) continue;
+      if (ymd(new Date(parseDate(g.date).getTime() - 4 * 3600000)) !== today) continue;
+      if (/postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
+      seen[g.id] = 1; out.push({ g: g, lg: lg }); }
+  };
+  for (var r = 0; r < R.length; r++) {
+    var lg = R[r];
+    if (lg === 'nfl' || lg === 'ncaaf' || !inList(CONFIG.leagues, lg)) continue;
+    add(state.data[lg] && state.data[lg].games, lg);
+    if (lg === 'ncaab') { add(tourCbb.games, lg); add(majorCbb.games, lg); }
+  }
+  return out;
+}
+function gotdFav(g, lg) {
+  var L = (CONFIG.favorites[lg] || []).concat(GOTD_FAVS[lg] || []);
+  return inList(L, g.teams.away.abbreviation) || inList(L, g.teams.home.abbreviation);
+}
+function gotdTitle(g, lg) {
+  var t = String(g.tag || '').toUpperCase();
+  if (g.tourn && g.tourn.ncaa >= 5) return true;
+  if (/NBA FINALS|^FINALS|WORLD SERIES|STANLEY CUP FINAL|FINAL FOUR|NATIONAL CHAMPIONSHIP/.test(t)) return true;
+  return (lg === 'ucl' || lg === 'epl') && /\bFINAL\b/.test(t) && !/SEMI|QUARTER/.test(t);
+}
+function gotdPct(rec) { var m = String(rec || '').match(/^\s*(\d+)-(\d+)(?:-(\d+))?/); if (!m) return 0.5; var w = +m[1], l = +m[2] + (+m[3] || 0); return w + l ? w / (w + l) : 0.5; }
+function gotdQuality(g, lg) {                           // how good the matchup is, about 0-100
+  var A = g.teams.away, H = g.teams.home, q;
+  if (lg === 'ncaab') q = (A.rank ? 26 - A.rank : 0) + (H.rank ? 26 - H.rank : 0) + (A.rank && H.rank ? 30 : 0);
+  else { var pa = gotdPct(A.rec), ph = gotdPct(H.rec); q = (pa + ph) * 30 + Math.min(pa, ph) * 40; }
+  if (g.ntv || /\b(ESPN|ABC|TNT|NBC|CBS|FOX|TBS|PRIME|PEACOCK|TRUTV|FS1)\b/i.test(String(g.tv || ''))) q += 15;
+  return q;
+}
+function gotdTier(g, lg) {
+  var fav = gotdFav(g, lg), post = !!(g.post || g.tourn);
+  if (fav && post) return 0;
+  if (gotdTitle(g, lg)) return 1;
+  if (fav) return 2;
+  if (post) return 3;
+  return 4;
+}
+function gotdReady() {                                  // every ranked, in-season sport has its scores, or it's been 2 minutes
+  if (new Date().getTime() - gotdBoot > 120000) return true;
+  var R = CONFIG.sportRank;
+  for (var i = 0; i < R.length; i++) if (R[i] !== 'nfl' && R[i] !== 'ncaaf' && inList(CONFIG.leagues, R[i]) && !seasonOver(R[i]) && !state.data[R[i]]) return false;
+  return true;
+}
+function gotdPick() {                                   // today's game: the locked list's first game that isn't over
+  var day = gotdDay(), pool = gotdPool(), byId = {}, i;
+  for (i = 0; i < pool.length; i++) byId[pool[i].g.id] = pool[i];
+  if (!gotd || gotd.day !== day || (gotd.pin || '') !== (CONFIG.gotdPin || '') || gotd.rank !== CONFIG.sportRank.join(',')) {   // a new day, or the ranking / pin changed
+    if (!pool.length || !gotdReady()) return null;
+    var R = CONFIG.sportRank, sr = function (lg) { for (var k = 0; k < R.length; k++) if (R[k] === lg) return k; return 99; };
+    for (i = 0; i < pool.length; i++) { pool[i].t = gotdTier(pool[i].g, pool[i].lg); pool[i].q = gotdQuality(pool[i].g, pool[i].lg); }
+    pool.sort(function (a, b) { return (a.t - b.t) || (sr(a.lg) - sr(b.lg)) || (b.q - a.q) || (parseDate(a.g.date) - parseDate(b.g.date)); });
+    var order = [];
+    if (CONFIG.gotdPin) for (i = 0; i < pool.length; i++) if (muIs(pool[i].g.teams.away, CONFIG.gotdPin) || muIs(pool[i].g.teams.home, CONFIG.gotdPin)) order.push(pool[i].g.id);
+    for (i = 0; i < pool.length; i++) if (order.indexOf(pool[i].g.id) < 0) order.push(pool[i].g.id);
+    gotd = { day: day, order: order, pin: CONFIG.gotdPin || '', rank: CONFIG.sportRank.join(',') };
+    try { window.localStorage.setItem(GOTD_KEY, JSON.stringify(gotd)); } catch (e) {}
+  }
+  var now = new Date().getTime();
+  for (i = 0; i < gotd.order.length; i++) {
+    var x = byId[gotd.order[i]];
+    if (!x) continue;
+    if (isFinal(x.g) && now - seenFinal(x.g.id, now) > 45 * 60000) continue;    // over: the next one on the list
+    return x;
+  }
+  return null;
+}
 function muPage(x, hold) {
-  var LN = { nfl: 'NFL', ncaaf: 'College Football', nba: 'NBA', mlb: 'MLB' };
-  var kind = (x.lg === 'nfl' ? ptKind(x.g) : null) || [x.lg === 'ncaaf' ? 'NCAAF' : LN[x.lg], LN[x.lg], 1];
+  var LN = { nfl: 'NFL', ncaaf: 'College Football', nba: 'NBA', mlb: 'MLB', nhl: 'NHL', ncaab: 'College Basketball', epl: 'Premier League', ucl: 'Champions League' };
+  var kind = (x.lg === 'nfl' ? ptKind(x.g) : null) || [x.lg === 'ncaaf' ? 'NCAAF' : String(LN[x.lg] || x.lg).toUpperCase(), LN[x.lg] || x.lg, 1];
   return { pt: true, game: x.g, lg: x.lg, kind: kind, key: 'mu:' + x.g.id, hold: hold, num: 'mu', of: 1, games: [] };
 }
 function muPages() {
@@ -3766,7 +3854,7 @@ function muPages() {
     return [muPage(x, 60)];
   }
   var all = muAll(), feat = [], live = [], fin = [], up = [], off = footballOff(new Date());
-  for (i = 0; i < all.length; i++) if (muFeatured(all[i]) && (off ? all[i].lg === 'nba' || all[i].lg === 'mlb' : all[i].lg === 'nfl' || all[i].lg === 'ncaaf')) feat.push(all[i]);
+  for (i = 0; i < all.length; i++) if (muFeatured(all[i]) && (all[i].lg === 'nfl' || all[i].lg === 'ncaaf')) feat.push(all[i]);
   for (i = 0; i < feat.length; i++) {
     var g = feat[i].g;
     if (g.live) live.push(feat[i]);
@@ -3778,6 +3866,8 @@ function muPages() {
   var out = [], L = live.length ? live : fin;                          // two or more on at once: 90 s each
   for (i = 0; i < L.length; i++) out.push(muPage(L[i], 90));
   if (out.length) return out;
+  var gd = CONFIG.gotd ? gotdPick() : null;                            // no football on: the game of the day
+  if (gd) return [muPage(gd, 60)];
   if (up.length) return [muPage(up[0], 60)];                           // nothing on: the next one, with its kickoff time
   if (off) return [];
   var y = muPick();                                                    // no featured game around at all: the closest live game
@@ -4488,7 +4578,7 @@ function primetimeGames() {
 /* ESPN's detailed game feed: team stats, current drive, season series */
 function loadPtDetails(cb) {
   var games = primetimeGames().concat(closeGames('nfl')), cfb = cfbGames().concat(closeGames('ncaaf')).concat(bowlGames()), i = 0, path = {};
-  var MUPATH = { nba: 'basketball/nba', mlb: 'baseball/mlb' };
+  var MUPATH = { nba: 'basketball/nba', mlb: 'baseball/mlb', nhl: 'hockey/nhl', ncaab: 'basketball/mens-college-basketball', epl: 'soccer/eng.1', ucl: 'soccer/uefa.champions' };
   if (CONFIG.view === 'matchup') for (var mq = 0; mq < state.pages.length; mq++) if (state.pages[mq].pt) {
     var mpg = state.pages[mq];
     if (mpg.lg === 'nfl') games.push(mpg.game); else if (mpg.lg === 'ncaaf') cfb.push(mpg.game);
