@@ -804,6 +804,23 @@
     .ptv.mu .bbpn b { font-size: 2.3vh; } .ptv.mu .bbpn i { font-size: 1.4vh; }
     .ptv.mu .bbph.sm { width: 7vw; } .ptv.mu .bbcn { left: 7.8vw; right: 7vw; } .ptv.mu .bbcn b { font-size: 2.3vh; } .ptv.mu .bbcn i { font-size: 1.5vh; } .ptv.mu .bbres { font-size: 2.1vh; padding: 0 0.8vh; }
     .ptv.mu .bbsl b { font-size: 3vh; } .ptv.mu .bbsl span { font-size: 1.5vh; } .ptv.mu .bbsl span i { font-size: 1.3vh; } .ptv.mu .bbtl { font-size: 1.6vh; } .ptv.mu .bbtl .tod b { width: 1vh; height: 1vh; } }
+  .ptv.mu .mhit { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+  .ptv.mu .mhfield { position: absolute; left: 1.5vw; top: 0; width: 62vw; height: 100%; }
+  .ptv.mu .mhfly { -webkit-animation: mhfly 1.8s ease-out 0.3s forwards; animation: mhfly 1.8s ease-out 0.3s forwards; }
+  @-webkit-keyframes mhfly { to { stroke-dashoffset: 0; } } @keyframes mhfly { to { stroke-dashoffset: 0; } }
+  .ptv.mu .mhland { -webkit-animation: pulse 1.6s infinite; animation: pulse 1.6s infinite; }
+  .ptv.mu .mhinfo { position: absolute; right: 2vw; top: 1vh; width: 32vw; }
+  .ptv.mu .mhwho { white-space: nowrap; } .ptv.mu .mhwho img { width: 10vh; height: 10vh; border-radius: 50%; background: #1d2943; object-fit: cover; vertical-align: middle; margin-right: 1vw; }
+  .ptv.mu .mhwho div { display: inline-block; vertical-align: middle; } .ptv.mu .mhwho b { display: block; font-size: 3.8vh; color: #fff; } .ptv.mu .mhwho i { display: block; font-style: normal; font-size: 2vh; letter-spacing: 0.2vw; color: #a5aec4; margin-top: 0.4vh; }
+  .ptv.mu .mhres { margin-top: 2.2vh; font-size: 7vh; font-weight: 900; letter-spacing: 0.2vw; line-height: 1; color: #fff; }
+  .ptv.mu .mhit.hr .mhres { color: #f5b800; } .ptv.mu .mhit.hit .mhres { color: #3ddc84; } .ptv.mu .mhit.out .mhres { color: #ff6b6b; } .ptv.mu .mhit.err .mhres { color: #ff9f43; }
+  .ptv.mu .mhtraj { margin-top: 0.8vh; font-size: 2.2vh; letter-spacing: 0.35vw; color: #a5aec4; }
+  .ptv.mu .mhts { margin-top: 2.6vh; white-space: nowrap; }
+  .ptv.mu .mht { display: inline-block; vertical-align: top; width: 31%; margin-right: 2%; padding: 1.4vh 0; text-align: center; background: rgba(255,255,255,0.06); border-radius: 1vh; }
+  .ptv.mu .mht b { display: block; font-size: 5vh; line-height: 1; color: #fff; } .ptv.mu .mht b small { font-size: 2vh; color: #a5aec4; font-weight: 700; }
+  .ptv.mu .mht i { display: block; font-style: normal; font-size: 1.6vh; letter-spacing: 0.15vw; color: #a5aec4; margin-top: 0.8vh; }
+  .ptv.mu .mhd { margin-top: 2.4vh; font-size: 2.3vh; line-height: 1.35; color: #d5dbea; }
+  @media (max-aspect-ratio: 3/2) { .ptv.mu .mhfield { width: 58vw; } .ptv.mu .mhinfo { width: 36vw; } .ptv.mu .mhres { font-size: 5.4vh; } .ptv.mu .mht b { font-size: 3.3vh; } .ptv.mu .mht b small { font-size: 1.6vh; } .ptv.mu .mht i { font-size: 1.3vh; } .ptv.mu .mhwho b { font-size: 3vh; } }
   .ptv.mu .mzone { position: absolute; left: 50%; top: 0; height: 100%; width: 60vh; margin-left: -30vh; }
   .ptv.mu .mzone svg { width: 100%; height: 100%; }
   .ptv.mu .mbat { position: absolute; top: 1vh; height: 64vh; width: 35vh; } .ptv.mu .mbat svg { width: 100%; height: 100%; }
@@ -1802,6 +1819,7 @@ var CONFIG = {
   weather: true,         // game-time weather (outdoor games, not domes) on the big screens and the matchup view, from Open-Meteo (?weather=0)
   quickStart: true,      // a reload comes up straight away with the last scores while fresh ones load (?quickstart=0)
   bbPanel: true,         // matchup view, basketball: top scorers, the last shot on a court, team stats, quarters, timeouts / fouls (?bbpanel=0)
+  mlbHit: true,          // matchup view, baseball: after a ball in play, its flight on a 3D ballpark, exit velo / angle / distance (?mlbhit=0)
   mlbZone: true,         // matchup view, baseball: the at-bat from MLB's live feed (batter, strike zone, hot / cold zones, pitches) (?mlbzone=0)         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
   bgBadge: 's1',         // the broadcast badge faint across the NFL primetime screen (?bgbadge=0 off, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
   topPerf: true,         // NFL: the week's top performers page, from the end of the Sunday night game to 24 h after Monday night (?topperf=0)
@@ -1938,6 +1956,7 @@ function readParams() {
     if (k === 'pbar') CONFIG.pageBar = v !== '0';
     if (k === 'weather') CONFIG.weather = v !== '0';
     if (k === 'mlbzone') CONFIG.mlbZone = v !== '0';
+    if (k === 'mlbhit') CONFIG.mlbHit = v !== '0';
     if (k === 'bbpanel') CONFIG.bbPanel = v !== '0';
     if (k === 'quickstart') CONFIG.quickStart = v !== '0';
     if (k === 'bgbadge') CONFIG.bgBadge = v === '0' ? '' : (v === '2' ? 's2' : (v === 'side' ? 'side' : 's1'));
@@ -3995,7 +4014,8 @@ function muPages() {
    result (ball green, strike red, in play blue), drawn from the pitcher's side like Gameday. */
 var MLB_API = 'https://statsapi.mlb.com/api/', mlbPk = {}, mlbAB = {}, mlbHot = {};
 var MLB_FIELDS = 'liveData,plays,currentPlay,allPlays,matchup,batter,id,fullName,batSide,code,pitcher,pitchHand,batterHotColdZones,zone,color,temp,value,' +
-                 'playEvents,isPitch,pitchNumber,details,call,description,type,isBall,isStrike,isInPlay,pitchData,startSpeed,strikeZoneTop,strikeZoneBottom,coordinates,pX,pZ,count,balls,strikes,outs';
+                 'playEvents,isPitch,pitchNumber,details,call,description,type,isBall,isStrike,isInPlay,pitchData,startSpeed,strikeZoneTop,strikeZoneBottom,coordinates,pX,pZ,count,balls,strikes,outs,' +
+                 'hitData,launchSpeed,launchAngle,totalDistance,trajectory,coordX,coordY,result,event,about,inning,halfInning,atBatIndex,startTime,endTime';
 function mlbName(n) { return String(n || '').toLowerCase().replace(/[^a-z]/g, ''); }
 function mlbLoad(g) {                                 // the game's MLB id (once), then the current at-bat every ~8 s
   var id = g.id, t = new Date().getTime(), ab = mlbAB[id];
@@ -4035,10 +4055,114 @@ function mlbLoad(g) {                                 // the game's MLB id (once
     if (!all.length) { pc = P.length; for (var c2 = 0; c2 < P.length; c2++) if (P[c2].r !== 'b') ps++; }
     ab.pc = pc; ab.ps = ps;
     ab.top = top || 3.4; ab.bot = bot || 1.6; ab.p = P; ab.count = cp.count || {};
+    ab.hit = mlbHitOf(cp);                                              // a ball in play: the hit tracker, until the next batter sees a pitch
+    if (!ab.hit && !P.length) {
+      var prev = null, ix = cp.about && cp.about.atBatIndex;
+      for (var a3 = all.length - 1; a3 >= 0 && !prev; a3--) { var ai = all[a3].about && all[a3].about.atBatIndex; if (ix === undefined ? all[a3] !== cp && a3 < all.length - 1 : ai === ix - 1) prev = all[a3]; }
+      var h1 = mlbHitOf(prev);
+      if (h1 && (!h1.t || new Date().getTime() - h1.t < 4 * 60000)) ab.hit = h1;
+    }
     if (m.batterHotColdZones && m.batterHotColdZones.length) mlbHot[ab.batter.id] = m.batterHotColdZones;
     else mlbHotLoad(ab.batter.id);
     mlbDraw(g);
   });
+}
+/* =========== HIT TRACKER (matchup view, baseball) ===========
+   After a ball in play, until the next batter sees a pitch: the ball's flight on a ballpark seen from high behind
+   home plate, where it landed, and how hard / high / far it was hit. From MLB's live feed (hitData: exit velocity,
+   launch angle, distance, the spot on Gameday's field, home plate at (125.42, 198.27), about 2.5 ft a unit).
+   ?mlbhit=0 off. */
+function mlbHitOf(pl) {
+  var pe = (pl && pl.playEvents) || [], h = null;
+  for (var q = pe.length - 1; q >= 0 && !h; q--) if (pe[q].hitData && pe[q].details && pe[q].details.isInPlay) h = pe[q];
+  if (!h) return null;
+  var hd = h.hitData, co = hd.coordinates || {}, rs = pl.result || {}, bt = (pl.matchup && pl.matchup.batter) || {}, abt = pl.about || {};
+  var x = co.coordX === undefined ? null : 2.5 * (+co.coordX - 125.42), y = co.coordY === undefined ? null : 2.5 * (198.27 - +co.coordY);
+  return { id: bt.id, name: bt.fullName || '', ev: rs.event || '', desc: rs.description || '', ls: +hd.launchSpeed || 0,
+           la: hd.launchAngle === undefined ? null : +hd.launchAngle, dist: +hd.totalDistance || 0, traj: String(hd.trajectory || ''), x: x, y: y,
+           inn: abt.inning ? (abt.halfInning === 'top' ? 'TOP ' : 'BOT ') + ordinal(abt.inning) : '', t: Date.parse(h.endTime || h.startTime || '') || 0,
+           key: (pl.about && pl.about.atBatIndex) + ':' + (h.startTime || '') };
+}
+function mlbHitKind(h) {                          // gold for a homer, green for a hit, red for an out
+  var e = String(h.ev || '').toLowerCase();
+  if (/home run/.test(e)) return 'hr';
+  if (/single|double|triple/.test(e)) return 'hit';
+  if (/error/.test(e)) return 'err';
+  return e ? 'out' : 'play';
+}
+var mlbHitSeen = {};
+function mlbFieldSVG(h, anim) {
+  var f = 640, d0 = 160, cam = 120, hz = 12, cx = 500;
+  var P = function (X, Y, Z) { var dd = Math.max(Y + d0, 30); return [cx + f * X / dd, hz + f * (cam - (Z || 0)) / dd]; };
+  var pt = function (a) { return a[0].toFixed(1) + ',' + a[1].toFixed(1); };
+  var fence = function (phi) { return 330 + 70 * Math.cos(2 * phi); };          // a generic park: 330 down the lines, 400 to center
+  var poly = function (arr) { var o = []; for (var i = 0; i < arr.length; i++) o.push(pt(arr[i])); return o.join(' '); };
+  var arc = function (r0, z, n) { var o = []; for (var i = 0; i <= n; i++) { var ph = -Math.PI / 4 + (Math.PI / 2) * i / n, r = r0 === null ? fence(ph) : r0(ph); o.push(P(r * Math.sin(ph), r * Math.cos(ph), z)); } return o; };
+  var grass = [P(0, 0)].concat(arc(null, 0, 40));
+  var track = arc(function (ph) { return fence(ph) - 14; }, 0, 40), trackOut = arc(null, 0, 40);
+  var wallTop = arc(null, 11, 40), wallBot = arc(null, 0, 40);
+  var dirt = [P(0, 0)], i;
+  for (i = 0; i <= 30; i++) { var th = -1.253 + 2.506 * i / 30; dirt.push(P(95 * Math.sin(th), 60.5 + 95 * Math.cos(th))); }   // out to the foul lines
+  var diam = [P(0, 13), P(56, 63.6), P(0, 120), P(-56, 63.6)];
+  var circ = function (X, Y, r) { var o = []; for (var k = 0; k < 24; k++) { var a = k / 24 * 2 * Math.PI; o.push(P(X + r * Math.cos(a), Y + r * Math.sin(a))); } return o; };
+  var base = function (X, Y) { return '<polygon points="' + poly([P(X, Y - 1.8), P(X + 1.8, Y), P(X, Y + 1.8), P(X - 1.8, Y)]) + '" fill="#ffffff"/>'; };
+  var o = '<svg class="mhfield" viewBox="90 0 820 548" preserveAspectRatio="xMidYMid meet">' +
+    '<defs><linearGradient id="mhg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c5a2e"/><stop offset="1" stop-color="#2f8a45"/></linearGradient>' +
+    '<radialGradient id="mhsky" cx="50%" cy="0%" r="90%"><stop offset="0" stop-color="#1b2a4a"/><stop offset="1" stop-color="#070b16"/></radialGradient></defs>' +
+    '<polygon points="' + poly(grass) + '" fill="url(#mhg)"/>';
+  for (i = 0; i < 8; i++) {                                            // mowing stripes
+    if (i % 2) continue;
+    var r1 = 130 + i * 34, r2 = r1 + 34, s1 = arc(function () { return r1; }, 0, 24), s2 = arc(function () { return r2; }, 0, 24).reverse();
+    o += '<polygon points="' + poly(s1.concat(s2)) + '" fill="#ffffff" fill-opacity="0.045"/>';
+  }
+  o += '<polygon points="' + poly(track.concat(trackOut.slice(0).reverse())) + '" fill="#8a5a36" fill-opacity="0.85"/>' +
+    '<polygon points="' + poly(wallBot.concat(wallTop.slice(0).reverse())) + '" fill="#0c2f19" stroke="#0c2f19" stroke-width="1"/>' +
+    '<polyline points="' + poly(wallTop) + '" fill="none" stroke="#f5b800" stroke-width="2.5"/>' +
+    '<polygon points="' + poly(dirt) + '" fill="#a86f45"/>' +
+    '<polygon points="' + poly(diam) + '" fill="#2a7d3f"/>' +
+    '<polygon points="' + poly(circ(0, 60.5, 9)) + '" fill="#a86f45"/>' +
+    '<polygon points="' + poly(circ(0, 0, 13)) + '" fill="#a86f45"/>' +
+    '<line x1="' + P(0, 0)[0] + '" y1="' + P(0, 0)[1] + '" x2="' + P(-233.3, 233.3)[0] + '" y2="' + P(-233.3, 233.3)[1] + '" stroke="#ffffff" stroke-width="2.5" stroke-opacity="0.85"/>' +
+    '<line x1="' + P(0, 0)[0] + '" y1="' + P(0, 0)[1] + '" x2="' + P(233.3, 233.3)[0] + '" y2="' + P(233.3, 233.3)[1] + '" stroke="#ffffff" stroke-width="2.5" stroke-opacity="0.85"/>' +
+    '<line x1="' + P(-233.3, 233.3)[0] + '" y1="' + P(-233.3, 233.3)[1] + '" x2="' + P(-233.3, 233.3, 40)[0] + '" y2="' + P(-233.3, 233.3, 40)[1] + '" stroke="#f5b800" stroke-width="3"/>' +
+    '<line x1="' + P(233.3, 233.3)[0] + '" y1="' + P(233.3, 233.3)[1] + '" x2="' + P(233.3, 233.3, 40)[0] + '" y2="' + P(233.3, 233.3, 40)[1] + '" stroke="#f5b800" stroke-width="3"/>' +
+    base(63.6, 63.6) + base(0, 127.3) + base(-63.6, 63.6) +
+    '<polygon points="' + poly([P(-1.4, 0), P(1.4, 0), P(1.4, 1.2), P(0, 2.4), P(-1.4, 1.2)]) + '" fill="#ffffff"/>';
+  var ft = [[-1, 330], [0, 400], [1, 330]];                            // distance marks on the wall
+  for (i = 0; i < 3; i++) { var ph2 = ft[i][0] * Math.PI / 4 * 0.86, r3 = fence(ph2), m = P(r3 * Math.sin(ph2), r3 * Math.cos(ph2), 5.5);
+    o += '<text x="' + m[0].toFixed(1) + '" y="' + (m[1] + 4).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" fill-opacity="0.7">' + Math.round(r3) + '</text>'; }
+  if (h.x === null || h.y === null) return o + '</svg>';
+  // the flight: home to where it landed (or was fielded), its height from the launch angle
+  var X = h.x, Y = Math.max(h.y, 4), D = Math.sqrt(X * X + Y * Y), la = h.la === null ? 20 : h.la, kind = mlbHitKind(h);
+  var col = { hr: '#f5b800', hit: '#3ddc84', err: '#ff9f43', out: '#ff6b6b', play: '#ffffff' }[kind];
+  var ground = la < 10 || /ground/.test(h.traj), apex = ground ? 0 : Math.min(118, Math.max(12, D * Math.tan(Math.min(la, 70) * Math.PI / 180) * 0.42));
+  var path = [], shadow = [], len = 0, prev = null;
+  for (i = 0; i <= 48; i++) {
+    var t = i / 48, z = ground ? 3 * Math.abs(Math.sin(t * Math.PI * 3)) * (1 - t) : 3 + 4 * apex * t * (1 - t) - 3 * t, q2 = P(X * t, Y * t, z);
+    path.push(q2); shadow.push(P(X * t, Y * t, 0));
+    if (prev) len += Math.sqrt((q2[0] - prev[0]) * (q2[0] - prev[0]) + (q2[1] - prev[1]) * (q2[1] - prev[1]));
+    prev = q2;
+  }
+  var L = P(X, Y), Lr = circ(X, Y, 9), an = anim ? ' class="mhfly" style="stroke-dasharray:' + Math.ceil(len) + ';stroke-dashoffset:' + Math.ceil(len) + '"' : '';
+  o += (ground ? '' : '<polyline points="' + poly(shadow) + '" fill="none" stroke="#000000" stroke-opacity="0.35" stroke-width="4" stroke-dasharray="6 7"/>') +
+    '<polygon class="mhland" points="' + poly(Lr) + '" fill="' + col + '" fill-opacity="0.25" stroke="' + col + '" stroke-width="3"/>' +
+    '<polyline points="' + poly(path) + '" fill="none" stroke="' + col + '" stroke-opacity="0.25" stroke-width="12" stroke-linecap="round"' + an + '/>' +
+    '<polyline points="' + poly(path) + '" fill="none" stroke="' + col + '" stroke-width="4" stroke-linecap="round"' + an + '/>' +
+    '<circle cx="' + L[0].toFixed(1) + '" cy="' + L[1].toFixed(1) + '" r="7" fill="#ffffff" stroke="' + col + '" stroke-width="3"/>';
+  if (h.dist || D > 30) o += '<text x="' + L[0].toFixed(1) + '" y="' + (L[1] - 16).toFixed(1) + '" text-anchor="middle" font-size="22" font-weight="800" fill="#ffffff" stroke="#05070d" stroke-width="5" paint-order="stroke">' + (h.dist || Math.round(D)) + ' FT</text>';
+  return o + '</svg>';
+}
+function mlbHitHTML(g, ab) {
+  var h = ab.hit, kind = mlbHitKind(h), anim = !mlbHitSeen[h.key];
+  mlbHitSeen[h.key] = 1;
+  var traj = { fly_ball: 'FLY BALL', line_drive: 'LINE DRIVE', ground_ball: 'GROUND BALL', popup: 'POP UP', bunt_grounder: 'BUNT' }[h.traj] || '';
+  var hs = 'https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_180,q_auto:best/v1/people/' + h.id + '/headshot/67/current';
+  var tile = function (v, u, l) { return '<div class="mht"><b>' + v + '<small>' + u + '</small></b><i>' + l + '</i></div>'; };
+  return '<div class="mhit ' + kind + '">' + mlbFieldSVG(h, anim) +
+    '<div class="mhinfo"><div class="mhwho"><img src="' + esc(hs) + '" alt="" onerror="this.style.display=\'none\'"><div><b>' + esc(h.name) + '</b><i>' + esc(h.inn) + '</i></div></div>' +
+      '<div class="mhres">' + esc(String(h.ev || 'In play').toUpperCase()) + '</div>' + (traj ? '<div class="mhtraj">' + traj + '</div>' : '') +
+      '<div class="mhts">' + (h.ls ? tile(h.ls.toFixed(1).replace(/\.0$/, ''), ' MPH', 'EXIT VELO') : '') + (h.la !== null ? tile(Math.round(h.la), '°', 'LAUNCH ANGLE') : '') + (h.dist ? tile(h.dist, ' FT', 'DISTANCE') : '') + '</div>' +
+      (h.desc ? '<div class="mhd">' + esc(h.desc) + '</div>' : '') + '</div></div>';
 }
 function mlbHotLoad(pid) {                             // his hot / cold zones (batting average), once per player
   if (!pid || mlbHot[pid] !== undefined) return;
@@ -4063,6 +4187,7 @@ function mlbDraw(g) {
   var box = document.querySelector('.ptv.mu .mlbz'), ab = mlbAB[g.id];
   if (!box || !ab || !ab.batter) return;
   var pv = box.parentNode; if (!/\bmlbon\b/.test(pv.className)) pv.className += ' mlbon';
+  if (ab.hit && CONFIG.mlbHit) { box.innerHTML = mlbHitHTML(g, ab); return; }
   var right = ab.side !== 'L', zones = mlbHot[ab.batter.id] || [], W = 300, H = 330, zw = 138, zx = (W - zw) / 2;
   var ft = 2.1, zt = 60, zh = 210 * ((ab.top - ab.bot) / ft);              // the zone's height in proportion to his
   zt = 60 + (210 - zh) / 2;
