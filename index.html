@@ -3899,6 +3899,9 @@ function muFeatured(x) {
    When it's over (45 min after the final) the next one on the day's list takes over. */
 var GOTD_KEY = 'fcw_gotd', gotd = null, gotdBoot = new Date().getTime();
 try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
+/* one-night switches for the matchup screen, by game day (a day runs to 4 AM): 'gotd' = the game of the day beats
+   prime-time football that night only */
+var MU_ONCE = { '2026-11-19': 'gotd' };
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
 function gotdDay() { return ymd(new Date(new Date().getTime() - 4 * 3600000)); }
 function gotdPool() {                                   // every head-to-head game today in the ranked sports (not football)
@@ -3985,6 +3988,10 @@ function muPages() {
     if (!x) return [];
     if (x.g.live) muPin = x.g.id;
     return [muPage(x, 60)];
+  }
+  if (MU_ONCE[gotdDay()] === 'gotd' && CONFIG.gotd) {                 // a one-night switch: the game of the day, even over prime-time football
+    var go = gotdPick();
+    if (go) return [muPage(go, 60)];
   }
   var all = muAll(), feat = [], live = [], fin = [], up = [], off = footballOff(new Date());
   for (i = 0; i < all.length; i++) if (muFeatured(all[i]) && (all[i].lg === 'nfl' || all[i].lg === 'ncaaf')) feat.push(all[i]);
