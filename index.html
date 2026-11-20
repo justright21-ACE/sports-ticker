@@ -3903,8 +3903,10 @@ function muFeatured(x) {
 var GOTD_KEY = 'fcw_gotd', gotd = null, gotdBoot = new Date().getTime();
 try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
 /* one-night switches for the matchup screen, by game day (a day runs to 4 AM): 'gotd' = the game of the day beats
-   prime-time football that night only */
-var MU_ONCE = { '2026-11-19': 'gotd' };
+   prime-time football that night only; skip = teams whose games are passed over that night ("the next game") */
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] } };
+function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
+function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
 function gotdDay() { return ymd(new Date(new Date().getTime() - 4 * 3600000)); }
 function gotdPool() {                                   // every head-to-head game today in the ranked sports (not football)
@@ -3972,7 +3974,7 @@ function gotdPick() {                                   // today's game: the loc
   var now = new Date().getTime();
   for (i = 0; i < gotd.order.length; i++) {
     var x = byId[gotd.order[i]];
-    if (!x) continue;
+    if (!x || muSkipped(x.g)) continue;                                // tonight's "next game": passed over
     if (isFinal(x.g) && now - seenFinal(x.g.id, now) > 45 * 60000) continue;    // over: the next one on the list
     return x;
   }
@@ -3992,7 +3994,7 @@ function muPages() {
     if (x.g.live) muPin = x.g.id;
     return [muPage(x, 60)];
   }
-  if (MU_ONCE[gotdDay()] === 'gotd' && CONFIG.gotd) {                 // a one-night switch: the game of the day, even over prime-time football
+  if (muOnce() && muOnce().use === 'gotd' && CONFIG.gotd) {                 // a one-night switch: the game of the day, even over prime-time football
     var go = gotdPick();
     if (go) return [muPage(go, 60)];
   }
