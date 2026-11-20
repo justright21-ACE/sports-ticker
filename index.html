@@ -18,6 +18,9 @@
 -->
 <style>
   html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  /* the page is one fixed, clipped frame the size of the screen: animations that fly past the edges (the touchdown helmets,
+     big plays, celebrations) can't make it wider, which the TV's browser would answer by zooming the whole page out */
+  body { position: fixed; left: 0; top: 0; right: 0; bottom: 0; width: 100%; }
   body {
     background: #05070d;
     color: #f2f4f8;
