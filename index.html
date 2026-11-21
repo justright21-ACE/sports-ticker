@@ -3845,7 +3845,7 @@ function muIs(t, q) {
   return !!t && (String(t.abbreviation || '').toLowerCase() === q || schoolKey(t.name).indexOf(q + ' ') === 0 || String(t.short || '').toLowerCase() === q);
 }
 function muPick() {
-  var all = muAll(), now = new Date().getTime(), q = CONFIG.muTeam, i, live = [], up = [], fin = [];
+  var on1 = muOnce(), all = muAll(), now = new Date().getTime(), q = CONFIG.muTeam || (on1 && on1.use === 'team' ? String(on1.team).toLowerCase() : ''), i, live = [], up = [], fin = [];
   for (i = 0; i < all.length; i++) if (all[i].g.id === muPin && !isFinal(all[i].g)) return all[i];
   for (i = 0; i < all.length; i++) {
     var x = all[i], g = x.g;
@@ -3903,8 +3903,9 @@ function muFeatured(x) {
 var GOTD_KEY = 'fcw_gotd', gotd = null, gotdBoot = new Date().getTime();
 try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
 /* one-night switches for the matchup screen, by game day (a day runs to 4 AM): 'gotd' = the game of the day beats
-   prime-time football that night only; skip = teams whose games are passed over that night ("the next game") */
-var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] } };
+   prime-time football that night only; skip = teams whose games are passed over that night ("the next game");
+   { use: 'team', team: 'ucf' } = that team's game that night, like ?team= (the whole college slate is looked up) */
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'ucf' } };
 function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
 function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
@@ -3988,11 +3989,12 @@ function muPage(x, hold) {
 function muPages() {
   var now = new Date().getTime(), i;
   if (new Date().getDay() === 6) muFetch();                           // Saturday: the whole college slate, for the ABC night game
-  if (CONFIG.muTeam) {                                                 // ?team=: that team's game, nothing else
+  var once = muOnce();
+  if (CONFIG.muTeam || (once && once.use === 'team')) {                // ?team= (or tonight's switch): that team's game, nothing else
+    if (!CONFIG.muTeam) muFetch();                                     // it may not be in the ticker's college list
     var x = muPick();
-    if (!x) return [];
-    if (x.g.live) muPin = x.g.id;
-    return [muPage(x, 60)];
+    if (x) { if (x.g.live) muPin = x.g.id; return [muPage(x, 60)]; }
+    if (CONFIG.muTeam) return [];                                      // tonight's switch: the usual pick until its game turns up
   }
   if (muOnce() && muOnce().use === 'gotd' && CONFIG.gotd) {                 // a one-night switch: the game of the day, even over prime-time football
     var go = gotdPick();
