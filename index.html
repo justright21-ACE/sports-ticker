@@ -734,6 +734,16 @@
   .ptv.mu .p2 { width: 92vw; margin: 0 auto; background: transparent !important; border: 0 !important; box-shadow: none !important; float: none; }
   .ptv.mu .p2 > * { display: none !important; }
   .ptv.mu .p2 > .field3, .ptv.mu .p2 > .field { display: block !important; }
+  .ptv.mu .p2 > .drv { display: block !important; width: 54vw; margin: 0 auto 0.8vh; }
+  .ptv.mu .p2 > .drv .ph { text-align: center; font-size: 1.8vh; letter-spacing: 0.3vw; }
+  .ptv.mu .p2 > .drv .dc b { font-size: 3.6vh; line-height: 4vh; } .ptv.mu .p2 > .drv .dc i { font-size: 1.7vh; }
+  .ptv.mu .p2 > .drv .logo { width: 7vh; height: 7vh; margin-top: 0.2vh; }
+  .ptv.mu .cols { top: 58vh; } .ptv.mu .field3 .fsvg, body.mview .ptv.mu .field3 .fsvg { height: 23vh !important; }
+  .ptv.mu .p2 > .dd { display: block !important; text-align: center; font-size: 3.6vh; font-weight: 800; letter-spacing: 0.1vw; line-height: 1.1; margin: 0 0 0.6vh 0; text-transform: uppercase; white-space: nowrap; }
+  .ptv.mu .p2 > .dd small { display: inline; margin-left: 1.4vw; font-size: 2.3vh; font-weight: 600; letter-spacing: 0; text-transform: none; color: #a5aec4; }
+  .ptv.mu .p2 > .note.lp { display: block !important; text-align: center; font-size: 2.2vh; line-height: 1.3; margin: 0.6vh 6vw 0; color: #d5dbea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.mu .p2 > .note.lp b { display: inline; margin-right: 0.8vw; font-size: 1.7vh; letter-spacing: 0.2vw; color: #8b95ab; }
+  .ptv.mu .p2 > .note.lp span { display: inline; }
   .ptv.mu .field3 .fsvg { height: 27vh; }
   .ptv.mu .ptbg { z-index: 0; } .ptv.mu .band, .ptv.mu .cols { z-index: 1; }
   .ptv.mu .murec { font-size: 3vh; letter-spacing: 0.2vw; color: rgba(255,255,255,0.75); margin-top: 0.4vh; white-space: nowrap; }
@@ -855,7 +865,7 @@
   .ptv.mu .mub .mc b.on { background: #f5b800; border-color: #f5b800; }
   .mumsg { position: absolute; left: 0; right: 0; top: 44vh; text-align: center; font-size: 5vh; color: rgba(255,255,255,0.45); letter-spacing: 0.3vw; }
   body.mview .ptv.mu .bigsc { font-size: 20vh !important; } body.mview .ptv.mu .clk { font-size: 6.5vh !important; }
-  body.mview .ptv.mu .field3 .fsvg { height: 27vh !important; } body.mview .ptv.mu .side .nm { font-size: 5vh !important; }
+  body.mview .ptv.mu .field3 .fsvg { height: 23vh !important; } body.mview .ptv.mu .side .nm { font-size: 5vh !important; }
   body.mview .ptv.mu .p2 { width: 92vw !important; }
   @media (max-aspect-ratio: 3/2) {                                    /* squarer screens: the score sits between the helmets, not on them */
     body.mview .ptv.mu .bigsc { font-size: 12.5vh !important; } body.mview .ptv.mu .clk { font-size: 4.6vh !important; margin-top: 2vh; }
@@ -4250,7 +4260,7 @@ function muDecorate(pg) {                       // the real helmets on the big s
     var el = pv.querySelector('.band .side.' + sides[i]), t = pg.game.teams[sides[i]];
     if (!el) continue;
     var hu = tdHelmetURL(t, pg.lg), u = hu || tdLogoURL(t);              // a helmet is mirrored to face in; a logo never is (it'd read backwards)
-    if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (hu ? '' : ' lg') + (hu && sides[i] === 'home' ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
+    if (u) el.insertAdjacentHTML('afterbegin', '<img class="muh' + (hu ? '' : ' lg') + (hu && sides[i] === 'home' && !helmetHasWords(hu) ? ' r' : '') + '" src="' + esc(u) + '" alt="">');
   }
   for (var ri = 0; ri < 2; ri++) {                                     // each team's record under its name (a playoff series: the series)
     var rtx = pv.querySelector('.band .side.' + sides[ri] + ' .txt'), rt = pg.game.teams[sides[ri]] || {};
@@ -4887,6 +4897,10 @@ function loadPtDetails(cb) {
                                yards: cd.yards, team: cd.team && (cd.team.abbreviation || cd.team.id) } : null;
         var lpp = cd && cd.plays && cd.plays.length ? cd.plays[cd.plays.length - 1] : null;
         det.lastSpots = lpp && lpp.start && lpp.end ? { id: lpp.id, s: lpp.start.yardsToEndzone, e: lpp.end.yardsToEndzone } : null;
+        var le = lpp && lpp.end;                                         // the down, distance and spot after the latest play: the field's backup
+        det.sit = le && (le.downDistanceText || le.shortDownDistanceText) && le.possessionText && cd.team ?
+          { downDistanceText: le.downDistanceText || '', shortDownDistanceText: le.shortDownDistanceText || '', possessionText: le.possessionText,
+            down: le.down, distance: le.distance, yardLine: le.yardLine, possession: cd.team.id, at: new Date().getTime() } : null;
         var hst = data.header && data.header.competitions && data.header.competitions[0] && data.header.competitions[0].status;   // the play-by-play feed's own clock
         det.hclk = hst && hst.displayClock ? { per: +(hst.period || 0), secs: mmss(hst.displayClock), txt: hst.displayClock } : null;
         det.snap = lastSnap(data);
@@ -5461,6 +5475,7 @@ function wxHTML(g, lg, cls) {                          // "[icon] 41° Cloudy ·
   if (!w.now && w.pop != null && w.pop >= 20) bits.push(w.pop + '% ' + (w.code >= 71 && w.code <= 86 && w.code !== 80 && w.code !== 81 && w.code !== 82 ? 'snow' : 'rain'));
   return '<span class="' + (cls || 'wxc') + '">' + wxIcon(w.code, w.day) + esc(bits.join(' · ')) + (w.now ? '' : '<em>' + (lg === 'mlb' ? 'first pitch' : 'kickoff') + '</em>') + '</span>';
 }
+var ptSitLast = {};
 function ptHTML(g, kind, lg) {
   lg = lg || 'nfl';
   var c = compOf(g) || {}, a = g.teams.away, h = g.teams.home, s = c.situation || {};
@@ -5468,6 +5483,12 @@ function ptHTML(g, kind, lg) {
   var fin = isFinal(g), pre = !g.live && !fin;
   var foot = lg === 'nfl' || lg === 'ncaaf', hock = lg === 'nhl', startWord = foot ? 'KICKOFF' : (hock ? 'PUCK DROP' : 'TIP-OFF');
   var hc = homeColor(h, lg), det = ptDetail[g.eid] || {}, ex = g.raw || {};
+  if (foot && g.live) {                                                // ESPN's live situation drops out at times (timeouts, kickoffs, some feeds):
+    var nowS = new Date().getTime(), keepS = ptSitLast[g.id];          // keep the field up from the last good one, or the play-by-play's latest spot
+    if (s.downDistanceText || s.shortDownDistanceText) ptSitLast[g.id] = { s: s, at: nowS };
+    else if (keepS && nowS - keepS.at < 90000) s = keepS.s;
+    else if (det.sit && nowS - det.sit.at < 120000) { var cpS = {}; for (var kS in det.sit) cpS[kS] = det.sit[kS]; cpS.lastPlay = s.lastPlay; s = cpS; }
+  }
   if (!det.stats) det = { stats: {}, drive: det.drive || '', series: det.series || '', scoring: det.scoring || [] };
   var abbrById = {}; abbrById[(ca.team || {}).id] = a.abbreviation; abbrById[(ch.team || {}).id] = h.abbreviation;
   var bc = (c.broadcasts && c.broadcasts[0] && c.broadcasts[0].names && c.broadcasts[0].names[0]) || c.broadcast || '';
@@ -6563,6 +6584,9 @@ function tdHelmetURL(t, lg) {
   var a = String(t.abbreviation || '').toUpperCase(); if (a === 'LAR') a = 'LA';
   return a && (' ' + HELMETS + ' ').indexOf(' ' + a + ' ') >= 0 ? 'img/helmet/' + a + '.png' : '';
 }
+/* helmets with lettering (or a letter that isn't the same mirrored): never mirrored, or the words read backwards */
+var HELMET_WORDS = ' BAL CHI GB KC LV NYG NYJ PIT SF c-akron c-alabama-am c-alabama c-auburn c-baylor c-boston-college c-bowling-green c-california c-central-michigan c-charlotte c-cincinnati c-colorado c-duke c-eastern-michigan c-fiu c-florida c-georgia-southern c-georgia-tech c-georgia c-grambling c-houston c-idaho c-incarnate-word c-indiana-state c-iowa-state c-jackson-state c-jacksonville-state c-james-madison c-kansas c-kennesaw-state c-kent-state c-kentucky c-liberty c-louisiana-tech c-lsu c-middle-tennessee c-mississippi-state c-montana c-navy c-nc-state c-nebraska c-new-mexico-state c-north-carolina-at c-north-carolina c-northern-illinois c-northern-iowa c-northwestern c-ohio c-oklahoma-state c-oklahoma c-old-dominion c-ole-miss c-pittsburgh c-purdue c-rice c-rutgers c-sacramento-state c-sam-houston c-san-diego-state c-south-carolina-state c-south-carolina c-stanford c-syracuse c-tennessee-state c-texas-am c-texas-southern c-tulsa c-uc-davis c-ucf c-ucla c-ul-monroe c-umass c-unlv c-utah-state c-utah-tech c-utep c-virginia-tech c-wake-forest c-washington-state c-western-kentucky ';
+function helmetHasWords(u) { var m = String(u || '').match(/img\/helmet\/([^\/]+)\.png/); return !!m && HELMET_WORDS.indexOf(' ' + m[1] + ' ') >= 0; }
 function tdHelmetHTML(t, lg, col, alt, rim) {
   if (CONFIG.realHelmets) {
     var hu = tdHelmetURL(t, lg) || tdLogoURL(t), glow = rim ? ' style="-webkit-filter:drop-shadow(0 0 1.2vh ' + alt + ');filter:drop-shadow(0 0 1.2vh ' + alt + ')"' : '';
