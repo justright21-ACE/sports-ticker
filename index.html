@@ -3864,6 +3864,7 @@ function muPick() {
   for (i = 0; i < all.length; i++) {
     var x = all[i], g = x.g;
     if (q && !muIs(g.teams.away, q) && !muIs(g.teams.home, q)) continue;
+    if (!CONFIG.muTeam && on1 && on1.lg && x.lg !== on1.lg) continue;   // tonight's switch names a sport: that one only
     if (g.live) live.push(x); else if (isFinal(g)) fin.push(x); else up.push(x);
   }
   if (q && !live.length && !up.length && !fin.length) muFetch();
@@ -3919,7 +3920,7 @@ try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
 /* one-night switches for the matchup screen, by game day (a day runs to 4 AM): 'gotd' = the game of the day beats
    prime-time football that night only; skip = teams whose games are passed over that night ("the next game");
    { use: 'team', team: 'ucf' } = that team's game that night, like ?team= (the whole college slate is looked up) */
-var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' } };
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: 'minn', lg: 'ncaaf' } };
 function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
 function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
@@ -4007,7 +4008,8 @@ function muPages() {
   if (CONFIG.muTeam || (once && once.use === 'team')) {                // ?team= (or tonight's switch): that team's game, nothing else
     if (!CONFIG.muTeam) muFetch();                                     // it may not be in the ticker's college list
     var x = muPick();
-    if (x) { if (x.g.live) muPin = x.g.id; return [muPage(x, 60)]; }
+    var done1 = x && !CONFIG.muTeam && isFinal(x.g) && new Date().getTime() - seenFinal(x.g.id, new Date().getTime()) > 45 * 60000;
+    if (x && !done1) { if (x.g.live) muPin = x.g.id; return [muPage(x, 60)]; }   // a one-day switch lets go 45 min after its game ends
     if (CONFIG.muTeam) return [];                                      // tonight's switch: the usual pick until its game turns up
   }
   if (muOnce() && muOnce().use === 'gotd' && CONFIG.gotd) {                 // a one-night switch: the game of the day, even over prime-time football
