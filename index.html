@@ -3967,7 +3967,7 @@ try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
    { use: 'team', team: 'ucf' } = that team's game that night, like ?team= (the whole college slate is looked up);
    team can be a queue (['byu', 'neb']): each team's game until it's final, then the next one still going;
    then: 'best' = once that game is final, the best game on at the time (muBest), one after another */
-var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['lsu'], lg: 'ncaaf', then: 'best' } };
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['ucla'], lg: 'ncaaf', then: 'best' } };
 function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
 function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
