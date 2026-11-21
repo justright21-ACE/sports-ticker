@@ -737,7 +737,7 @@
   .ptv.mu .p2 > .drv { display: block !important; width: 54vw; margin: 0 auto 0.8vh; }
   .ptv.mu .p2 > .drv .ph { text-align: center; font-size: 1.8vh; letter-spacing: 0.3vw; }
   .ptv.mu .p2 > .drv .dc b { font-size: 3.6vh; line-height: 4vh; } .ptv.mu .p2 > .drv .dc i { font-size: 1.7vh; }
-  .ptv.mu .p2 > .drv .logo { width: 7vh; height: 7vh; margin-top: 0.2vh; }
+  .ptv.mu .p2 > .drv .logo { display: none !important; }
   .ptv.mu .cols { top: 58vh; } .ptv.mu .field3 .fsvg, body.mview .ptv.mu .field3 .fsvg { height: 23vh !important; }
   .ptv.mu .p2 > .dd { display: block !important; text-align: center; font-size: 3.6vh; font-weight: 800; letter-spacing: 0.1vw; line-height: 1.1; margin: 0 0 0.6vh 0; text-transform: uppercase; white-space: nowrap; }
   .ptv.mu .p2 > .dd small { display: inline; margin-left: 1.4vw; font-size: 2.3vh; font-weight: 600; letter-spacing: 0; text-transform: none; color: #a5aec4; }
@@ -3563,6 +3563,10 @@ function logoErr(img) {                             // try the next address in l
   img.style.display = 'none';
   img.parentNode.className = 'logo none';
 }
+function logoURL(t, lg) {                          // the first logo address logoHTML would try ('' if none)
+  var look = teamLook(t, lg), feed = look && look.logo, pat = patternLogo(t, lg);
+  return feed ? smallLogo(feed) : (pat ? smallLogo(pat) : '');
+}
 function logoHTML(t, lg) {
   var look = teamLook(t, lg), feed = look && look.logo, pat = patternLogo(t, lg), urls = [];
   if (feed) { urls.push(smallLogo(feed)); urls.push(feed); }
@@ -5215,7 +5219,7 @@ function fieldSVG(o) {
   }
   function T(yard) { return 0.08 + Math.max(0, Math.min(100, yard)) / 100 * 0.84; }   // yards from the away goal line -> t
   function quad(t0, t1, fill, cls) { return '<polygon' + (cls ? ' class="' + cls + '"' : '') + ' points="' + P(t0, 0) + ' ' + P(t1, 0) + ' ' + P(t1, 1) + ' ' + P(t0, 1) + '" fill="' + fill + '"/>'; }
-  var svg = '<svg class="fsvg" viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid meet">';
+  var svg = '<svg class="fsvg" viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">';
   // the near side of the field (thickness) and the grass
   svg += '<polygon points="' + BL + ',' + BY + ' ' + BR + ',' + BY + ' ' + BR + ',' + (BY + SIDE) + ' ' + BL + ',' + (BY + SIDE) + '" fill="#2e6b38"/>';
   for (var k = 0; k < 10; k++) svg += quad(T(k * 10), T(k * 10 + 10), k % 2 ? '#3f9a4c' : '#4caf5a');
@@ -5242,6 +5246,8 @@ function fieldSVG(o) {
   svg += '<g class="pin"><path d="M' + px + ' ' + py + ' L' + (px - 16) + ' ' + (py - 44) + ' A30 30 0 1 1 ' + (px + 16) + ' ' + (py - 44) + ' Z" fill="rgba(255,255,255,0.55)"/>' +
     '<ellipse cx="' + px + '" cy="' + (py - 62) + '" rx="20" ry="12" fill="#8b4a22" stroke="#fff" stroke-width="2.5"/>' +
     '<path d="M' + (px - 8) + ' ' + (py - 62) + ' L' + (px + 8) + ' ' + (py - 62) + ' M' + (px - 4) + ' ' + (py - 66) + ' L' + (px - 4) + ' ' + (py - 58) + ' M' + px + ' ' + (py - 66) + ' L' + px + ' ' + (py - 58) + ' M' + (px + 4) + ' ' + (py - 66) + ' L' + (px + 4) + ' ' + (py - 58) + '" stroke="#fff" stroke-width="2"/></g>';
+  if (o.logo) svg += '<g class="pin"><circle cx="' + px + '" cy="' + (py - 62) + '" r="29" fill="#ffffff" stroke="#' + (o.offC || 'ffffff') + '" stroke-width="3"/>' +   // the team with the ball, in the pin
+    '<image x="' + (px - 23) + '" y="' + (py - 85) + '" width="46" height="46" href="' + esc(o.logo) + '" xlink:href="' + esc(o.logo) + '" preserveAspectRatio="xMidYMid meet"/></g>';
   // yard numbers along the near edge
   var nums = [10, 20, 30, 40, 50, 40, 30, 20, 10];
   for (k = 0; k < nums.length; k++) svg += '<text x="' + P(T((k + 1) * 10), 1).split(',')[0] + '" y="' + (BY + SIDE + 24) + '" text-anchor="middle" font-size="22" font-weight="700" fill="rgba(255,255,255,0.8)">' + nums[k] + '</text>';
@@ -5641,7 +5647,7 @@ function ptHTML(g, kind, lg) {
           arc = [offAway ? fromLeft - +lpS.statYardage : fromLeft + +lpS.statYardage, fromLeft];   // same drive: back up by the gain
         }
         field = '<div class="field3' + (rzOk ? ' rz' : '') + '">' + fieldSVG({ awayC: homeColor(a, lg), homeC: hc, los: fromLeft, fd: toGo && !/goal/i.test(s.downDistanceText || '') ? fdL : null,
-          tgt: offAway ? 'home' : 'away', arc: arc, offC: homeColor(offAway ? a : h, lg), awayAb: a.abbreviation, homeAb: h.abbreviation }) + '</div>';
+          tgt: offAway ? 'home' : 'away', arc: arc, offC: homeColor(offAway ? a : h, lg), awayAb: a.abbreviation, homeAb: h.abbreviation, logo: logoURL(offAway ? a : h, lg) }) + '</div>';
       } else
       field = '<div class="field' + (rzOk ? ' rz' : '') + '"><div class="ez' + (offAway ? '' : ' tgt') + '" style="left:0;background:#' + (homeColor(a, lg) || '33405c') + '"></div>' +
               '<div class="ez' + (offAway ? ' tgt' : '') + '" style="right:0;background:#' + (hc || '33405c') + '"></div>' + yls +
@@ -6576,13 +6582,13 @@ function tdHelmetURL(t, lg) {
       if (nk.indexOf(CHELMETS[j][0] + ' ') !== 0) continue;
       var nx = nk.substr(CHELMETS[j][0].length + 1).split(' ')[0];   // "Montana State", "Tennessee Tech", "Florida A&M": a different school
       if (/^(state|a&m|a&t|tech|southern|christian|central|\(oh\))$/.test(nx)) continue;
-      return 'img/helmet/c-' + CHELMETS[j][1] + '.png';
+      return 'img/helmet/c-' + CHELMETS[j][1] + '.png?v=2';
     }
     return '';
   }
   if (lg !== 'nfl') return '';
   var a = String(t.abbreviation || '').toUpperCase(); if (a === 'LAR') a = 'LA';
-  return a && (' ' + HELMETS + ' ').indexOf(' ' + a + ' ') >= 0 ? 'img/helmet/' + a + '.png' : '';
+  return a && (' ' + HELMETS + ' ').indexOf(' ' + a + ' ') >= 0 ? 'img/helmet/' + a + '.png?v=2' : '';
 }
 /* helmets with lettering (or a letter that isn't the same mirrored): never mirrored, or the words read backwards */
 var HELMET_WORDS = ' BAL CHI GB KC LV NYG NYJ PIT SF c-akron c-alabama-am c-alabama c-auburn c-baylor c-boston-college c-bowling-green c-california c-central-michigan c-charlotte c-cincinnati c-colorado c-duke c-eastern-michigan c-fiu c-florida c-georgia-southern c-georgia-tech c-georgia c-grambling c-houston c-idaho c-incarnate-word c-indiana-state c-iowa-state c-jackson-state c-jacksonville-state c-james-madison c-kansas c-kennesaw-state c-kent-state c-kentucky c-liberty c-louisiana-tech c-lsu c-middle-tennessee c-mississippi-state c-montana c-navy c-nc-state c-nebraska c-new-mexico-state c-north-carolina-at c-north-carolina c-northern-illinois c-northern-iowa c-northwestern c-ohio c-oklahoma-state c-oklahoma c-old-dominion c-ole-miss c-pittsburgh c-purdue c-rice c-rutgers c-sacramento-state c-sam-houston c-san-diego-state c-south-carolina-state c-south-carolina c-stanford c-syracuse c-tennessee-state c-texas-am c-texas-southern c-tulsa c-uc-davis c-ucf c-ucla c-ul-monroe c-umass c-unlv c-utah-state c-utah-tech c-utep c-virginia-tech c-wake-forest c-washington-state c-western-kentucky ';
