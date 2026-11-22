@@ -5283,6 +5283,12 @@ function timeoutPlays(data, g) {
   }
   for (i = 0; i < plays.length; i++) {
     var pl = plays[i] || {}, ty = String((pl.type && pl.type.text) || ''), tx = String(pl.text || '');
+    var rv = /challenged/i.test(tx) ? reviewFromPlay(pl) : null;
+    if (rv && rv.coach && !rv.rev) {                                               // a coach's challenge that failed: that costs a timeout
+      var cu = ' ' + rv.coach.toUpperCase() + ' ', ca2 = hasName(cu, names.away), ch2 = hasName(cu, names.home), cn = tx.match(/timeout\s*#\s*(\d)/i);
+      if (ca2 !== ch2 && !(pl.id && seen[pl.id + 'c'])) { if (pl.id) seen[pl.id + 'c'] = 1; out.push({ per: +((pl.period && pl.period.number) || 0), side: ca2 ? 'away' : 'home', n: cn ? +cn[1] : 0 }); }
+      continue;
+    }
     if (!/timeout/i.test(ty) && !/^\s*timeout\b/i.test(tx)) continue;
     if (/official|tv |media|injury|referee/i.test(ty + ' ' + tx)) continue;          // not charged to a team
     if (pl.id && seen[pl.id]) continue;
@@ -5302,10 +5308,13 @@ function sbTimeout(v) { return v === undefined || v === null || v === '' || isNa
 function timeoutsLeft(g, det, s, which) {
   var q = quarterOf(g);
   if (det && det.tos && q >= 1 && q <= 4) {
-    var used = 0, top = 0, lo = q <= 2 ? 1 : 3, hi = q <= 2 ? 2 : 4;
-    for (var i = 0; i < det.tos.list.length; i++) { var t = det.tos.list[i]; if (t.side === which && t.per >= lo && t.per <= hi) { used++; if (t.n > top) top = t.n; } }
-    if (top) used = top;                                             // ESPN numbers them: the same timeout listed twice doesn't count twice
-    return Math.max(0, 3 - used);
+    var top = 0, nums = {}, nn = 0, un = 0, lo = q <= 2 ? 1 : 3, hi = q <= 2 ? 2 : 4;
+    for (var i = 0; i < det.tos.list.length; i++) {
+      var t = det.tos.list[i];
+      if (t.side !== which || t.per < lo || t.per > hi) continue;
+      if (t.n) { if (!nums[t.n]) { nums[t.n] = 1; nn++; } if (t.n > top) top = t.n; } else un++;
+    }
+    return Math.max(0, 3 - Math.max(top, nn + un));                 // ESPN numbers them ("Timeout #2"): one listed twice counts once; a lost challenge counts too
   }
   var h = sbTimeout(s.homeTimeouts), a = sbTimeout(s.awayTimeouts), v = which === 'home' ? h : a;
   if (isNaN(v) || v < 0 || v > 3) return null;
