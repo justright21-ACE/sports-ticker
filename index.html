@@ -5289,7 +5289,8 @@ function timeoutPlays(data, g) {
     if (pl.id) seen[pl.id] = 1;
     var up = tx.toUpperCase().replace(/[.,]/g, ' '), ia = hasName(up, names.away), ih = hasName(up, names.home);
     if (ia === ih) return null;                                                     // can't tell whose: don't guess
-    out.push({ per: +((pl.period && pl.period.number) || 0), side: ia ? 'away' : 'home' });
+    var nm = tx.match(/timeout\s*#\s*(\d)/i);                                     // NFL: "Timeout #2 by CHI": the team's own count this half
+    out.push({ per: +((pl.period && pl.period.number) || 0), side: ia ? 'away' : 'home', n: nm ? +nm[1] : 0 });
   }
   return { list: out };
 }
@@ -5301,8 +5302,9 @@ function sbTimeout(v) { return v === undefined || v === null || v === '' || isNa
 function timeoutsLeft(g, det, s, which) {
   var q = quarterOf(g);
   if (det && det.tos && q >= 1 && q <= 4) {
-    var used = 0, lo = q <= 2 ? 1 : 3, hi = q <= 2 ? 2 : 4;
-    for (var i = 0; i < det.tos.list.length; i++) { var t = det.tos.list[i]; if (t.side === which && t.per >= lo && t.per <= hi) used++; }
+    var used = 0, top = 0, lo = q <= 2 ? 1 : 3, hi = q <= 2 ? 2 : 4;
+    for (var i = 0; i < det.tos.list.length; i++) { var t = det.tos.list[i]; if (t.side === which && t.per >= lo && t.per <= hi) { used++; if (t.n > top) top = t.n; } }
+    if (top) used = top;                                             // ESPN numbers them: the same timeout listed twice doesn't count twice
     return Math.max(0, 3 - used);
   }
   var h = sbTimeout(s.homeTimeouts), a = sbTimeout(s.awayTimeouts), v = which === 'home' ? h : a;
