@@ -20,26 +20,45 @@
   .msg.ok { color: #3fb950; } .msg.bad { color: #f85149; }
   .tv { word-break: break-all; font-size: 18px; padding: 10px 12px; display: block; margin-top: 8px; }
   ol { padding-left: 22px; } li { margin: 6px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 15px; }
+  td { border-top: 1px solid #30363d; padding: 6px 4px; vertical-align: middle; }
+  td button { margin: 0; padding: 5px 10px; font-size: 13px; }
   .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
 </style>
 </head>
 <body>
 <main>
   <h1>Kasa lights setup</h1>
-  <p class="sub">For The FanCave Wire. Your key stays on this computer; it isn't saved or sent anywhere except to IFTTT when you press a test button.</p>
+  <p class="sub">For The FanCave Wire. Two ways to reach your Kasa bulbs now that IFTTT dropped Kasa. Your key and token stay on this computer; they aren't saved, and only go to IFTTT or Voice Monkey when you press a test button.</p>
 
-  <h2>1. In IFTTT (ifttt.com or the IFTTT app)</h2>
+  <h2>Route A: Alexa (through Voice Monkey)</h2>
   <div class="card">
     <ol>
-      <li>Connect the <b>TP-Link Kasa</b> service and sign in with your Kasa account.</li>
-      <li>Create applet A. <b>If</b>: Webhooks, "Receive a web request", event name <code>fcw_score</code>. <b>Then</b>: TP-Link Kasa, "Change color", choose your bulbs, and in the color box use <b>Add ingredient</b>, then <b>Value1</b>.</li>
-      <li>Create applet B. <b>If</b>: Webhooks, event name <code>fcw_normal</code>. <b>Then</b>: TP-Link Kasa, "Change color temperature", same bulbs, your normal setting (2700 K is warm white).</li>
-      <li>Find your Webhooks key: ifttt.com/maker_webhooks, then Documentation. It's the long string after <code>/use/</code> or shown as "Your key is".</li>
+      <li>Make sure your Kasa bulbs show up in the <b>Alexa app</b> (the Kasa skill linked to your Kasa account).</li>
+      <li>Sign up at <b>voicemonkey.io</b> (free plan) and enable the <b>Voice Monkey</b> skill in the Alexa app.</li>
+      <li>In the Voice Monkey console, add a <b>Routine Trigger</b> device for each show you want, using these exact device IDs. Skip any you don't care about; a missing one just does nothing.</li>
     </ol>
+    <table id="devs"></table>
+    <ol start="4">
+      <li>In the Alexa app, make a routine for each one: <b>When</b> = Smart Home, that trigger device. <b>Actions</b> = your bulbs to color 1, Wait 2 seconds, color 2, Wait 2 seconds, and so on (4 changes for a quick blast, about 10 for a touchdown), ending on your normal white.</li>
+      <li>Copy your <b>API token</b> from the Voice Monkey console (API / Playground) and paste it below.</li>
+    </ol>
+    <label for="vm">Your Voice Monkey token</label>
+    <input id="vm" autocomplete="off" spellcheck="false" placeholder="paste it here">
+    <div class="msg" id="vmmsg">Each Test button above starts that routine.</div>
+    <p style="margin-bottom:0">Then type this once on the TV:</p>
+    <span class="mono tv" id="vmtv">Paste your token above first.</span>
   </div>
 
-  <h2>2. Test from here</h2>
+  <h2>Route B: SmartThings + IFTTT</h2>
   <div class="card">
+    <ol>
+      <li>In the <b>SmartThings</b> app: Add device, then TP-Link (Kasa), and sign in with your Kasa account. Your bulbs should appear.</li>
+      <li>In <b>IFTTT</b>, connect the SmartThings service.</li>
+      <li>Applet A. <b>If</b>: Webhooks, "Receive a web request", event <code>fcw_score</code>. <b>Then</b>: SmartThings. If it offers a color action, choose your bulbs and put <b>Value1</b> in the color box. If it only offers Switch on/off, use that for a simple pulse instead.</li>
+      <li>Applet B. <b>If</b>: Webhooks, event <code>fcw_normal</code>. <b>Then</b>: SmartThings, back to your normal setting.</li>
+      <li>Find your Webhooks key at ifttt.com/maker_webhooks, then Documentation.</li>
+    </ol>
     <label for="key">Your IFTTT Webhooks key</label>
     <input id="key" autocomplete="off" spellcheck="false" placeholder="paste it here">
     <div>
@@ -48,15 +67,11 @@
       <button id="t3">Back to normal</button>
     </div>
     <div class="msg" id="msg"></div>
-    <p style="margin-bottom:0">Test one color turns your bulbs <span class="swatch" style="background:#ff6a00"></span>orange, then back to normal 6 seconds later. If they turn orange, applet A works. If they turn some other color or nothing happens, the Value1 ingredient isn't being used; tell Claude what happened.</p>
-  </div>
-
-  <h2>3. Type this on the TV once</h2>
-  <div class="card">
-    <p style="margin-top:0">Open this address in TV Bro on the TV that shows the ticker. It saves the key on the TV, removes it from the address bar, and does a test blast.</p>
+    <p>Test one color should turn your bulbs <span class="swatch" style="background:#ff6a00"></span>orange, then normal 6 seconds later.</p>
+    <p style="margin-bottom:0">Then type this once on the TV:</p>
     <span class="mono tv" id="tv">Paste your key above first.</span>
-    <p style="margin-bottom:0">Showing the main ticker on that TV instead of the matchup screen? Use the same address without <code>view=matchup&amp;</code>.</p>
   </div>
+  <p class="sub">Using both? Type both addresses on the TV, one after the other. Showing the main ticker on that TV instead of the matchup screen? Leave out <code>view=matchup&amp;</code>.</p>
 </main>
 <script>
 (function () {
@@ -76,6 +91,30 @@
     $('tv').textContent = ok(k) ? 'https://justright21-ace.github.io/sports-ticker/index.html?view=matchup&lights=' + k : 'Paste your key above first.';
   }
   $('key').oninput = function () { tv(); say(''); };
+  var DEVS = [['bears-td', 'Bears touchdown', 'orange, blue'], ['bears-score', 'Bears field goal / safety', 'orange, blue'],
+    ['eagles-td', 'Eagles touchdown', 'green, white'], ['eagles-score', 'Eagles field goal', 'green, white'],
+    ['usc-td', 'USC touchdown', 'red, yellow'], ['usc-score', 'USC field goal', 'red, yellow'],
+    ['wisconsin-td', 'Wisconsin touchdown', 'red, white'], ['wisconsin-score', 'Wisconsin field goal', 'red, white'],
+    ['spurs-win', 'Spurs win', 'white, silver (dim white)'], ['bulls-win', 'Bulls win', 'red, white'],
+    ['whitesox-hr', 'White Sox home run', 'white, dim white'], ['blackhawks-goal', 'Blackhawks goal', 'red, white'],
+    ['other-td', 'Any other team: touchdown (prime-time NFL)', 'white, warm white'], ['other-score', 'Any other team: other score', 'white, warm white'],
+    ['other-win', 'Any other team: basketball win', 'white'], ['other-hr', 'Any other team: home run', 'white'], ['other-goal', 'Any other team: goal', 'white']];
+  var T = '';
+  for (var d = 0; d < DEVS.length; d++) T += '<tr><td><code>' + DEVS[d][0] + '</code></td><td>' + DEVS[d][1] + '<br><span style="color:#8b949e">colors: ' + DEVS[d][2] + '</span></td><td><button data-dev="' + DEVS[d][0] + '">Test</button></td></tr>';
+  $('devs').innerHTML = T;
+  function vmTok() { return ($('vm').value || '').replace(/\s+/g, ''); }
+  function vmSay(t, cls) { var m = $('vmmsg'); m.textContent = t; m.className = 'msg' + (cls ? ' ' + cls : ''); }
+  $('vm').oninput = function () {
+    var k = vmTok();
+    $('vmtv').textContent = ok(k) ? 'https://justright21-ace.github.io/sports-ticker/index.html?view=matchup&vm=' + k : 'Paste your token above first.';
+    vmSay('Each Test button above starts that routine.');
+  };
+  $('devs').onclick = function (e) {
+    var b = e.target; if (!b || !b.getAttribute || !b.getAttribute('data-dev')) return;
+    if (!ok(vmTok())) { vmSay("Paste your Voice Monkey token first.", 'bad'); return; }
+    var im = new Image(); im.src = 'https://api-v3.voicemonkey.io/trigger?token=' + encodeURIComponent(vmTok()) + '&device=' + encodeURIComponent(b.getAttribute('data-dev')) + '&t=' + new Date().getTime(); keep.push(im);
+    vmSay('Started ' + b.getAttribute('data-dev') + '. If nothing happens, check that device ID and its Alexa routine.', 'ok');
+  };
   $('t1').onclick = function () {
     if (!guard()) return;
     hit('fcw_score', '#ff6a00', 'test color'); say('Sent orange. Your bulbs should change within a few seconds, then go back to normal.', 'ok');
