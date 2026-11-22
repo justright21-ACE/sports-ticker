@@ -1884,7 +1884,8 @@ var CONFIG = {
   // college football standings: these conferences, in this order
   cfbConferences: ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Mountain West', 'American'],
   primetimeHoldLive: 90, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
-  primetimeHoldPre: 30,  // ...and before kickoff / after the final (once per loop)
+  primetimeHoldPre: 30,  // ...and before kickoff (once per loop)
+  finalHoldSec: 20,      // a big screen once its game is final (Bears too): this long, once per loop (?finalhold=)
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
   closeGames: true,      // a game within one score (8 pts) in the 4th quarter / OT gets its own screen: any NFL game, college games with a Top 25 team
   closeMajorConf: true,  // ...and college games with an SEC / Big Ten / Big 12 / ACC team or Notre Dame (?closemajor=0 off: Top 25 only)
@@ -2040,6 +2041,7 @@ function readParams() {
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
     if (k === 'autoreload') CONFIG.autoReload = v !== '0';
     if (k === 'favjump') CONFIG.favScoreJump = v !== '0';
+    if (k === 'finalhold' && +v > 0) CONFIG.finalHoldSec = +v;
     if (k === 'breaking') CONFIG.breaking = v !== '0';
     if (k === 'bowls') CONFIG.bowls = v !== '0';
     if (k === 'injury') CONFIG.injuries = v !== '0';
@@ -3857,16 +3859,17 @@ function buildPages() {
       if (ftg[r].g.live) live = true;
       ptPages.push({ pt: true, lg: ftg[r].lg, game: ftg[r].g, kind: ftg[r].kind,
                      hold: isMustWatch(ftg[r].g, ftg[r].lg) && ftg[r].g.live ? (isHalftime(ftg[r].g) ? CONFIG.primetimeHoldPre : CONFIG.mustWatchHoldSec) :
-                           (ftg[r].hold || (ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre)) });
+                           (isFinal(ftg[r].g) ? CONFIG.finalHoldSec : (ftg[r].hold || (ftg[r].g.live ? CONFIG.primetimeHoldLive : CONFIG.primetimeHoldPre))) });
     }
     var mixed = [], n = 0;
     var inxIds = {}, ig = inactivesGames();
     for (var ii = 0; ii < ig.length; ii++) inxIds[ig[ii].id] = 1;
     for (var gz = 0; gz < gmaj.length; gz++) ptPages.push(gmaj[gz]);
-    var addPt = function () { for (var z = 0; z < ptPages.length; z++) { var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = (ptPages[z].game ? 'pt:' + ptPages[z].game.id : 'golf') + ':' + (n++); mixed.push(c);
+    var addPt = function (again) { for (var z = 0; z < ptPages.length; z++) { if (again && ptPages[z].game && isFinal(ptPages[z].game)) continue;   // a game that's over: once a loop, not after every other screen
+        var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = (ptPages[z].game ? 'pt:' + ptPages[z].game.id : 'golf') + ':' + (n++); mixed.push(c);
         if (ptPages[z].game && inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
     addPt();
-    for (var x = 0; x < pages.length; x++) { mixed.push(pages[x]); if (live && x % 2 === 1 && x < pages.length - 1) addPt(); }
+    for (var x = 0; x < pages.length; x++) { mixed.push(pages[x]); if (live && x % 2 === 1 && x < pages.length - 1) addPt(true); }
     pages = mixed;
   }
   var curKey = state.pages[state.pageIndex] && state.pages[state.pageIndex].key;
@@ -6606,7 +6609,8 @@ function jumpTo(hit) {
       ptSeen[hit.id] = { a: hit.was.a, h: hit.was.h, fin: false, play: hit.was.play, poss: hit.was.poss, fb: seen && seen.fb, los: seen && seen.los, fd: seen && seen.fd };
     if (state.pages[state.pageIndex] !== pg) ptLastKey = '';                   // arriving fresh: play the entrance too
     state.pageIndex = i;
-    state.holdOnce = isMustWatch(pg.game, pg.lg) && !isHalftime(pg.game) ? CONFIG.mustWatchHoldSec : CONFIG.bigPlayHoldSec;
+    state.holdOnce = isFinal(pg.game) ? CONFIG.finalHoldSec + (hit.why === 'win' || (CONFIG.celebrate && winFor(pg.game, pg.lg)) ? CONFIG.celebrateSec : 0) :   // over: a short stay (the win: long enough for the celebration)
+                     (isMustWatch(pg.game, pg.lg) && !isHalftime(pg.game) ? CONFIG.mustWatchHoldSec : CONFIG.bigPlayHoldSec);
     return true;
   }
   return false;
