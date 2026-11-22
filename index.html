@@ -10598,7 +10598,7 @@ function staleCheck() {
 }
 
 /* =================== KASA LIGHTS (through IFTTT) ===================
-   A score in the matchup game or in one of your teams' games: the bulbs go back and forth between the team's two colors.
+   A score in one of your teams' games or a prime-time NFL game: the bulbs go back and forth between the team's two colors.
    Field goal, hockey / soccer goal, home run, and a basketball team winning (at the final): a quick blast (CONFIG.lightsQuick
    changes). Touchdown: the longer show (CONFIG.lightsTd). Other baseball runs and basketball baskets: nothing.
    Each color change is the IFTTT Webhooks event fcw_score (value1 = the color as #rrggbb, value2 = the team, value3 = what
@@ -10651,13 +10651,10 @@ function lightsHR(g) {                              // baseball: was the last pl
   var lp = ((compOf(g) || {}).situation || {}).lastPlay || {};
   return /home run|homer|grand slam/i.test(String(lp.text || '') + ' ' + String((lp.type && lp.type.text) || ''));
 }
-function lightsGames() {                             // the game on the matchup screen, plus every game with one of your teams
-  var out = [], seen = {}, i, lg, L, mu = null;
+function lightsGames() {                             // your teams' games (every sport), plus the prime-time NFL games (Thursday, Sunday, Monday night)
+  var out = [], seen = {}, i, lg, L;
   var add = function (g, l) { if (g && g.id && g.teams && !seen[g.id]) { seen[g.id] = 1; out.push({ g: g, lg: l }); } };
-  if (CONFIG.view === 'matchup') mu = state.pages;
-  else { try { mu = muPages(); } catch (e) { mu = []; } }
-  for (i = 0; i < (mu || []).length; i++) if (mu[i] && mu[i].game) add(mu[i].game, mu[i].lg);
-  for (lg in state.data) { L = state.data[lg] && state.data[lg].games; for (i = 0; L && i < L.length; i++) if (isFav(L[i], lg)) add(L[i], lg); }
+  for (lg in state.data) { L = state.data[lg] && state.data[lg].games; for (i = 0; L && i < L.length; i++) if (isFav(L[i], lg) || (lg === 'nfl' && ptKind(L[i]))) add(L[i], lg); }
   return out;
 }
 function lightsCheck() {
