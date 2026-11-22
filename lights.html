@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The FanCave Wire · Kasa lights setup</title>
+<style>
+  body { margin: 0; background: #0d1117; color: #e6edf3; font: 17px/1.55 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 30px 0 8px; }
+  p, li { color: #c9d1d9; }
+  .sub { color: #8b949e; margin: 0 0 18px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
+  code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 1px 6px; color: #f0f6fc; }
+  input { width: 100%; box-sizing: border-box; font: 16px ui-monospace, Menlo, Consolas, monospace; padding: 10px 12px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: #f0f6fc; }
+  button { font: 600 15px -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 10px 16px; border-radius: 8px; border: 1px solid #3d444d; background: #21262d; color: #f0f6fc; cursor: pointer; margin: 10px 8px 0 0; }
+  button.go { background: #c83803; border-color: #c83803; }
+  .msg { margin-top: 12px; min-height: 1.5em; color: #8b949e; }
+  .msg.ok { color: #3fb950; } .msg.bad { color: #f85149; }
+  .tv { word-break: break-all; font-size: 18px; padding: 10px 12px; display: block; margin-top: 8px; }
+  ol { padding-left: 22px; } li { margin: 6px 0; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kasa lights setup</h1>
+  <p class="sub">For The FanCave Wire. Your key stays on this computer; it isn't saved or sent anywhere except to IFTTT when you press a test button.</p>
+
+  <h2>1. In IFTTT (ifttt.com or the IFTTT app)</h2>
+  <div class="card">
+    <ol>
+      <li>Connect the <b>TP-Link Kasa</b> service and sign in with your Kasa account.</li>
+      <li>Create applet A. <b>If</b>: Webhooks, "Receive a web request", event name <code>fcw_score</code>. <b>Then</b>: TP-Link Kasa, "Change color", choose your bulbs, and in the color box use <b>Add ingredient</b>, then <b>Value1</b>.</li>
+      <li>Create applet B. <b>If</b>: Webhooks, event name <code>fcw_normal</code>. <b>Then</b>: TP-Link Kasa, "Change color temperature", same bulbs, your normal setting (2700 K is warm white).</li>
+      <li>Find your Webhooks key: ifttt.com/maker_webhooks, then Documentation. It's the long string after <code>/use/</code> or shown as "Your key is".</li>
+    </ol>
+  </div>
+
+  <h2>2. Test from here</h2>
+  <div class="card">
+    <label for="key">Your IFTTT Webhooks key</label>
+    <input id="key" autocomplete="off" spellcheck="false" placeholder="paste it here">
+    <div>
+      <button class="go" id="t1">Test one color</button>
+      <button id="t2">Test a field-goal blast</button>
+      <button id="t3">Back to normal</button>
+    </div>
+    <div class="msg" id="msg"></div>
+    <p style="margin-bottom:0">Test one color turns your bulbs <span class="swatch" style="background:#ff6a00"></span>orange, then back to normal 6 seconds later. If they turn orange, applet A works. If they turn some other color or nothing happens, the Value1 ingredient isn't being used; tell Claude what happened.</p>
+  </div>
+
+  <h2>3. Type this on the TV once</h2>
+  <div class="card">
+    <p style="margin-top:0">Open this address in TV Bro on the TV that shows the ticker. It saves the key on the TV, removes it from the address bar, and does a test blast.</p>
+    <span class="mono tv" id="tv">Paste your key above first.</span>
+    <p style="margin-bottom:0">Showing the main ticker on that TV instead of the matchup screen? Use the same address without <code>view=matchup&amp;</code>.</p>
+  </div>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var keep = [];
+  function key() { return ($('key').value || '').replace(/\s+/g, '').replace(/^.*\/use\//, ''); }
+  function ok(k) { return /^[A-Za-z0-9_-]{10,}$/.test(k); }
+  function say(t, cls) { var m = $('msg'); m.textContent = t; m.className = 'msg' + (cls ? ' ' + cls : ''); }
+  function hit(ev, v1, v3) {
+    var u = 'https://maker.ifttt.com/trigger/' + ev + '/with/key/' + encodeURIComponent(key()) +
+            '?value1=' + encodeURIComponent(v1 || '') + '&value2=TEST&value3=' + encodeURIComponent(v3 || 'setup test') + '&t=' + new Date().getTime();
+    var im = new Image(); im.src = u; keep.push(im);
+  }
+  function guard() { if (!ok(key())) { say("That doesn't look like a Webhooks key yet.", 'bad'); return false; } return true; }
+  function tv() {
+    var k = key();
+    $('tv').textContent = ok(k) ? 'https://justright21-ace.github.io/sports-ticker/index.html?view=matchup&lights=' + k : 'Paste your key above first.';
+  }
+  $('key').oninput = function () { tv(); say(''); };
+  $('t1').onclick = function () {
+    if (!guard()) return;
+    hit('fcw_score', '#ff6a00', 'test color'); say('Sent orange. Your bulbs should change within a few seconds, then go back to normal.', 'ok');
+    setTimeout(function () { hit('fcw_normal', '', 'back to normal'); }, 6000);
+  };
+  $('t2').onclick = function () {
+    if (!guard()) return;
+    var c = ['#ff6a00', '#ffffff', '#ff6a00', '#ffffff'];
+    for (var i = 0; i < c.length; i++) (function (i) { setTimeout(function () { hit('fcw_score', c[i], 'field goal test'); }, i * 1500); })(i);
+    setTimeout(function () { hit('fcw_normal', '', 'back to normal'); }, c.length * 1500);
+    say('Sent a quick orange and white blast, then back to normal.', 'ok');
+  };
+  $('t3').onclick = function () { if (!guard()) return; hit('fcw_normal', '', 'back to normal'); say('Sent back to normal.', 'ok'); };
+})();
+</script>
+</body>
+</html>
