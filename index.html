@@ -464,6 +464,9 @@
   .rank.pr.golf .rkrow .rt { max-width: 17vw; }
   /* CR7: the chase to 1,000 */
   .cr7 { position: relative; height: 66vh; }
+  .cr7 .c7bg { position: absolute; left: -3vw; right: -3vw; top: -6vh; bottom: -4vh; background-size: cover; background-position: 50% 25%; background-repeat: no-repeat; opacity: 0.2; pointer-events: none;
+               -webkit-mask-image: -webkit-radial-gradient(55% 45%, ellipse, #000 30%, transparent 75%); mask-image: radial-gradient(ellipse at 55% 45%, #000 30%, transparent 75%); }
+  .cr7 > *:not(.c7bg) { z-index: 1; }
   .cr7 .c7ph { position: absolute; left: 0; bottom: 0; height: 52vh; opacity: 0.9; -webkit-mask-image: linear-gradient(to top, transparent, #000 25%); }
   .cr7 .c7l { position: absolute; left: 2vw; top: 2vh; width: 30vw; text-align: center; }
   .cr7 .c7n { font-size: 26vh; font-weight: 900; line-height: 0.9; color: #fff; letter-spacing: -0.3vw; }
@@ -1782,6 +1785,7 @@ var CONFIG = {
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
   favScoreJump: true,    // one of your teams (football, baseball, hockey) scores: straight to its big screen, if it has one up (?favjump=0 off)
+  cr7Bg: 'img/cr7-celebration.jpg',   // the Ronaldo page: his goal celebration, faded in behind (no file: nothing shows; ?cr7bg=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
   tourney: true,         // March: big-five conference championship games + every NCAA tournament game get a big screen and the winner's celebration (?tourney=0 off)
@@ -2041,6 +2045,7 @@ function readParams() {
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
     if (k === 'autoreload') CONFIG.autoReload = v !== '0';
     if (k === 'favjump') CONFIG.favScoreJump = v !== '0';
+    if (k === 'cr7bg') CONFIG.cr7Bg = v === '0' ? '' : CONFIG.cr7Bg;
     if (k === 'finalhold' && +v > 0) CONFIG.finalHoldSec = +v;
     if (k === 'breaking') CONFIG.breaking = v !== '0';
     if (k === 'bowls') CONFIG.bowls = v !== '0';
@@ -8700,7 +8705,8 @@ function cr7HTML() {
   if (cr7.live) nx = '<b class="lv">LIVE</b>Al Nassr ' + esc(cr7.live.us) + '&ndash;' + esc(cr7.live.them) + ' ' + esc(cr7.live.opp) + ' &middot; ' + esc(cr7.live.clock) + (cr7.live.mine ? ' &middot; <em>' + cr7.live.mine + (cr7.live.mine > 1 ? ' goals' : ' goal') + ' today</em>' : '');
   else if (cr7.next) { var d = new Date(cr7.next.t); nx = '<b>NEXT</b>' + (cr7.next.home ? 'vs ' : 'at ') + esc(cr7.next.opp) + ' &middot; ' + CR7_DAY[d.getDay()] + ' ' + CR7_MON[d.getMonth()] + ' ' + d.getDate() + ', ' + esc(timeStr(d)); }
   var photo = cr7.pid ? '<img class="c7ph" src="https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/' + esc(cr7.pid) + '.png&w=350&h=254" onerror="this.style.display=\'none\'" alt="">' : '';
-  return '<div class="cr7' + (fresh ? ' fresh' : '') + '">' + photo +
+  var bg = CONFIG.cr7Bg ? '<div class="c7bg" style="background-image:url(' + CONFIG.cr7Bg + ')"></div>' : '';   // his goal celebration, faded in behind (a photo you add)
+  return '<div class="cr7' + (fresh ? ' fresh' : '') + '">' + bg + photo +
     '<div class="c7l">' + (fresh ? '<div class="c7goal">GOAL!</div>' : '') + '<div class="c7n">' + n + '</div><div class="c7lab">CAREER GOALS</div>' +
       (togo ? '<div class="c7to"><b>' + togo + '</b> TO GO</div>' : '<div class="c7to"><b>1,000</b> REACHED</div>') + '</div>' +
     '<div class="c7r"><div class="c7pips">' + pips + '</div>' +
