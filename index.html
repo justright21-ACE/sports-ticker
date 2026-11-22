@@ -1781,6 +1781,7 @@ var CONFIG = {
   specialDays: true,     // NFL games on any day but Sunday (Tue / Wed / Thu afternoon / Fri / Sat, holidays) get their own tab and big screen like MNF (?specialdays=0: just SNF / MNF / TNF)
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
   h2h: true,             // NFL big screens: last meeting between the two teams + this season's series (?h2h=0 off)
+  favScoreJump: true,    // one of your teams (football, baseball, hockey) scores: straight to its big screen, if it has one up (?favjump=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
   tourney: true,         // March: big-five conference championship games + every NCAA tournament game get a big screen and the winner's celebration (?tourney=0 off)
@@ -2038,6 +2039,7 @@ function readParams() {
     if (k === 'cardtos') CONFIG.cardTimeouts = v !== '0';
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
     if (k === 'autoreload') CONFIG.autoReload = v !== '0';
+    if (k === 'favjump') CONFIG.favScoreJump = v !== '0';
     if (k === 'breaking') CONFIG.breaking = v !== '0';
     if (k === 'bowls') CONFIG.bowls = v !== '0';
     if (k === 'injury') CONFIG.injuries = v !== '0';
@@ -6524,6 +6526,7 @@ function winFresh(g, lg) {                      // first look at a game that's a
   var st = parseDate(g.date).getTime();
   return new Date().getTime() - st < (lg === 'ncaab' ? 3 : 4.5) * 3600000;
 }
+var favTrack = {}, FAV_JUMP_LEAGUES = ['nfl', 'ncaaf', 'mlb', 'nhl'];
 function detectJump() {
   if (CONFIG.view === 'matchup') return null;                         // one game only: nothing to jump to
   var ftg = featuredGames(), hit = null, now = new Date().getTime(), i, next = {};
@@ -6559,6 +6562,25 @@ function detectJump() {
     }
     if (!hit && CONFIG.celebrate && !winShown[g.id] && winFor(g, lg) && (was ? !was.won : winFresh(g, lg))) hit = { id: g.id, was: was || {}, why: 'win' };   // just won, or already won when the page loaded: go see it (once)
     next[g.id] = { lg: lg, fin: isFinal(g), won: !!winFor(g, lg), close: ftg[i].kind[0] === 'CLOSE' || ftg[i].kind[0] === 'UPSET' || closeCond(g, lg), play: bp && bp.id, poss: ((compOf(g) || {}).situation || {}).possession, a: num(scoreOf(g, 'away')), h: num(scoreOf(g, 'home')) };
+  }
+  // one of your teams (football, baseball, hockey) just scored: go to its big screen now. Only a game that has a big screen
+  // up (jumpTo goes nowhere otherwise), so the Blackhawks still follow their own rule for when they get one.
+  if (CONFIG.favScoreJump) {
+    var fNext = {};
+    for (var fl = 0; fl < FAV_JUMP_LEAGUES.length; fl++) {
+      var flg = FAV_JUMP_LEAGUES[fl], fd = state.data[flg], fls = favList(flg);
+      if (!fd) continue;
+      for (i = 0; i < fd.games.length; i++) {
+        var fg = fd.games[i];
+        if (!isFav(fg, flg) || !(fg.live || isFinal(fg))) continue;
+        var fa = num(scoreOf(fg, 'away')), fh = num(scoreOf(fg, 'home')), fw = favTrack[fg.id];
+        fNext[fg.id] = { a: fa, h: fh };
+        if (!fw || hit) continue;
+        var up = (fa > fw.a && inList(fls, fg.teams.away.abbreviation)) || (fh > fw.h && inList(fls, fg.teams.home.abbreviation));
+        if (up) { var ev0 = evTrack[fg.id] || {}; hit = { id: fg.id, was: { a: fw.a, h: fw.h, play: ev0.play, poss: ev0.poss }, why: 'fav' }; }
+      }
+    }
+    favTrack = fNext;
   }
   // a game that just turned into an UPSET ALERT
   var upNow = {};
