@@ -1770,11 +1770,6 @@ var CONFIG = {
   refreshIdleSec: 30,    // how often to refresh scores when nothing is live
   newsEveryMin: 10,      // how often to refresh headlines
   staleMin: 10,          // a SCORES NOT UPDATING banner when nothing has refreshed for this many minutes (?stale=0 off)
-  lights: true,          // Kasa lights through IFTTT: a score in the matchup game / your teams' games flashes the team color (needs ?lights=KEY once on that screen; ?lights=0 off for a load)
-  lightsQuick: 4,        // field goal / goal / home run / basketball win: this many quick color changes (team colors, back and forth)
-  lightsTd: 10,          // touchdown: the longer show
-  lightsStepSec: 1.5,    // seconds between color changes
-  vmGapSec: 25,          // Alexa (Voice Monkey): at least this long between two routines, so one finishes before the next starts
   autoReload: true,      // check for a new version of the ticker every 5 minutes and reload between screens (?autoreload=0 off)
   breaking: true,        // BREAKING banner for your teams: trades, signings, big injuries, coaches fired / hired (?breaking=0 off)
   breakingSec: 20,       // ...seconds it stays up
@@ -2043,19 +2038,6 @@ function readParams() {
     if (k === 'cardtos') CONFIG.cardTimeouts = v !== '0';
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
     if (k === 'autoreload') CONFIG.autoReload = v !== '0';
-    if (k === 'lights') {                                    // the IFTTT Webhooks key, saved on this screen only (never in this file)
-      if (v === '0') CONFIG.lights = false;
-      else if (v === 'off') { try { window.localStorage.removeItem('fcw_lights'); } catch (e) {} CONFIG.lightsMsg = 'off'; }
-      else if (v === 'test') CONFIG.lightsMsg = 'test';
-      else if (/^[A-Za-z0-9_-]{10,}$/.test(v)) { try { window.localStorage.setItem('fcw_lights', v); } catch (e) {} CONFIG.lightsMsg = 'test'; }
-      if (v !== '0') try { window.history.replaceState(null, '', window.location.href.replace(/([?&])lights=[^&#]*&?/, '$1').replace(/[?&](#|$)/, '$1')); } catch (e) {}   // the key / test doesn't stay in the address (or come back on a reload)
-    }
-    if (k === 'vm') {                                        // the Voice Monkey token (Alexa routines), saved on this screen only (never in this file)
-      if (v === 'off') { try { window.localStorage.removeItem('fcw_vm'); } catch (e) {} }
-      else if (v === 'test') CONFIG.vmMsg = 'test';
-      else if (/^[A-Za-z0-9_-]{10,}$/.test(v)) { try { window.localStorage.setItem('fcw_vm', v); } catch (e) {} CONFIG.vmMsg = 'test'; }
-      try { window.history.replaceState(null, '', window.location.href.replace(/([?&])vm=[^&#]*&?/, '$1').replace(/[?&](#|$)/, '$1')); } catch (e) {}
-    }
     if (k === 'breaking') CONFIG.breaking = v !== '0';
     if (k === 'bowls') CONFIG.bowls = v !== '0';
     if (k === 'injury') CONFIG.injuries = v !== '0';
@@ -10161,7 +10143,6 @@ function refreshAll() {
     loadInjuries(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
-      try { lightsCheck(); } catch (e) {}            // a score in a game you're watching: the Kasa lights
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages(); tdPreload();
       var jumped = tdJump(hit) ? false : jumpTo(hit);   // a touchdown elsewhere: the team's animal runs across first
@@ -10610,120 +10591,6 @@ function staleCheck() {
   el.style.display = 'block';
 }
 
-/* =================== KASA LIGHTS (through IFTTT) ===================
-   A score in one of your teams' games or a prime-time NFL game: the bulbs go back and forth between the team's two colors.
-   Field goal, hockey / soccer goal, home run, and a basketball team winning (at the final): a quick blast (CONFIG.lightsQuick
-   changes). Touchdown: the longer show (CONFIG.lightsTd). Other baseball runs and basketball baskets: nothing.
-   Each color change is the IFTTT Webhooks event fcw_score (value1 = the color as #rrggbb, value2 = the team, value3 = what
-   happened); fcw_normal puts the bulbs back. Off until this screen is given your Webhooks key once with ?lights=YOUR_KEY
-   (kept on this screen only, then a test blast) · ?lights=test another test · ?lights=off forgets the key.
-   Alexa instead (or too): ?vm=YOUR_VOICE_MONKEY_TOKEN, the same way (?vm=test, ?vm=off); see VM_NAMES below. */
-var lights = { key: '', vm: '', seen: {}, base: false, busy: 0, last: {}, q: [], imgs: [] };
-try { lights.key = window.localStorage.getItem('fcw_lights') || ''; } catch (e) {}
-function lightsHit(ev, v1, v2, v3) {
-  if (!lights.key) return;
-  var u = 'https://maker.ifttt.com/trigger/' + ev + '/with/key/' + encodeURIComponent(lights.key) + '?value1=' + encodeURIComponent(v1 || '') +
-          '&value2=' + encodeURIComponent(v2 || '') + '&value3=' + encodeURIComponent(v3 || '') + '&t=' + new Date().getTime();
-  try { var im = new Image(); im.src = u; lights.imgs.push(im); if (lights.imgs.length > 6) lights.imgs.shift(); } catch (e) {}   // a plain web request: no reply needed
-}
-function hexOk(h) { return /^[0-9a-f]{6}$/i.test(String(h || '').replace('#', '')); }
-function lightColors(t, lg) {                       // the team's two colors as a bulb can show them: colorful ones at full strength, black / white / gray as white
-  var look = (t && teamLook(t, lg)) || {}, c = String(look.color || '').replace('#', ''), a = String(look.alt || look.alternateColor || '').replace('#', '');
-  var sat = function (h) { var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16), mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx ? (mx - mn) / mx : 0; };
-  var full = function (h) {
-    if (!hexOk(h) || sat(h) <= 0.3) return 'ffffff';
-    var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16), k = 255 / (Math.max(r, g, b) || 1);
-    var hx = function (n) { n = Math.min(255, Math.round(n * k)); return (n < 16 ? '0' : '') + n.toString(16); };
-    return hx(r) + hx(g) + hx(b);
-  };
-  var bright = function (h) { return hexOk(h) && sat(h) > 0.3 && lum(h) > 0.15; };
-  var L = hexOk(c) || !hexOk(a) ? [c, a] : [a, c];
-  if (!bright(L[0]) && bright(L[1])) L = [L[1], L[0]];   // Bears: orange first, then the navy (as a bright blue)
-  var c1 = full(L[0]), c2 = hexOk(L[1]) ? full(L[1]) : 'ffffff';
-  if (c2 === c1) c2 = c1 === 'ffffff' ? '' : 'ffffff';     // all white: white and your normal light, back and forth
-  return [c1, c2];
-}
-/* what a score does to the lights: a field goal / goal / home run / a basketball win is a quick blast, a touchdown a longer show */
-/* Alexa through Voice Monkey: each show starts one Alexa routine, through a Voice Monkey "Routine Trigger" device named
-   <team>-<kind>: bears-td, bears-score, eagles-td, eagles-score, usc-td, usc-score, wisconsin-td, wisconsin-score,
-   spurs-win, bulls-win, whitesox-hr, blackhawks-goal; any other team: other-td, other-score, other-win, other-hr, other-goal.
-   The routine itself sets the colors (and the waits between them). A device you didn't make just does nothing. */
-var VM_NAMES = { 'nfl:CHI': 'bears', 'nfl:PHI': 'eagles', 'ncaaf:USC': 'usc', 'ncaaf:WIS': 'wisconsin', 'nba:SA': 'spurs', 'nba:SAS': 'spurs',
-                 'nba:CHI': 'bulls', 'mlb:CHW': 'whitesox', 'mlb:CWS': 'whitesox', 'nhl:CHI': 'blackhawks' };
-function vmDevice(t, lg, what) {
-  var kind = what === 'touchdown' ? 'td' : (what === 'win' ? 'win' : (what === 'home run' ? 'hr' : (lg === 'nfl' || lg === 'ncaaf' ? 'score' : 'goal')));
-  return (VM_NAMES[lg + ':' + String((t && t.abbreviation) || '').toUpperCase()] || 'other') + '-' + kind;
-}
-function vmHit(dev) {
-  if (!lights.vm || !dev) return;
-  try { var im = new Image(); im.src = 'https://api-v3.voicemonkey.io/trigger?token=' + encodeURIComponent(lights.vm) + '&device=' + encodeURIComponent(dev) + '&t=' + new Date().getTime(); lights.imgs.push(im); if (lights.imgs.length > 6) lights.imgs.shift(); } catch (e) {}
-}
-function lightsShow(cols, steps, team, what, dev) {
-  lights.q.push({ cols: cols, steps: steps, team: team, what: what, dev: dev });
-  if (lights.q.length > 5) lights.q.shift();
-  lightsRun();
-}
-function lightsRun() {
-  var now = new Date().getTime();
-  if (!lights.q.length) return;
-  if (now < lights.busy) { if (!lights.wait) lights.wait = setTimeout(function () { lights.wait = 0; lightsRun(); }, lights.busy - now + 50); return; }   // one show at a time: the next when this one is done
-  var x = lights.q.shift(), gap = CONFIG.lightsStepSec * 1000, n = Math.max(1, x.steps);
-  lights.busy = now + Math.max(lights.key ? n * gap + 3000 : 0, lights.vm ? CONFIG.vmGapSec * 1000 : 0);
-  vmHit(x.dev);                                       // Alexa: the routine does the whole show
-  if (lights.key) for (var i = 0; i < n; i++) (function (i) {
-    setTimeout(function () { var c = x.cols[i % 2]; if (c) lightsHit('fcw_score', '#' + c, x.team, x.what); else lightsHit('fcw_normal', '', x.team, x.what); }, i * gap);
-  })(i);
-  if (lights.key) setTimeout(function () { lightsHit('fcw_normal', '', x.team, 'back to normal'); }, n * gap);
-  if (!lights.wait) lights.wait = setTimeout(function () { lights.wait = 0; lightsRun(); }, lights.busy - now + 50);   // then the next one waiting, if any
-}
-function lightsHR(g) {                              // baseball: was the last play a home run?
-  var lp = ((compOf(g) || {}).situation || {}).lastPlay || {};
-  return /home run|homer|grand slam/i.test(String(lp.text || '') + ' ' + String((lp.type && lp.type.text) || ''));
-}
-function lightsGames() {                             // your teams' games (every sport), plus the prime-time NFL games (Thursday, Sunday, Monday night)
-  var out = [], seen = {}, i, lg, L;
-  var add = function (g, l) { if (g && g.id && g.teams && !seen[g.id]) { seen[g.id] = 1; out.push({ g: g, lg: l }); } };
-  for (lg in state.data) { L = state.data[lg] && state.data[lg].games; for (i = 0; L && i < L.length; i++) if (isFav(L[i], lg) || (lg === 'nfl' && ptKind(L[i]))) add(L[i], lg); }
-  return out;
-}
-function lightsCheck() {
-  if (!(lights.key || lights.vm) || !CONFIG.lights || DEMO || state.fromSnap) return;
-  var G = lightsGames(), now = new Date().getTime(), first = !lights.base, i, s;
-  for (i = 0; i < G.length; i++) {
-    var g = G[i].g, lg = G[i].lg, sa = scoreOf(g, 'away'), sh = scoreOf(g, 'home'), p = lights.seen[g.id], fin = isFinal(g);
-    if (sa === '' || sh === '' || isNaN(+sa) || isNaN(+sh)) continue;
-    lights.seen[g.id] = { a: +sa, h: +sh, fin: fin };
-    if (first || !p) continue;                                           // a game just added to the list: its score is the starting point
-    if (/nba|ncaab|wnba|ncaaw/.test(lg)) {                               // basketball: only the winner, when it goes final
-      if (fin && !p.fin && +sa !== +sh) { var w = g.teams[+sa > +sh ? 'away' : 'home']; lightsShow(lightColors(w, lg), CONFIG.lightsQuick, w.abbreviation || '', 'win', vmDevice(w, lg, 'win')); }
-      continue;
-    }
-    if (!(g.live || fin)) continue;
-    var sides = [];
-    if (+sa > p.a) sides.push(['away', +sa - p.a]);
-    if (+sh > p.h) sides.push(['home', +sh - p.h]);
-    for (s = 0; s < sides.length; s++) {
-      var t = g.teams[sides[s][0]], d = sides[s][1], k = g.id + ':' + sides[s][0], foot = lg === 'nfl' || lg === 'ncaaf', steps = CONFIG.lightsQuick, what = 'goal';
-      if (foot) {
-        if (d < 2) continue;                                             // the extra point: part of the touchdown
-        if (d >= 6) { steps = CONFIG.lightsTd; what = 'touchdown'; } else what = d === 3 ? 'field goal' : 'two points';
-      } else if (lg === 'mlb') {
-        if (!lightsHR(g)) continue;                                      // baseball: home runs only
-        what = 'home run';
-      }
-      if (now - (lights.last[k] || 0) < 75000) continue;                 // the same team again within a minute: one show
-      lights.last[k] = now;
-      lightsShow(lightColors(t, lg), steps, t.abbreviation || '', what, vmDevice(t, lg, what));
-    }
-  }
-  lights.base = true;
-}
-function lightsStart() {                             // after the address is read: the key it may have just saved, and the test flash
-  try { lights.key = window.localStorage.getItem('fcw_lights') || ''; lights.vm = window.localStorage.getItem('fcw_vm') || ''; } catch (e) {}
-  if (CONFIG.lightsMsg === 'test' && CONFIG.lights && lights.key) setTimeout(function () { lightsShow(['ff6a00', 'ffffff'], CONFIG.lightsQuick, 'TEST', 'test flash', ''); }, 4000);
-  if (CONFIG.vmMsg === 'test' && CONFIG.lights && lights.vm) setTimeout(function () { lightsShow(['ff6a00', 'ffffff'], 1, 'TEST', 'test', 'other-score'); }, 4000);
-}
-
 /* =================== NEW VERSION: RELOAD ===================
    Every 5 minutes the ticker fetches its own page. Once a changed version has been seen twice in a row
    (so a half-updated web cache can't bounce it), it reloads at the next screen change. It also gives a
@@ -10840,7 +10707,7 @@ function breakingNext() {
 
 /* ---------- start ---------- */
 if (OUTER) buildFrame(); else {
-readParams(); lightsStart();
+readParams();
 renderClock(); setInterval(renderClock, 10000);
 $('msg').style.display = 'block';
 /* sound: any click, tap or key (a TV remote's OK) on the page turns it on */
