@@ -3967,7 +3967,7 @@ try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
    { use: 'team', team: 'ucf' } = that team's game that night, like ?team= (the whole college slate is looked up);
    team can be a queue (['byu', 'neb']): each team's game until it's final, then the next one still going;
    then: 'best' = once that game is final, the best game on at the time (muBest), one after another */
-var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'close', lg: 'ncaaf', hold: 90 } };
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['uga'], lg: 'ncaaf', then: 'close', hold: 90 } };
 function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
 function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
@@ -4114,7 +4114,13 @@ function muPages() {
       for (var ti = 0; ti < tq.length; ti++) { var xt = muPick(String(tq[ti]).toLowerCase()); if (xt && !isFinal(xt.g)) { x = xt; break; } if (xt) x = xt; }
       if (x && !isFinal(x.g)) muPin = x.g.live ? x.g.id : muPin;
     } else x = muPick();
-    var done1 = x && !CONFIG.muTeam && isFinal(x.g) && (once.then === 'best' || new Date().getTime() - seenFinal(x.g.id, new Date().getTime()) > 45 * 60000);
+    var done1 = x && !CONFIG.muTeam && isFinal(x.g) && (once.then === 'best' || once.then === 'close' || new Date().getTime() - seenFinal(x.g.id, new Date().getTime()) > 45 * 60000);
+    if (done1 && once.then === 'close') {                              // then every close college game in turn (none close: the best game on)
+      var CL2 = muCloseList(once), co2 = [];
+      for (var ci = 0; ci < CL2.length; ci++) if (CL2[ci].g.id !== x.g.id) co2.push(muPage(CL2[ci], once.hold || 90));
+      if (co2.length) return co2;
+      var cb2 = muBest(x.g.id); if (cb2) return [muPage(cb2, 60)];
+    }
     if ((done1 || (!x && once.then === 'best' && muBestId)) && once.then === 'best') { var bx = muBest(x && x.g.id); if (bx) return [muPage(bx, 60)]; }
     if (x && !done1) { if (x.g.live) muPin = x.g.id; return [muPage(x, 60)]; }   // a one-day switch lets go 45 min after its game ends
     if (CONFIG.muTeam) return [];                                      // tonight's switch: the usual pick until its game turns up
