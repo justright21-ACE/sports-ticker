@@ -4986,6 +4986,7 @@ function loadPtDetails(cb) {
     if (i >= games.length) return cb();
     var g = games[i++], c = ptDetail[g.eid], now = new Date().getTime();
     var mwl = path[g.id] === 'football/college-football' ? 'ncaaf' : 'nfl';
+    if (/^football\//.test(path[g.id] || 'football/nfl') && g.live) { loadKickers(mwl, g.teams.away.tid); loadKickers(mwl, g.teams.home.tid); }   // the field-goal photo, ready ahead of time
     var osg = CONFIG.fastScreen ? onScreenLive() : null;
     var ttl = g.live ? ((isMustWatch(g, mwl) || (osg && osg.g.id === g.id)) && CONFIG.fastRefreshSec ? 9000 : (closeIds[g.id] ? 45000 : 25000)) : 10 * 60000;   // Bears/USC fast; CLOSE a bit gentler
     if (!CONFIG.primetimeDetail || !g.eid || DEMO || (c && now - c.at < ttl)) return step();
@@ -5940,6 +5941,31 @@ function rosterOf(data) {
   }
   return out;
 }
+/* each football team's kicker(s), from ESPN's team roster: the field-goal card's photo when the play-by-play and box score
+   haven't caught up (or don't list the kicker yet). Fetched once a day per team, only for teams playing live. */
+var kickCache = {};
+function loadKickers(lg, tid) {
+  if (!tid || DEMO) return;
+  var k = lg + ':' + tid, c = kickCache[k], now = new Date().getTime();
+  if (c && (c.busy || now - c.at < 12 * 3600000)) return;
+  kickCache[k] = { at: c ? c.at : 0, list: c ? c.list : [], busy: true };
+  getJSON(ESPN_API + (lg === 'ncaaf' ? 'football/college-football' : 'football/nfl') + '/teams/' + tid + '/roster', function (err, data) {
+    var out = [], A = (data && data.athletes) || [];
+    var take = function (a) {
+      var pos = String((a && a.position && (a.position.abbreviation || a.position.name)) || '').toUpperCase();
+      if (a && (pos === 'PK' || pos === 'K' || pos === 'PLACEKICKER')) out.push({ id: a.id, name: a.displayName || a.fullName || '', jersey: a.jersey || '', hs: a.headshot, tid: String(tid) });
+    };
+    for (var i = 0; i < A.length; i++) { if (A[i] && A[i].items) for (var j = 0; j < A[i].items.length; j++) take(A[i].items[j]); else take(A[i]); }   // NFL: grouped; college: one list
+    kickCache[k] = { at: err ? now - 11 * 3600000 : now, list: err ? (c ? c.list : []) : out };   // a failed fetch: try again in an hour
+  });
+}
+function kickerFor(lg, tid, name) {                // by last name; with no name, the team's only kicker
+  var c = kickCache[lg + ':' + tid], L = (c && c.list) || [];
+  if (!L.length) return null;
+  var m = String(name || '').match(/([A-Za-z'\-]+)\.?\s*(?:jr|sr|ii|iii|iv)?\.?\s*$/i), ln = m ? normName(m[1]) : '';
+  for (var i = 0; ln && i < L.length; i++) if (normName(String(L[i].name).replace(/\s+(jr|sr|ii|iii|iv)\.?$/i, '').split(' ').pop()) === ln) return L[i];
+  return !ln && L.length === 1 ? L[0] : null;
+}
 function findPlayer(det, name, tid, g) {
   var R = det && det.roster, n = normName(name);
   if (!n) return null;
@@ -6773,12 +6799,12 @@ function tdJump(hit) {
    in the team's colors over a glow, then the scorer's photo rises behind the word with the team's logo on
    one side and his name on the other. */
 var FX_WORDS = { 'TOUCHDOWN': 1, 'FIELD GOAL': 1, 'SAFETY': 1 };   // the scores that get the full package (extra points and 2-point tries just flip the number)
-function tdFxHTML(g, side, lg, ts, dt, delay, lab) {
+function tdFxHTML(g, side, lg, ts, dt, delay, lab, pk) {
   var t = g.teams[side], look = teamLook(t, lg) || {}, col = '#' + String(look.color || homeColor(t, lg) || 'e23d3d').replace('#', ''), alt = '#' + String(look.alt || t.alt || 'ffffff').replace('#', '');
   if (col.toLowerCase() === alt.toLowerCase() || /^#(000000|0b0b0b|101820)$/i.test(alt)) alt = '#ffffff';
   var lum = function (h) { h = h.replace('#', ''); return 0.3 * parseInt(h.substr(0, 2), 16) + 0.59 * parseInt(h.substr(2, 2), 16) + 0.11 * parseInt(h.substr(4, 2), 16); };
   var acc = alt !== '#ffffff' && lum(alt) > lum(col) ? alt : (lum(col) < 60 ? (alt !== '#ffffff' ? alt : '#e23d3d') : col);   // the bright one of the two, for glow and edges
-  var p = ts ? findPlayer(dt, ts.name, t.tid, g) : null, url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
+  var p = pk || (ts ? findPlayer(dt, ts.name, t.tid, g) : null), url = p ? headshotOf({ id: p.id, headshot: p.hs }, lg) : '';
   if (url) url = url.replace(/&w=\d+&h=\d+/, '&w=350&h=254');
   var full = String(p ? p.name : (ts ? ts.name : '')).replace(/^\s+|\s+$/g, '');
   if (!full) full = String(t.short || nickname(t.name) || '').replace(/^\s+|\s+$/g, '');   // no scorer (a safety, usually): the team's name
@@ -7722,8 +7748,12 @@ function ptAnimate(pg) {
     var lab = scoreLabel(pg.lg, d, ((sitN.lastPlay || {}).text || '')), lead = (prev.a - prev.h) * (a - h) <= 0 && a !== h && prev.a !== prev.h ? ' TAKE THE LEAD' : (a === h ? ' TIE IT' : '');
     var fx = CONFIG.tdFx && FX_WORDS[lab] && (pg.lg === 'nfl' || pg.lg === 'ncaaf');
     if (fx) {                                                       // the touchdown package instead of the flat banner
-      var dtx = ptDetail[g.eid], tsx = tdScorer(g, dtx, side, side === 'away' ? prev.a : prev.h) || scorerFromPlays(g, dtx, lab, prev.play);
-      root.insertAdjacentHTML('beforeend', tdFxHTML(g, side, pg.lg, tsx, dtx, delay || 0, lab));
+      var dtx = ptDetail[g.eid], tsx = tdScorer(g, dtx, side, side === 'away' ? prev.a : prev.h) || scorerFromPlays(g, dtx, lab, prev.play), pkx = null;
+      if (lab === 'FIELD GOAL') {                                    // the kicker: from the plays, else the team's kicker from its roster
+        pkx = (tsx && findPlayer(dtx, tsx.name, t.tid, g)) || kickerFor(pg.lg, t.tid, tsx && tsx.name) || (tsx ? null : kickerFor(pg.lg, t.tid, ''));
+        if (pkx && !tsx) tsx = { name: pkx.name, line: 'field goal' };
+      }
+      root.insertAdjacentHTML('beforeend', tdFxHTML(g, side, pg.lg, tsx, dtx, delay || 0, lab, pkx));
       setTimeout(function () { var fxe = root.querySelector('.tdfx'); if (fxe && fxe.parentNode) fxe.parentNode.removeChild(fxe); }, ((delay || 0) + 7.2) * 1000);
       tdFxEnd = (delay || 0) + 7.2;
       var numx = root.querySelector(side === 'away' ? '.bigsc .sa' : '.bigsc .sh');
@@ -7741,7 +7771,9 @@ function ptAnimate(pg) {
       if (CONFIG.spotlight && (lab === 'TOUCHDOWN' || lab === 'FIELD GOAL') && (pg.lg === 'nfl' || pg.lg === 'ncaaf')) {
         var dt = ptDetail[g.eid], ts = tdScorer(g, dt, side, side === 'away' ? prev.a : prev.h);
         if (!ts) ts = scorerFromPlays(g, dt, lab, prev.play);         // the summary's scoring list is behind: the plays themselves
-        if (ts) { root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid, g), ts.name, t, pg.lg, ts.line, (delay || 0) + 0.5)); spotEnd = Math.max(spotEnd, (delay || 0) + 4.0); }
+        var pk1 = lab === 'FIELD GOAL' ? kickerFor(pg.lg, t.tid, ts ? ts.name : '') : null;
+        if (!ts && pk1) ts = { name: pk1.name, line: 'field goal' };
+        if (ts) { root.insertAdjacentHTML('beforeend', spotlightHTML(findPlayer(dt, ts.name, t.tid, g) || pk1, ts.name, t, pg.lg, ts.line, (delay || 0) + 0.5)); spotEnd = Math.max(spotEnd, (delay || 0) + 4.0); }
         else {                                                        // still no name: ask ESPN again now, show the card when it comes
           spotWait[id] = { side: side, prevPts: side === 'away' ? prev.a : prev.h, lab: lab, seen: prev.play, until: new Date().getTime() + 90000, notBefore: new Date().getTime() + ((delay || 0) + 2.2) * 1000 };
           if (dt) dt.at = 0;
