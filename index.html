@@ -462,6 +462,9 @@
   .rank.pr .rkh .gt, .rank.pr .rkh .gd, .rank.pr .rkh .gth { font-size: 1.9vh; color: #9FA9BD; font-weight: 600; }
   .rank.pr .rkrow .fl { display: inline-block; width: 3vh; height: 2vh; margin-right: 0.6vw; vertical-align: middle; border-radius: 0.3vh; background-size: cover; background-position: center; }
   .rank.pr.golf .rkrow .rt { max-width: 17vw; }
+  .rank.cfpo .rkrow .cp { position: relative; width: 8vw; }
+  .rank.cfpo .rkrow .cp .cpb { position: absolute; right: 0; top: 50%; height: 2.6vh; margin-top: -1.3vh; max-width: 100%; background: rgba(77,163,255,0.28); border-radius: 0.4vh; }
+  .rank.cfpo .rkrow .cp b { position: relative; font-weight: 800; color: #fff; padding-right: 0.3vw; } .rank.cfpo .rkh .cp { width: 8vw; }
   /* CR7: the chase to 1,000 */
   .hsb { padding: 1vh 2vw 0; }
   .hsr { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 6.6vh; border-bottom: 0.15vh solid rgba(255,255,255,0.08); font-size: 3.4vh; color: #fff; }
@@ -1855,6 +1858,7 @@ var CONFIG = {
   },
   playoffPicture: true,  // a PLAYOFF PICTURE screen after the standings: NFL from week 9, others after the All-Star break (?picture=0 off)
   playoffPictureFrom: { nba: '02-16', nhl: '02-09', mlb: '07-16', wnba: '07-21' },   // month-day each season, about when the All-Star break ends
+  cfpOdds: true,         // college football: a "CFP chances" screen after the Top 25 (the 25 best chances to make the playoff, ESPN's Football Power Index) (?cfpodds=0 off)
   cfpBracket: true,      // once the CFP rankings are out: a 12-team CFP bracket screen before the Top 25 (?cfpbracket=0 off)
   cbbUpset: true,        // college hoops: unranked team leading a ranked one in the 2nd half gets a CLOSE screen (?cbbupset=0 off)
   upsetAlert: true,      // ranked college team losing in the 2nd half, by any margin: UPSET screen (primetime-style), banner and jump (?upset=0 off)
@@ -2067,6 +2071,7 @@ function readParams() {
     if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'golf') CONFIG.golf = v !== '0';
     if (k === 'cr7') CONFIG.cr7 = v !== '0';
+    if (k === 'cfpodds') CONFIG.cfpOdds = v !== '0';
     if (k === 'hs') CONFIG.hs = v !== '0';
     if (k === 'hockeylast') CONFIG.hockeyLast = v !== '0';
     if (k === 'fighterpics') CONFIG.fighterPics = v !== '0';
@@ -3843,6 +3848,7 @@ function buildPages() {
       if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
       else if (rankingsFor(lg) && !seasonOver(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
         pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
+      if (lg === 'ncaaf') pages = pages.concat(cfpOddsPage());
       if (lg === 'nfl') pages = pages.concat(perfPage()).concat(nflPowerPage());
       if (lg === 'epl') pages = pages.concat(eplTablePage());
       pages = pages.concat(standingsPages(lg));
@@ -3888,6 +3894,7 @@ function buildPages() {
     if (lg === 'ncaab' && bracketPages().length) pages = pages.concat(bracketPages());
     else if (rankingsFor(lg)) { if (lg === 'ncaaf' && cfpField()) pages.push({ lg: lg, cfpb: true, hold: CONFIG.rankHoldSec, num: 'cfpb', of: 1, games: [] });
       pages.push({ lg: lg, rank: true, hold: CONFIG.rankHoldSec, num: 'rank', of: 1, games: [] }); }
+    if (lg === 'ncaaf') pages = pages.concat(cfpOddsPage());
     if (lg === 'nfl') pages = pages.concat(perfPage()).concat(nflPowerPage());
     if (lg === 'epl') pages = pages.concat(eplTablePage());
     pages = pages.concat(standingsPages(lg));
@@ -8396,6 +8403,68 @@ function nflPowerHTML() {
   }
   return '<div class="rank pr"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
 }
+/* =========== COLLEGE FOOTBALL: CFP CHANCES ===========
+   The 25 teams with the best chance to make the College Football Playoff, from ESPN's Football Power Index
+   (its playoff projection), with each team's CFP ranking (or AP before those are out), record and FPI.
+   A screen after the Top 25 in the college rotation; refreshed every 3 hours. ?cfpodds=0 off. */
+var cfpOdds = { at: 0, list: [] };
+function loadCfpOdds(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !CONFIG.cfpOdds || !inList(CONFIG.leagues, 'ncaaf') || now - cfpOdds.at < 3 * 3600000) return cb();
+  cfpOdds.at = now;
+  var y = new Date().getFullYear(), season = new Date().getMonth() < 6 ? y - 1 : y, bust = '&_=' + Math.floor(now / 3600000);
+  getJSON(ESPN_API + 'football/college-football/teams?limit=1000' + bust, function (e1, td) {
+    var teams = {}, T = (!e1 && td && td.sports && td.sports[0] && td.sports[0].leagues && td.sports[0].leagues[0] && td.sports[0].leagues[0].teams) || [];
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i].team || T[i];
+      if (t && t.id) teams[String(t.id)] = { abbreviation: t.abbreviation || '', name: t.location || t.shortDisplayName || t.displayName || '', tid: String(t.id),
+        logo: (t.logos && t.logos[0] && t.logos[0].href) || '', color: t.color || '', alt: t.alternateColor || '' };
+    }
+    getJSON('https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/' + season + '/powerindex?limit=300' + bust, function (e2, pd) {
+      var items = (!e2 && pd && pd.items) || [], list = [];
+      for (var k = 0; k < items.length; k++) {
+        var it = items[k], ref = String((it.team && (it.team.$ref || it.team.id)) || ''), m = ref.match(/teams\/(\d+)/), tid = m ? m[1] : (/^\d+$/.test(ref) ? ref : '');
+        var st = it.stats || [];
+        if (!st.length && it.categories) for (var c = 0; c < it.categories.length; c++) st = st.concat(it.categories[c].stats || []);
+        var fpi = prStat(st, /^fpi\||\|FPI$/i), po = null;
+        for (var q = 0; q < st.length && !po; q++) {                 // "make the playoff" (not a bye, the title game or winning it)
+          var nm = (st[q].name || '') + '|' + (st[q].abbreviation || '') + '|' + (st[q].displayName || '');
+          if (/playoff/i.test(nm) && !/bye|first.?round|win|champ|title|nc\b|natl|national|semi|quarter/i.test(nm)) po = st[q];
+        }
+        if (!tid || !po || !teams[tid]) continue;
+        var pc = +po.value;
+        if (isNaN(pc)) continue;
+        if (pc <= 1 && !/%/.test(po.displayValue || '') && pc > 0) pc = pc * 100;   // a fraction, not a percent
+        var w = prStat(st, /^(wins|w)\|/i), l = prStat(st, /^(losses|l)\|/i);
+        list.push({ tid: tid, po: pc, fpi: fpi ? +fpi.value : null, team: teams[tid], rec: w && l ? w.value + '-' + l.value : '' });
+      }
+      if (list.length >= 25) {
+        list.sort(function (a, b) { return (b.po - a.po) || ((b.fpi || 0) - (a.fpi || 0)); });
+        cfpOdds = { at: now, list: list.slice(0, 25) };
+      }
+      cb();
+    });
+  });
+}
+function cfpOddsPage() {
+  return CONFIG.cfpOdds && cfpOdds.list.length >= 25 && !seasonOver('ncaaf') && !cfpDone() ? [{ lg: 'ncaaf', cfpodds: true, hold: CONFIG.rankHoldSec + 5, num: 'cfpodds', of: 1, games: [] }] : [];
+}
+function cfpDone() { var n = new Date(); return n.getMonth() === 0 && n.getDate() > 5 || (n.getMonth() > 0 && n.getMonth() < 7); }   // the field is set (bracket screen takes over) once the season's done
+function cfpOddsHTML() {
+  var L = cfpOdds.list, half = Math.ceil(L.length / 2), cols = ['', ''], rk = rankingsFor('ncaaf'), favs = favList('ncaaf');
+  var head = '<div class="rkrow rkh"><span class="rn">#</span><span class="rt">TEAM</span><span class="rkr"><span class="rr">' + (rk && rk.cfp ? 'CFP' : 'AP') + '</span><span class="rr">REC</span>' +
+             '<span class="fp">FPI</span><span class="cp">CFP %</span></span></div>';
+  for (var i = 0; i < L.length; i++) {
+    var r = L[i], po = r.po, fav = inList(favs, String(r.team.abbreviation).toUpperCase()), rank = rk && rk.byId ? rk.byId[r.tid] : 0, rec = r.rec;
+    if (!rec && rk) for (var j = 0; j < rk.ap.length; j++) if (String(rk.ap[j].team.tid) === r.tid) rec = rk.ap[j].rec;
+    var pos = po >= 99.95 ? 'IN' : (po < 1 ? '&lt;1' : po >= 99.5 ? '&gt;99' : Math.round(po)) + (po >= 99.95 ? '' : '<i>%</i>');
+    cols[i < half ? 0 : 1] += '<div class="rkrow' + (fav ? ' fav' : '') + '"><span class="rn">' + (i + 1) + '</span>' + logoHTML(r.team, 'ncaaf') +
+      '<span class="rt">' + esc(r.team.name) + '</span><span class="rkr"><span class="rr">' + (rank ? rank : '&ndash;') + '</span><span class="rr">' + esc(rec || '') + '</span>' +
+      '<span class="fp' + (r.fpi !== null && r.fpi < 0 ? ' neg' : '') + '">' + (r.fpi === null ? '' : (r.fpi > 0 ? '+' : '') + r.fpi.toFixed(1)) + '</span>' +
+      '<span class="cp"><span class="cpb" style="width:' + Math.max(2, Math.min(100, po)).toFixed(0) + '%"></span><b>' + pos + '</b></span></span></div>';
+  }
+  return '<div class="rank pr cfpo"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
+}
 /* =========== NFL TOP PERFORMERS ===========
    When the Sunday night game ends, a page in the NFL rotation shows the week's best: passing, rushing and
    receiving yards, receptions, touchdowns, tackles, interceptions (from every finished game's box score,
@@ -9801,6 +9870,12 @@ function renderPage() {
     try { $('cards').innerHTML = perfHTML(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
+  if (pg.cfpodds) {
+    renderTabs(pg.lg);
+    $('heading').innerHTML = '<span class="lg">NCAAF</span><span class="sub">CFP chances \u00b7 ESPN Football Power Index \u00b7 as of ' + esc(timeStr(new Date(cfpOdds.at))) + '</span>';
+    try { $('cards').innerHTML = cfpOddsHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.power) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">NFL</span><span class="sub">Power Rankings · ESPN Football Power Index · as of ' + esc(timeStr(new Date(nflPower.at))) + '</span>';
@@ -10379,7 +10454,7 @@ function refreshAll() {
     }
     // the extras in three waves, everything in a wave at once: the second needs the first (rankings, the season calendar,
     // the close-game lists, the missing odds), injuries need the game details
-    runAll([loadTeams, loadNews, loadBreaking, loadNflPower, loadPerf, loadH2h, loadGolf, loadEplTable, loadFighters, loadMajorCfb, loadMajorCbb,
+    runAll([loadTeams, loadNews, loadBreaking, loadNflPower, loadCfpOdds, loadPerf, loadH2h, loadGolf, loadEplTable, loadFighters, loadMajorCfb, loadMajorCbb,
             loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadIdle, loadCup, loadCr7, loadHs], function () {
     runAll([loadChampBackfill, loadCrawlFull, loadPtDetails, loadStandings, loadCfpConf], function () {
     loadInjuries(function () {
