@@ -953,27 +953,33 @@
   @-webkit-keyframes ptHands { 0% { opacity: 0; -webkit-transform: translateY(6vh) scale(0.8); } 25% { opacity: 1; -webkit-transform: translateY(0) scale(1); } 62% { -webkit-transform: scale(1); } 68% { -webkit-transform: scale(0.88); } 74% { -webkit-transform: scale(1.04); } 88% { opacity: 1; } 100% { opacity: 0; } }
   @keyframes ptHands { 0% { opacity: 0; transform: translateY(6vh) scale(0.8); } 25% { opacity: 1; transform: translateY(0) scale(1); } 62% { transform: scale(1); } 68% { transform: scale(0.88); } 74% { transform: scale(1.04); } 88% { opacity: 1; } 100% { opacity: 0; } }
   .ptv .bigplay .flyx.caught { opacity: 1; }
-  .ptv .bigplay.onfield, .ptv .sack.onfield, .ptv .tov.onfield { right: auto; overflow: visible; }
+  .ptv .bigplay.onfield, .ptv .sack.onfield, .ptv .tov.onfield { right: auto; overflow: visible; line-height: 0; }
+  .ptv .onfield svg { display: block; }              /* the field-sized font mustn't push the figures down a line */
   .ptv.mu .spot { top: 52%; }                       /* matchup: the player pops up between the helmets and the field, clear of the score and the clock */
   .ptv .bigplay.onfield { -webkit-animation: ptGone 2.9s linear 1 both; animation: ptGone 2.9s linear 1 both; }
   .ptv .bigplay.onfield .lbl2, .ptv .bigplay.onfield .hands, .ptv .tov.onfield .arw { display: none; }
-  .ptv .bigplay.onfield .flyx { top: 50%; margin: -3.5vh 0 0 -3.5vh; -webkit-animation: none; animation: none; -webkit-transition: left 1.5s linear; transition: left 1.5s linear; }
+  .ptv .bigplay.onfield .flyx, .ptv .bigplay.onfield .flyy, .ptv .bigplay.onfield .flyy svg { width: 0.3em; height: 0.3em; }
+  .ptv .bigplay.onfield .flyx { top: 50%; margin: -0.15em 0 0 -0.15em; -webkit-animation: none; animation: none; -webkit-transition: left 1.5s linear; transition: left 1.5s linear; }
   .ptv .bigplay.onfield .flyy { -webkit-animation-name: ptFlyY2; animation-name: ptFlyY2; -webkit-animation-delay: 0.06s; animation-delay: 0.06s; }
-  .ptv .bigplay.onfield .runr { top: 54%; width: 14vh; height: 14vh; margin: -11vh 0 0 -7vh; -webkit-animation: none; animation: none; -webkit-transition: left 1.9s linear; transition: left 1.9s linear; }
-  .ptv .bigplay.onfield .runr svg { width: 14vh; height: 14vh; }
-  @-webkit-keyframes ptFlyY2 { 0% { -webkit-transform: translateY(0) rotate(-20deg); } 50% { -webkit-transform: translateY(-8vh) rotate(0deg); } 100% { -webkit-transform: translateY(0) rotate(20deg); } }
-  @keyframes ptFlyY2 { 0% { transform: translateY(0) rotate(-20deg); } 50% { transform: translateY(-8vh) rotate(0deg); } 100% { transform: translateY(0) rotate(20deg); } }
+  .ptv .bigplay.onfield .runr { top: 54%; width: 0.6em; height: 0.6em; margin: -0.47em 0 0 -0.3em; -webkit-animation: none; animation: none; -webkit-transition: left 1.9s linear; transition: left 1.9s linear; }
+  .ptv .bigplay.onfield .runr svg { width: 0.6em; height: 0.6em; }
+  @-webkit-keyframes ptFlyY2 { 0% { -webkit-transform: translateY(0) rotate(-20deg); } 50% { -webkit-transform: translateY(-0.6em) rotate(0deg); } 100% { -webkit-transform: translateY(0) rotate(20deg); } }
+  @keyframes ptFlyY2 { 0% { transform: translateY(0) rotate(-20deg); } 50% { transform: translateY(-0.6em) rotate(0deg); } 100% { transform: translateY(0) rotate(20deg); } }
   .ptv .sack.onfield .sk3 { position: absolute; top: 0; bottom: 0; width: 0; }
   .ptv .sack.onfield.rtl .sk3 { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
-  .ptv .sack.onfield .qb, .ptv .sack.onfield .dl { top: auto; bottom: 40%; width: 13vh; height: 13vh; }
-  .ptv .sack.onfield .qb { margin-left: -14vh; } .ptv .sack.onfield .dl { margin-left: -5vh; }
-  .ptv .sack.onfield .qb svg, .ptv .sack.onfield .dl svg { width: 13vh; height: 13vh; }
-  .ptv .sack.onfield .boom { top: auto; bottom: 44%; width: 12vh; height: 12vh; margin-left: -9vh; } .ptv .sack.onfield .boom svg { width: 12vh; height: 12vh; }
-  .ptv .sack.onfield .sb, .ptv .tov.onfield .tb { top: -6%; right: 4%; width: 34vh; margin-left: 0; left: auto; }
+  .ptv .sack.onfield .qb, .ptv .sack.onfield .dl { top: auto; bottom: 40%; width: 0.56em; height: 0.56em; }
+  .ptv .sack.onfield .qb { margin-left: -0.6em; } .ptv .sack.onfield .dl { margin-left: -0.22em; }
+  .ptv .sack.onfield .qb svg, .ptv .sack.onfield .dl svg { width: 0.56em; height: 0.56em; }
+  .ptv .sack.onfield .boom { top: auto; bottom: 44%; width: 0.52em; height: 0.52em; margin-left: -0.39em; } .ptv .sack.onfield .boom svg { width: 0.52em; height: 0.52em; }
+  .ptv .sack.onfield .sb, .ptv .tov.onfield .tb { top: -0.14em; right: 4%; width: auto; padding: 0 0.12em; white-space: nowrap; margin-left: 0; left: auto; border-width: 0.02em; border-radius: 0.05em; }
   .ptv .sack.onfield.bl .sb { right: auto; left: 4%; }
-  .ptv .sack.onfield .sb b, .ptv .tov.onfield .tb b { font-size: 4.2vh; line-height: 5vh; } .ptv .sack.onfield .sb i, .ptv .tov.onfield .tb i { font-size: 1.7vh; line-height: 2.2vh; }
-  .ptv .tov.onfield .tb { left: 50%; right: auto; width: 46vh; margin-left: -23vh; }
-  .ptv .tov.onfield .bx { top: 54%; margin: -3vh 0 0 -3vh; -webkit-animation: none; animation: none; -webkit-transition: left 2.4s linear; transition: left 2.4s linear; }
+  .ptv .sack.onfield .sb b, .ptv .tov.onfield .tb b { font-size: 0.2em; line-height: 1.15; letter-spacing: 0.08em; } .ptv .sack.onfield .sb i, .ptv .tov.onfield .tb i { font-size: 0.085em; line-height: 1.3; padding-bottom: 0.4em; }
+  .ptv .tov.onfield .tbw { position: absolute; left: 50%; top: -0.14em; -webkit-transform: translateX(-50%); transform: translateX(-50%); }   /* centered without a fixed width */
+  .ptv .tov.onfield .tbw .tb { position: relative; left: auto; right: auto; top: auto; margin: 0; }
+  .ptv .tov.onfield .bx, .ptv .tov.onfield .by, .ptv .tov.onfield .by svg { width: 0.26em; height: 0.26em; }
+  .ptv .tov.onfield .by { -webkit-animation-name: ptLooseY2; animation-name: ptLooseY2; }
+  @-webkit-keyframes ptLooseY2 { 0%, 100% { -webkit-transform: translateY(0); } 50% { -webkit-transform: translateY(-0.4em); } } @keyframes ptLooseY2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.4em); } }
+  .ptv .tov.onfield .bx { top: 54%; margin: -0.13em 0 0 -0.13em; -webkit-animation: none; animation: none; -webkit-transition: left 2.4s linear; transition: left 2.4s linear; }
   /* turnover: banner in the defense's color that shakes in, possession arrows swap, a loose ball bounces across */
   .ptv .tov { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 8; overflow: hidden; pointer-events: none;
     -webkit-animation: ptGone 3.2s linear 1 both; animation: ptGone 3.2s linear 1 both; }
@@ -6159,8 +6165,7 @@ var HANDS = function (c) {
 };
 /* the matchup screen: big plays, sacks and turnovers happen on its field (not over the helmets), at the line of
    scrimmage and in the direction the team is going (the away team drives to the right, as the field is drawn) */
-function muFieldBox(root, g) {
-  if (!/ mu( |$)/.test(' ' + root.className + ' ')) return null;
+function muFieldBox(root, g) {                      // the drawn field on any big screen (matchup screen or main ticker)
   var f3 = root.querySelector('.field3 .fsvg');
   if (!f3 || !f3.getBoundingClientRect) return null;
   var er = f3.getBoundingClientRect(), rr = root.getBoundingClientRect(), sc = Math.min(er.width / 1000, er.height / 250);   // the drawing (viewBox 1000x250, centered)
@@ -6171,7 +6176,7 @@ function muFieldBox(root, g) {
   return { l: Math.round(fr.left - rr.left), t: Math.round(fr.top - rr.top), w: Math.round(fr.width), h: Math.round(fr.height), los: los };
 }
 function fieldX(y) { return (14.72 + Math.max(0, Math.min(100, y)) * 0.7056).toFixed(1); }   // yards from the left goal line -> % across the drawing (fieldSVG, mid-depth)
-function boxStyle(b) { return ' style="left:' + b.l + 'px;top:' + b.t + 'px;width:' + b.w + 'px;height:' + b.h + 'px"'; }
+function boxStyle(b) { return ' style="left:' + b.l + 'px;top:' + b.t + 'px;width:' + b.w + 'px;height:' + b.h + 'px;font-size:' + b.h + 'px"'; }   // figures sized to the field (em = its height)
 function fieldGo(root) {                             // start the moves: each [data-to] glides from where it starts to there
   setTimeout(function () { var L = root.querySelectorAll('.onfield [data-to]'); for (var i = 0; i < L.length; i++) { L[i].style.left = L[i].getAttribute('data-to'); L[i].removeAttribute('data-to'); } }, 60);
 }
@@ -7080,7 +7085,7 @@ function turnoverHTML(to, t, lg, box, rtl) {         // box: on the matchup fiel
   var col = homeColor(t, lg) || 'e23d3d', nick = String(t.short || nickname(t.name) || t.abbreviation).toUpperCase(), mv = '';
   if (box) { var at = box.los !== null ? box.los : 50; mv = ' style="left:' + fieldX(at - (rtl ? -6 : 6)) + '%" data-to="' + fieldX(at + (rtl ? -18 : 18)) + '%"'; }
   return '<div class="tov' + (box ? ' onfield"' + boxStyle(box) : '"') + '><div class="arw l">' + ARROWS + '</div><div class="arw r">' + ARROWS + '</div>' +
-    '<div class="tb" style="background:#' + col + '"><b>' + esc(to.kind) + '</b><i>' + esc(nick + ' BALL' + (to.who ? ' · ' + String(to.who).toUpperCase() : '')) + '</i></div>' +
+    (box ? '<div class="tbw">' : '') + '<div class="tb" style="background:#' + col + '"><b>' + esc(to.kind) + '</b><i>' + esc(nick + ' BALL' + (to.who ? ' · ' + String(to.who).toUpperCase() : '')) + '</i></div>' + (box ? '</div>' : '') +
     '<div class="bx"' + mv + '><div class="by">' + FOOTBALL + '</div></div></div>';
 }
 function prev_a(p) { return p ? p.a : 0; } function prev_h(p) { return p ? p.h : 0; }
