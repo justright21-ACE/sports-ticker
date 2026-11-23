@@ -463,6 +463,8 @@
   .rank.pr .rkrow .fl { display: inline-block; width: 3vh; height: 2vh; margin-right: 0.6vw; vertical-align: middle; border-radius: 0.3vh; background-size: cover; background-position: center; }
   .rank.pr.golf .rkrow .rt { max-width: 17vw; }
   .rank.cfpo .rkrow .cp { position: relative; width: 8vw; }
+  .rank.cfpo .g6 { display: inline-block; font-size: 1.6vh; font-weight: 800; letter-spacing: 0.1vw; color: #0d1117; background: #f5c400; border-radius: 0.4vh; padding: 0.1vh 0.5vw; margin-left: 0.5vw; vertical-align: middle; }
+  .rank.cfpo .cfpn { clear: both; padding: 1.6vh 0 0 1.4vw; font-size: 2vh; color: #9FA9BD; }
   .rank.cfpo .rkrow .cp .cpb { position: absolute; right: 0; top: 50%; height: 2.6vh; margin-top: -1.3vh; max-width: 100%; background: rgba(77,163,255,0.28); border-radius: 0.4vh; }
   .rank.cfpo .rkrow .cp b { position: relative; font-weight: 800; color: #fff; padding-right: 0.3vw; } .rank.cfpo .rkh .cp { width: 8vw; }
   /* CR7: the chase to 1,000 */
@@ -8407,7 +8409,7 @@ function nflPowerHTML() {
    The 25 teams with the best chance to make the College Football Playoff, from ESPN's Football Power Index
    (its playoff projection), with each team's CFP ranking (or AP before those are out), record and FPI.
    A screen after the Top 25 in the college rotation; refreshed every 3 hours. ?cfpodds=0 off. */
-var cfpOdds = { at: 0, list: [] };
+var cfpOdds = { at: 0, list: [], all: [] };
 function loadCfpOdds(cb) {
   var now = new Date().getTime();
   if (DEMO || !CONFIG.cfpOdds || !inList(CONFIG.leagues, 'ncaaf') || now - cfpOdds.at < 3 * 3600000) return cb();
@@ -8440,7 +8442,7 @@ function loadCfpOdds(cb) {
       }
       if (list.length >= 25) {
         list.sort(function (a, b) { return (b.po - a.po) || ((b.fpi || 0) - (a.fpi || 0)); });
-        cfpOdds = { at: now, list: list.slice(0, 25) };
+        cfpOdds = { at: now, list: list.slice(0, 25), all: list };
       }
       cb();
     });
@@ -8450,8 +8452,13 @@ function cfpOddsPage() {
   return CONFIG.cfpOdds && cfpOdds.list.length >= 25 && !seasonOver('ncaaf') && !cfpDone() ? [{ lg: 'ncaaf', cfpodds: true, hold: CONFIG.rankHoldSec + 5, num: 'cfpodds', of: 1, games: [] }] : [];
 }
 function cfpDone() { var n = new Date(); return n.getMonth() === 0 && n.getDate() > 5 || (n.getMonth() > 0 && n.getMonth() < 7); }   // the field is set (bracket screen takes over) once the season's done
+function cfpG6() {                                  // the Group of Six team with the best chance: in line for the guaranteed G6 spot (2026: highest-ranked G6 team, champion or not)
+  var A = cfpOdds.all || [];
+  for (var i = 0; i < A.length; i++) if (inList(G5_CONFS, cfpConf.byId[A[i].tid] || '')) return A[i];
+  return null;
+}
 function cfpOddsHTML() {
-  var L = cfpOdds.list, half = Math.ceil(L.length / 2), cols = ['', ''], rk = rankingsFor('ncaaf'), favs = favList('ncaaf');
+  var L = cfpOdds.list, half = Math.ceil(L.length / 2), cols = ['', ''], rk = rankingsFor('ncaaf'), favs = favList('ncaaf'), g6 = cfpG6(), g6In = false;
   var head = '<div class="rkrow rkh"><span class="rn">#</span><span class="rt">TEAM</span><span class="rkr"><span class="rr">' + (rk && rk.cfp ? 'CFP' : 'AP') + '</span><span class="rr">REC</span>' +
              '<span class="fp">FPI</span><span class="cp">CFP %</span></span></div>';
   for (var i = 0; i < L.length; i++) {
@@ -8459,11 +8466,13 @@ function cfpOddsHTML() {
     if (!rec && rk) for (var j = 0; j < rk.ap.length; j++) if (String(rk.ap[j].team.tid) === r.tid) rec = rk.ap[j].rec;
     var pos = po >= 99.95 ? 'IN' : (po < 1 ? '&lt;1' : po >= 99.5 ? '&gt;99' : Math.round(po)) + (po >= 99.95 ? '' : '<i>%</i>');
     cols[i < half ? 0 : 1] += '<div class="rkrow' + (fav ? ' fav' : '') + '"><span class="rn">' + (i + 1) + '</span>' + logoHTML(r.team, 'ncaaf') +
-      '<span class="rt">' + esc(r.team.name) + '</span><span class="rkr"><span class="rr">' + (rank ? rank : '&ndash;') + '</span><span class="rr">' + esc(rec || '') + '</span>' +
+      '<span class="rt">' + esc(r.team.name) + '</span>' + (g6 && g6.tid === r.tid ? (g6In = true, '<b class="g6">G6</b>') : '') + '<span class="rkr"><span class="rr">' + (rank ? rank : '&ndash;') + '</span><span class="rr">' + esc(rec || '') + '</span>' +
       '<span class="fp' + (r.fpi !== null && r.fpi < 0 ? ' neg' : '') + '">' + (r.fpi === null ? '' : (r.fpi > 0 ? '+' : '') + r.fpi.toFixed(1)) + '</span>' +
       '<span class="cp"><span class="cpb" style="width:' + Math.max(2, Math.min(100, po)).toFixed(0) + '%"></span><b>' + pos + '</b></span></span></div>';
   }
-  return '<div class="rank pr cfpo"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div></div>';
+  var note = g6 ? '<div class="cfpn"><b class="g6">G6</b> In line for the Group of Six spot: the highest-ranked G6 team gets in, champion or not' +
+             (g6In ? '' : ' &middot; ' + esc(g6.team.name) + ' ' + (g6.po < 1 ? '&lt;1' : Math.round(g6.po)) + '%') + '</div>' : '';
+  return '<div class="rank pr cfpo"><div class="rkcol">' + head + cols[0] + '</div><div class="rkcol">' + head + cols[1] + '</div>' + note + '</div>';
 }
 /* =========== NFL TOP PERFORMERS ===========
    When the Sunday night game ends, a page in the NFL rotation shows the week's best: passing, rushing and
