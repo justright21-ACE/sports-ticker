@@ -107,8 +107,8 @@ def parse_bkb(src, page, now):
     return games
 
 
-def season(page):
-    m = re.search(r'Schedule\s*&(?:amp;)?\s*Scores\s*(?:&mdash;|\u2014|-)\s*(\d{4}-\d{2})', page)
+def season(page):                                   # "... Schedule & Scores — 2026-27"
+    m = re.search(r'Scores\W{1,20}(\d{4}-\d{2})', html.unescape(re.sub(r'<[^>]+>', ' ', page)))
     return m.group(1) if m else ''
 
 
