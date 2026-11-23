@@ -1,0 +1,6415 @@
+{
+ "errors": [],
+ "games": [
+  {
+   "a": {
+    "name": "Galena (H.S.)",
+    "score": 72
+   },
+   "b": {
+    "name": "Chicago (Orr)",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Abingdon (A.-Avon)",
+    "score": 49
+   },
+   "b": {
+    "name": "Morrison",
+    "score": 7
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Ottawa (Marquette)",
+    "score": 42
+   },
+   "b": {
+    "name": "Princeville",
+    "score": 21
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Dwight",
+    "score": 21
+   },
+   "b": {
+    "name": "Manlius (Bureau Valley)",
+    "score": 8
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Orion",
+    "score": 21
+   },
+   "b": {
+    "name": "LeRoy",
+    "score": 20
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lena (L.-Winslow)",
+    "score": 46
+   },
+   "b": {
+    "name": "Momence",
+    "score": 12
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sterling (Newman Central Catholic)",
+    "score": 46
+   },
+   "b": {
+    "name": "Tremont",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fulton (H.S.)",
+    "score": 70
+   },
+   "b": {
+    "name": "Monmouth (United)",
+    "score": 15
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Athens",
+    "score": 48
+   },
+   "b": {
+    "name": "Carrollton",
+    "score": 14
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fithian (Oakwood)",
+    "score": 53
+   },
+   "b": {
+    "name": "Pleasant Hill [Coop]",
+    "score": 12
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Havana",
+    "score": 57
+   },
+   "b": {
+    "name": "Concord (Triopia) [Coop]",
+    "score": 28
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Winchester [West Central Coop]",
+    "score": 40
+   },
+   "b": {
+    "name": "Sesser (Valier) [Coop]",
+    "score": 8
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Bridgeport (Red Hill)",
+    "score": 12
+   },
+   "b": {
+    "name": "Toledo (Cumberland)",
+    "score": 0
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Villa Grove [Villa Grove-Heritage Coop]",
+    "score": 34
+   },
+   "b": {
+    "name": "Dupo",
+    "score": 0
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carlyle",
+    "score": 41
+   },
+   "b": {
+    "name": "Nokomis [Coop]",
+    "score": 7
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Casey (Westfield)",
+    "score": 12
+   },
+   "b": {
+    "name": "Astoria [South Fulton Coop]",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Heyworth",
+    "score": 22
+   },
+   "b": {
+    "name": "Galena (H.S.)",
+    "score": 19
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fisher",
+    "score": 36
+   },
+   "b": {
+    "name": "Abingdon (A.-Avon)",
+    "score": 34
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Clifton (Central)",
+    "score": 40
+   },
+   "b": {
+    "name": "Ottawa (Marquette)",
+    "score": 21
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Dwight",
+    "score": 40
+   },
+   "b": {
+    "name": "Kewanee (Wethersfield) [Annawan-Wethersfield Coop]",
+    "score": 20
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Stockton",
+    "score": 50
+   },
+   "b": {
+    "name": "Orion",
+    "score": 13
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Forreston",
+    "score": 22
+   },
+   "b": {
+    "name": "Lena (L.-Winslow)",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sterling (Newman Central Catholic)",
+    "score": 35
+   },
+   "b": {
+    "name": "Taylor Ridge (Rockridge)",
+    "score": 24
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fulton (H.S.)",
+    "score": 61
+   },
+   "b": {
+    "name": "Toulon (Stark County)",
+    "score": 22
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Sterling (Brown County)",
+    "score": 48
+   },
+   "b": {
+    "name": "Athens",
+    "score": 14
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fithian (Oakwood)",
+    "score": 42
+   },
+   "b": {
+    "name": "Greenfield [G.-Northwestern Coop]",
+    "score": 12
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sullivan",
+    "score": 57
+   },
+   "b": {
+    "name": "Havana",
+    "score": 49
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Camp Point (Central)",
+    "score": 37
+   },
+   "b": {
+    "name": "Winchester [West Central Coop]",
+    "score": 12
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Arthur (A.-Lovington-Atwood-Hammond)",
+    "score": 49
+   },
+   "b": {
+    "name": "Bridgeport (Red Hill)",
+    "score": 0
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Catlin (Salt Fork)",
+    "score": 35
+   },
+   "b": {
+    "name": "Villa Grove [Villa Grove-Heritage Coop]",
+    "score": 21
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Hardin (Calhoun) [Coop]",
+    "score": 46
+   },
+   "b": {
+    "name": "Carlyle",
+    "score": 0
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Tuscola",
+    "score": 45
+   },
+   "b": {
+    "name": "Casey (Westfield)",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Heyworth",
+    "score": 45
+   },
+   "b": {
+    "name": "Fisher",
+    "score": 7
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Clifton (Central)",
+    "score": 48
+   },
+   "b": {
+    "name": "Dwight",
+    "score": 12
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Stockton",
+    "score": 36
+   },
+   "b": {
+    "name": "Forreston",
+    "score": 16
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fulton (H.S.)",
+    "score": 28
+   },
+   "b": {
+    "name": "Sterling (Newman Central Catholic)",
+    "score": 24
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Sterling (Brown County)",
+    "score": 34
+   },
+   "b": {
+    "name": "Fithian (Oakwood)",
+    "score": 7
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Camp Point (Central)",
+    "score": 38
+   },
+   "b": {
+    "name": "Sullivan",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Arthur (A.-Lovington-Atwood-Hammond)",
+    "score": 40
+   },
+   "b": {
+    "name": "Catlin (Salt Fork)",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Hardin (Calhoun) [Coop]",
+    "score": 22
+   },
+   "b": {
+    "name": "Tuscola",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Heyworth",
+    "score": 47
+   },
+   "b": {
+    "name": "Clifton (Central)",
+    "score": 0
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Stockton",
+    "score": 28
+   },
+   "b": {
+    "name": "Fulton (H.S.)",
+    "score": 21
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Sterling (Brown County)",
+    "score": 28
+   },
+   "b": {
+    "name": "Camp Point (Central)",
+    "score": 6
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Hardin (Calhoun) [Coop]",
+    "score": 38
+   },
+   "b": {
+    "name": "Arthur (A.-Lovington-Atwood-Hammond)",
+    "score": 16
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Heyworth",
+    "score": 22
+   },
+   "b": {
+    "name": "Stockton",
+    "score": 8
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Sterling (Brown County)",
+    "score": 14
+   },
+   "b": {
+    "name": "Hardin (Calhoun) [Coop]",
+    "score": 12
+   },
+   "cls": "1A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-1A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Heyworth",
+    "rec": "13-0"
+   },
+   "b": {
+    "name": "Mt. Sterling (Brown County)",
+    "rec": "13-0"
+   },
+   "cls": "1A",
+   "date": "2026-11-27T10:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-1A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lanark (Eastland) [Eastland-Pearl City Coop]",
+    "score": 42
+   },
+   "b": {
+    "name": "Beardstown",
+    "score": 14
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carthage (Illini West)",
+    "score": 48
+   },
+   "b": {
+    "name": "Hamilton [West Hancock Coop]",
+    "score": 6
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Bismarck (B.-Henning-Rossville-Alvin)",
+    "score": 51
+   },
+   "b": {
+    "name": "Chicago (Marshall) [Coop]",
+    "score": 14
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Farmington",
+    "score": 22
+   },
+   "b": {
+    "name": "Pleasant Plains",
+    "score": 16
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Stillman Valley",
+    "score": 32
+   },
+   "b": {
+    "name": "Braidwood (Reed-Custer)",
+    "score": 31
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Warrensburg (W.-Latham)",
+    "score": 42
+   },
+   "b": {
+    "name": "Georgetown (Ridge Farm) [Coop]",
+    "score": 19
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Winnebago",
+    "score": 42
+   },
+   "b": {
+    "name": "Elmwood [E.-Brimfield Coop]",
+    "score": 12
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oregon",
+    "score": 35
+   },
+   "b": {
+    "name": "Westville",
+    "score": 27
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carlinville",
+    "score": 35
+   },
+   "b": {
+    "name": "Riverton",
+    "score": 28
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chester",
+    "score": 55
+   },
+   "b": {
+    "name": "Trenton (Wesclin)",
+    "score": 14
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "DuQuoin (H.S.)",
+    "score": 35
+   },
+   "b": {
+    "name": "Christopher [C.-Zeigler-Royalton Coop]",
+    "score": 0
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "McLeansboro (Hamilton County)",
+    "score": 38
+   },
+   "b": {
+    "name": "Niantic (Sangamon Valley) [Coop]",
+    "score": 8
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Decatur (St. Teresa)",
+    "score": 42
+   },
+   "b": {
+    "name": "Piasa (Southwestern)",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Auburn",
+    "score": 54
+   },
+   "b": {
+    "name": "Jacksonville (Routt) [Coop]",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Moweaqua (Central A & M) [Coop]",
+    "score": 48
+   },
+   "b": {
+    "name": "Marshall",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Shelbyville",
+    "score": 42
+   },
+   "b": {
+    "name": "Carmi (White County)",
+    "score": 6
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lanark (Eastland) [Eastland-Pearl City Coop]",
+    "score": 11
+   },
+   "b": {
+    "name": "Port Byron (Riverdale)",
+    "score": 8
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Peotone",
+    "score": 51
+   },
+   "b": {
+    "name": "Carthage (Illini West)",
+    "score": 8
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Downs (Tri-Valley)",
+    "score": 63
+   },
+   "b": {
+    "name": "Bismarck (B.-Henning-Rossville-Alvin)",
+    "score": 14
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmington",
+    "score": 56
+   },
+   "b": {
+    "name": "Farmington",
+    "score": 26
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "El Paso (Gridley)",
+    "score": 56
+   },
+   "b": {
+    "name": "Stillman Valley",
+    "score": 9
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Warrensburg (W.-Latham)",
+    "score": 21
+   },
+   "b": {
+    "name": "Erie [E.-Prophetstown Coop]",
+    "score": 12
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (Christian)",
+    "score": 42
+   },
+   "b": {
+    "name": "Winnebago",
+    "score": 14
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Maroa (M.-Forsyth)",
+    "score": 49
+   },
+   "b": {
+    "name": "Oregon",
+    "score": 18
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Johnston City",
+    "score": 38
+   },
+   "b": {
+    "name": "Carlinville",
+    "score": 13
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Newton",
+    "score": 28
+   },
+   "b": {
+    "name": "Chester",
+    "score": 22
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Nashville",
+    "score": 45
+   },
+   "b": {
+    "name": "DuQuoin (H.S.)",
+    "score": 28
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Vandalia",
+    "score": 42
+   },
+   "b": {
+    "name": "McLeansboro (Hamilton County)",
+    "score": 6
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "West Frankfort (Frankfort)",
+    "score": 56
+   },
+   "b": {
+    "name": "Decatur (St. Teresa)",
+    "score": 28
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Auburn",
+    "score": 38
+   },
+   "b": {
+    "name": "Red Bud",
+    "score": 17
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Flora",
+    "score": 28
+   },
+   "b": {
+    "name": "Moweaqua (Central A & M) [Coop]",
+    "score": 13
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Shelbyville",
+    "score": 28
+   },
+   "b": {
+    "name": "Pana (H.S.)",
+    "score": 13
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Peotone",
+    "score": 21
+   },
+   "b": {
+    "name": "Lanark (Eastland) [Eastland-Pearl City Coop]",
+    "score": 16
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmington",
+    "score": 42
+   },
+   "b": {
+    "name": "Downs (Tri-Valley)",
+    "score": 21
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "El Paso (Gridley)",
+    "score": 41
+   },
+   "b": {
+    "name": "Warrensburg (W.-Latham)",
+    "score": 6
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (Christian)",
+    "score": 28
+   },
+   "b": {
+    "name": "Maroa (M.-Forsyth)",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Johnston City",
+    "score": 16
+   },
+   "b": {
+    "name": "Newton",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Nashville",
+    "score": 57
+   },
+   "b": {
+    "name": "Vandalia",
+    "score": 28
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "West Frankfort (Frankfort)",
+    "score": 53
+   },
+   "b": {
+    "name": "Auburn",
+    "score": 41
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Flora",
+    "score": 21
+   },
+   "b": {
+    "name": "Shelbyville",
+    "score": 0
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmington",
+    "score": 49
+   },
+   "b": {
+    "name": "Peotone",
+    "score": 27
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (Christian)",
+    "score": 28
+   },
+   "b": {
+    "name": "El Paso (Gridley)",
+    "score": 24
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Nashville",
+    "score": 18
+   },
+   "b": {
+    "name": "Johnston City",
+    "score": 12
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "West Frankfort (Frankfort)",
+    "score": 38
+   },
+   "b": {
+    "name": "Flora",
+    "score": 14
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmington",
+    "score": 35
+   },
+   "b": {
+    "name": "Aurora (Christian)",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "West Frankfort (Frankfort)",
+    "score": 34
+   },
+   "b": {
+    "name": "Nashville",
+    "score": 7
+   },
+   "cls": "2A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-2A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmington",
+    "rec": "12-1"
+   },
+   "b": {
+    "name": "West Frankfort (Frankfort)",
+    "rec": "12-1"
+   },
+   "cls": "2A",
+   "date": "2026-11-27T13:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-2A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Princeton",
+    "score": 64
+   },
+   "b": {
+    "name": "Chicago (South Shore)",
+    "score": 20
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Manteno",
+    "score": 62
+   },
+   "b": {
+    "name": "Mendota",
+    "score": 7
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sandwich",
+    "score": 57
+   },
+   "b": {
+    "name": "Lisle (Sr.)",
+    "score": 12
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (C. Hope Academy)",
+    "score": 35
+   },
+   "b": {
+    "name": "Monmouth (M.-Roseville)",
+    "score": 14
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fairbury (Prairie Central)",
+    "score": 44
+   },
+   "b": {
+    "name": "Palos Heights (Chicago Christian)",
+    "score": 20
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Pontiac",
+    "score": 44
+   },
+   "b": {
+    "name": "Chicago (Dyett)",
+    "score": 26
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Genoa (G.-Kingston)",
+    "score": 25
+   },
+   "b": {
+    "name": "Poplar Grove (North Boone)",
+    "score": 20
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Woodstock (Marian)",
+    "score": 56
+   },
+   "b": {
+    "name": "Kewanee (H.S.)",
+    "score": 14
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Roxana",
+    "score": 60
+   },
+   "b": {
+    "name": "Metropolis (Massac County)",
+    "score": 23
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Stanford (Olympia)",
+    "score": 56
+   },
+   "b": {
+    "name": "Columbia",
+    "score": 28
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sparta [Coop]",
+    "score": 54
+   },
+   "b": {
+    "name": "Breese (Mater Dei)",
+    "score": 13
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Paris",
+    "score": 16
+   },
+   "b": {
+    "name": "Eureka",
+    "score": 13
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Belleville (Althoff Catholic)",
+    "score": 13
+   },
+   "b": {
+    "name": "Harrisburg",
+    "score": 12
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Tolono (Unity)",
+    "score": 70
+   },
+   "b": {
+    "name": "Robinson",
+    "score": 16
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Greenville",
+    "score": 28
+   },
+   "b": {
+    "name": "Petersburg (PORTA) [Coop]",
+    "score": 18
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Fairfield",
+    "score": 32
+   },
+   "b": {
+    "name": "Staunton [Coop]",
+    "score": 7
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Richmond (R.-Burton)",
+    "score": 42
+   },
+   "b": {
+    "name": "Princeton",
+    "score": 3
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Manteno",
+    "score": 41
+   },
+   "b": {
+    "name": "Peru (St. Bede)",
+    "score": 14
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sandwich",
+    "score": 29
+   },
+   "b": {
+    "name": "Pecatonica [Du-Pec Coop]",
+    "score": 20
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (C. Hope Academy)",
+    "score": 36
+   },
+   "b": {
+    "name": "Kankakee (McNamara)",
+    "score": 13
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Byron",
+    "score": 44
+   },
+   "b": {
+    "name": "Fairbury (Prairie Central)",
+    "score": 0
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Pontiac",
+    "score": 40
+   },
+   "b": {
+    "name": "Chicago (UCCS/Woodlawn)",
+    "score": 12
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (IC Catholic)",
+    "score": 42
+   },
+   "b": {
+    "name": "Genoa (G.-Kingston)",
+    "score": 0
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Johnsburg",
+    "score": 27
+   },
+   "b": {
+    "name": "Woodstock (Marian)",
+    "score": 0
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Roxana",
+    "score": 55
+   },
+   "b": {
+    "name": "Hillsboro",
+    "score": 48
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Monticello",
+    "score": 34
+   },
+   "b": {
+    "name": "Stanford (Olympia)",
+    "score": 0
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Williamsville",
+    "score": 43
+   },
+   "b": {
+    "name": "Sparta [Coop]",
+    "score": 38
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Macomb",
+    "score": 27
+   },
+   "b": {
+    "name": "Paris",
+    "score": 6
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "St. Joseph (Ogden)",
+    "score": 80
+   },
+   "b": {
+    "name": "Belleville (Althoff Catholic)",
+    "score": 31
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Tolono (Unity)",
+    "score": 21
+   },
+   "b": {
+    "name": "Bloomington (Central Catholic)",
+    "score": 7
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Carmel",
+    "score": 44
+   },
+   "b": {
+    "name": "Greenville",
+    "score": 22
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Benton",
+    "score": 52
+   },
+   "b": {
+    "name": "Fairfield",
+    "score": 14
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Richmond (R.-Burton)",
+    "score": 35
+   },
+   "b": {
+    "name": "Manteno",
+    "score": 21
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (C. Hope Academy)",
+    "score": 30
+   },
+   "b": {
+    "name": "Sandwich",
+    "score": 8
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Byron",
+    "score": 47
+   },
+   "b": {
+    "name": "Pontiac",
+    "score": 8
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (IC Catholic)",
+    "score": 42
+   },
+   "b": {
+    "name": "Johnsburg",
+    "score": 7
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Monticello",
+    "score": 49
+   },
+   "b": {
+    "name": "Roxana",
+    "score": 14
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Williamsville",
+    "score": 42
+   },
+   "b": {
+    "name": "Macomb",
+    "score": 28
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "St. Joseph (Ogden)",
+    "score": 35
+   },
+   "b": {
+    "name": "Tolono (Unity)",
+    "score": 21
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Carmel",
+    "score": 32
+   },
+   "b": {
+    "name": "Benton",
+    "score": 24
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Richmond (R.-Burton)",
+    "score": 38
+   },
+   "b": {
+    "name": "Chicago (C. Hope Academy)",
+    "score": 6
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (IC Catholic)",
+    "score": 33
+   },
+   "b": {
+    "name": "Byron",
+    "score": 14
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Williamsville",
+    "score": 37
+   },
+   "b": {
+    "name": "Monticello",
+    "score": 23
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "St. Joseph (Ogden)",
+    "score": 49
+   },
+   "b": {
+    "name": "Mt. Carmel",
+    "score": 22
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (IC Catholic)",
+    "score": 21
+   },
+   "b": {
+    "name": "Richmond (R.-Burton)",
+    "score": 7
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "St. Joseph (Ogden)",
+    "score": 48
+   },
+   "b": {
+    "name": "Williamsville",
+    "score": 9
+   },
+   "cls": "3A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-3A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (IC Catholic)",
+    "rec": "12-1"
+   },
+   "b": {
+    "name": "St. Joseph (Ogden)",
+    "rec": "13-0"
+   },
+   "cls": "3A",
+   "date": "2026-11-27T16:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-3A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Tinley Park (H.S.)",
+    "score": 20
+   },
+   "b": {
+    "name": "Woodstock (North)",
+    "score": 8
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Geneseo",
+    "score": 42
+   },
+   "b": {
+    "name": "North Chicago",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (Marmion Academy)",
+    "score": 40
+   },
+   "b": {
+    "name": "Chicago (North Lawndale Charter)",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Country Club Hills (Hillcrest)",
+    "score": 63
+   },
+   "b": {
+    "name": "Chicago (Noble/Johnson)",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Leo)",
+    "score": 26
+   },
+   "b": {
+    "name": "Marengo",
+    "score": 7
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Dixon (H.S.)",
+    "score": 28
+   },
+   "b": {
+    "name": "Plano",
+    "score": 13
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rochelle",
+    "score": 51
+   },
+   "b": {
+    "name": "Chillicothe (Illinois Valley Central)",
+    "score": 6
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (Central Catholic)",
+    "score": 49
+   },
+   "b": {
+    "name": "Chicago (Carver)",
+    "score": 8
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Bethalto (Civic Memorial)",
+    "score": 28
+   },
+   "b": {
+    "name": "Quincy (Notre Dame)",
+    "score": 24
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Decatur (MacArthur)",
+    "score": 35
+   },
+   "b": {
+    "name": "Effingham (H.S.)",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Jerseyville (Jersey)",
+    "score": 28
+   },
+   "b": {
+    "name": "Peoria (Notre Dame)",
+    "score": 21
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Metamora",
+    "score": 56
+   },
+   "b": {
+    "name": "Alton (Marquette)",
+    "score": 7
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Salem",
+    "score": 26
+   },
+   "b": {
+    "name": "Olney (Richland County)",
+    "score": 22
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Highland",
+    "score": 56
+   },
+   "b": {
+    "name": "Lincoln",
+    "score": 12
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Waterloo (H.S.)",
+    "score": 34
+   },
+   "b": {
+    "name": "Taylorville",
+    "score": 28
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cahokia (H.S.)",
+    "score": 47
+   },
+   "b": {
+    "name": "East Peoria",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morris",
+    "score": 70
+   },
+   "b": {
+    "name": "Tinley Park (H.S.)",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lombard (Montini)",
+    "score": 35
+   },
+   "b": {
+    "name": "Geneseo",
+    "score": 12
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sterling (H.S.)",
+    "score": 35
+   },
+   "b": {
+    "name": "Aurora (Marmion Academy)",
+    "score": 21
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Country Club Hills (Hillcrest)",
+    "score": 39
+   },
+   "b": {
+    "name": "Chicago (Phoenix)",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Coal City",
+    "score": 35
+   },
+   "b": {
+    "name": "Chicago (Leo)",
+    "score": 8
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Dixon (H.S.)",
+    "score": 24
+   },
+   "b": {
+    "name": "Evergreen Park",
+    "score": 21
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rochelle",
+    "score": 48
+   },
+   "b": {
+    "name": "Chicago (Clark)",
+    "score": 6
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (Central Catholic)",
+    "score": 7
+   },
+   "b": {
+    "name": "Chicago (Noble/Rauner)",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Centralia (H.S.)",
+    "score": 49
+   },
+   "b": {
+    "name": "Bethalto (Civic Memorial)",
+    "score": 13
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Zion",
+    "score": 35
+   },
+   "b": {
+    "name": "Decatur (MacArthur)",
+    "score": 29
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Springfield (Sacred Heart-Griffin)",
+    "score": 42
+   },
+   "b": {
+    "name": "Jerseyville (Jersey)",
+    "score": 13
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Metamora",
+    "score": 21
+   },
+   "b": {
+    "name": "Breese (Central)",
+    "score": 20
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carterville",
+    "score": 37
+   },
+   "b": {
+    "name": "Salem",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Highland",
+    "score": 54
+   },
+   "b": {
+    "name": "Freeburg",
+    "score": 34
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rochester",
+    "score": 49
+   },
+   "b": {
+    "name": "Waterloo (H.S.)",
+    "score": 7
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cahokia (H.S.)",
+    "score": 24
+   },
+   "b": {
+    "name": "Jacksonville (H.S.)",
+    "score": 21
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morris",
+    "score": 41
+   },
+   "b": {
+    "name": "Lombard (Montini)",
+    "score": 7
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sterling (H.S.)",
+    "score": 49
+   },
+   "b": {
+    "name": "Country Club Hills (Hillcrest)",
+    "score": 15
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Coal City",
+    "score": 42
+   },
+   "b": {
+    "name": "Dixon (H.S.)",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rochelle",
+    "score": 53
+   },
+   "b": {
+    "name": "Aurora (Central Catholic)",
+    "score": 0
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Centralia (H.S.)",
+    "score": 34
+   },
+   "b": {
+    "name": "Mt. Zion",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Springfield (Sacred Heart-Griffin)",
+    "score": 54
+   },
+   "b": {
+    "name": "Metamora",
+    "score": 21
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Highland",
+    "score": 62
+   },
+   "b": {
+    "name": "Carterville",
+    "score": 50
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rochester",
+    "score": 54
+   },
+   "b": {
+    "name": "Cahokia (H.S.)",
+    "score": 27
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morris",
+    "score": 56
+   },
+   "b": {
+    "name": "Sterling (H.S.)",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Coal City",
+    "score": 42
+   },
+   "b": {
+    "name": "Rochelle",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Springfield (Sacred Heart-Griffin)",
+    "score": 42
+   },
+   "b": {
+    "name": "Centralia (H.S.)",
+    "score": 14
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rochester",
+    "score": 68
+   },
+   "b": {
+    "name": "Highland",
+    "score": 42
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morris",
+    "score": 42
+   },
+   "b": {
+    "name": "Coal City",
+    "score": 7
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Springfield (Sacred Heart-Griffin)",
+    "score": 31
+   },
+   "b": {
+    "name": "Rochester",
+    "score": 28
+   },
+   "cls": "4A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-4A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morris",
+    "rec": "13-0"
+   },
+   "b": {
+    "name": "Springfield (Sacred Heart-Griffin)",
+    "rec": "12-1"
+   },
+   "cls": "4A",
+   "date": "2026-11-27T19:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-4A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Glen Ellyn (Glenbard South)",
+    "score": 40
+   },
+   "b": {
+    "name": "Chicago (Payton)",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sycamore (H.S.)",
+    "score": 48
+   },
+   "b": {
+    "name": "Crystal Lake (South)",
+    "score": 14
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lake Villa (Lakes)",
+    "score": 44
+   },
+   "b": {
+    "name": "Chicago (Senn)",
+    "score": 0
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Belvidere (North)",
+    "score": 42
+   },
+   "b": {
+    "name": "Freeport (H.S.)",
+    "score": 29
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (St. Francis)",
+    "score": 61
+   },
+   "b": {
+    "name": "Grayslake (North)",
+    "score": 6
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Crystal Lake (Prairie Ridge)",
+    "score": 45
+   },
+   "b": {
+    "name": "Chicago (Noble/Comer)",
+    "score": 12
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Deerfield (H.S.)",
+    "score": 35
+   },
+   "b": {
+    "name": "Grayslake (Central)",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Darien (Hinsdale South)",
+    "score": 49
+   },
+   "b": {
+    "name": "Bensenville (Fenton)",
+    "score": 18
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Marion (H.S.)",
+    "score": 40
+   },
+   "b": {
+    "name": "Bloomington (H.S.)",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Corliss) [Coop]",
+    "score": 18
+   },
+   "b": {
+    "name": "Champaign (Centennial)",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lemont (H.S.)",
+    "score": 48
+   },
+   "b": {
+    "name": "Peoria (H.S.)",
+    "score": 6
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Washington",
+    "score": 35
+   },
+   "b": {
+    "name": "Mascoutah",
+    "score": 28
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaSalle (Peru)",
+    "score": 28
+   },
+   "b": {
+    "name": "Galesburg (H.S.)",
+    "score": 20
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carbondale (H.S.)",
+    "score": 27
+   },
+   "b": {
+    "name": "Springfield (H.S.)",
+    "score": 12
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Forest",
+    "score": 56
+   },
+   "b": {
+    "name": "Danville (H.S.)",
+    "score": 6
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Providence Catholic)",
+    "score": 49
+   },
+   "b": {
+    "name": "Mt. Vernon (H.S.)",
+    "score": 13
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Antioch",
+    "score": 48
+   },
+   "b": {
+    "name": "Glen Ellyn (Glenbard South)",
+    "score": 13
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sycamore (H.S.)",
+    "score": 42
+   },
+   "b": {
+    "name": "Belvidere (H.S.)",
+    "score": 20
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wauconda",
+    "score": 42
+   },
+   "b": {
+    "name": "Lake Villa (Lakes)",
+    "score": 14
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Belvidere (North)",
+    "score": 42
+   },
+   "b": {
+    "name": "West Chicago (Wheaton Academy)",
+    "score": 36
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (St. Francis)",
+    "score": 48
+   },
+   "b": {
+    "name": "Maple Park (Kaneland)",
+    "score": 12
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Woodstock (H.S.)",
+    "score": 35
+   },
+   "b": {
+    "name": "Crystal Lake (Prairie Ridge)",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (King)",
+    "score": 21
+   },
+   "b": {
+    "name": "Deerfield (H.S.)",
+    "score": 15
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cary (Grove)",
+    "score": 45
+   },
+   "b": {
+    "name": "Darien (Hinsdale South)",
+    "score": 13
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mahomet (Seymour)",
+    "score": 57
+   },
+   "b": {
+    "name": "Marion (H.S.)",
+    "score": 19
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Crete (Monee)",
+    "score": 47
+   },
+   "b": {
+    "name": "Chicago (Corliss) [Coop]",
+    "score": 0
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morton",
+    "score": 45
+   },
+   "b": {
+    "name": "Lemont (H.S.)",
+    "score": 14
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Troy (Triad)",
+    "score": 24
+   },
+   "b": {
+    "name": "Washington",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaSalle (Peru)",
+    "score": 40
+   },
+   "b": {
+    "name": "Chicago (Agricultural Science)",
+    "score": 12
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carbondale (H.S.)",
+    "score": 42
+   },
+   "b": {
+    "name": "Calumet City (Thornton Fractional North)",
+    "score": 10
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Morgan Park)",
+    "score": 40
+   },
+   "b": {
+    "name": "Oak Forest",
+    "score": 16
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Providence Catholic)",
+    "score": 35
+   },
+   "b": {
+    "name": "Kankakee (Sr.)",
+    "score": 20
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sycamore (H.S.)",
+    "score": 32
+   },
+   "b": {
+    "name": "Antioch",
+    "score": 28
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wauconda",
+    "score": 40
+   },
+   "b": {
+    "name": "Belvidere (North)",
+    "score": 14
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (St. Francis)",
+    "score": 42
+   },
+   "b": {
+    "name": "Woodstock (H.S.)",
+    "score": 14
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cary (Grove)",
+    "score": 43
+   },
+   "b": {
+    "name": "Chicago (King)",
+    "score": 14
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mahomet (Seymour)",
+    "score": 35
+   },
+   "b": {
+    "name": "Crete (Monee)",
+    "score": 22
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Morton",
+    "score": 56
+   },
+   "b": {
+    "name": "Troy (Triad)",
+    "score": 15
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carbondale (H.S.)",
+    "score": 41
+   },
+   "b": {
+    "name": "LaSalle (Peru)",
+    "score": 13
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Providence Catholic)",
+    "score": 42
+   },
+   "b": {
+    "name": "Chicago (Morgan Park)",
+    "score": 34
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Sycamore (H.S.)",
+    "score": 42
+   },
+   "b": {
+    "name": "Wauconda",
+    "score": 7
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cary (Grove)",
+    "score": 55
+   },
+   "b": {
+    "name": "Wheaton (St. Francis)",
+    "score": 36
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mahomet (Seymour)",
+    "score": 45
+   },
+   "b": {
+    "name": "Morton",
+    "score": 26
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Providence Catholic)",
+    "score": 42
+   },
+   "b": {
+    "name": "Carbondale (H.S.)",
+    "score": 8
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cary (Grove)",
+    "score": 41
+   },
+   "b": {
+    "name": "Sycamore (H.S.)",
+    "score": 10
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Providence Catholic)",
+    "score": 31
+   },
+   "b": {
+    "name": "Mahomet (Seymour)",
+    "score": 28
+   },
+   "cls": "5A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-5A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Cary (Grove)",
+    "rec": "11-2"
+   },
+   "b": {
+    "name": "New Lenox (Providence Catholic)",
+    "rec": "11-3"
+   },
+   "cls": "5A",
+   "date": "2026-11-28T10:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-5A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "St. Charles (East)",
+    "score": 42
+   },
+   "b": {
+    "name": "Elk Grove Village (E.G.)",
+    "score": 21
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Burlington (Central)",
+    "score": 41
+   },
+   "b": {
+    "name": "Rockford (East)",
+    "score": 10
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Noble/Muchin)",
+    "score": 18
+   },
+   "b": {
+    "name": "Chicago (Noble/UIC)",
+    "score": 0
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Niles (Notre Dame)",
+    "score": 44
+   },
+   "b": {
+    "name": "Des Plaines (Maine West)",
+    "score": 0
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mundelein (Carmel)",
+    "score": 38
+   },
+   "b": {
+    "name": "Chicago (Noble/Bulls)",
+    "score": 20
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rolling Meadows",
+    "score": 34
+   },
+   "b": {
+    "name": "Addison (A. Trail)",
+    "score": 26
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Villa Park (Willowbrook)",
+    "score": 42
+   },
+   "b": {
+    "name": "Chicago (Amundsen)",
+    "score": 6
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Highland Park",
+    "score": 35
+   },
+   "b": {
+    "name": "Streamwood",
+    "score": 14
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "East Moline (United)",
+    "score": 24
+   },
+   "b": {
+    "name": "Champaign (Central)",
+    "score": 3
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Quincy (Sr.)",
+    "score": 41
+   },
+   "b": {
+    "name": "Lansing (Thornton Fractional South)",
+    "score": 7
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange Park (Nazareth Academy)",
+    "score": 44
+   },
+   "b": {
+    "name": "Palos Heights (Shepard)",
+    "score": 14
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Simeon)",
+    "score": 36
+   },
+   "b": {
+    "name": "Chicago (Lindblom)",
+    "score": 11
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chatham (Glenwood)",
+    "score": 50
+   },
+   "b": {
+    "name": "Chicago (Brooks)",
+    "score": 6
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Harvey (Thornton)",
+    "score": 43
+   },
+   "b": {
+    "name": "Peoria (Richwoods)",
+    "score": 21
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "South Holland (Thornwood)",
+    "score": 27
+   },
+   "b": {
+    "name": "Plainfield (East)",
+    "score": 14
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Joliet (Catholic Academy)",
+    "score": 44
+   },
+   "b": {
+    "name": "Bradley (B.-Bourbonnais)",
+    "score": 3
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Machesney Park (Harlem)",
+    "score": 21
+   },
+   "b": {
+    "name": "St. Charles (East)",
+    "score": 14
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Burlington (Central)",
+    "score": 27
+   },
+   "b": {
+    "name": "Lake Zurich",
+    "score": 13
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Libertyville",
+    "score": 61
+   },
+   "b": {
+    "name": "Chicago (Noble/Muchin)",
+    "score": 0
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Niles (Notre Dame)",
+    "score": 43
+   },
+   "b": {
+    "name": "Fox Lake (Grant)",
+    "score": 16
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Geneva",
+    "score": 49
+   },
+   "b": {
+    "name": "Mundelein (Carmel)",
+    "score": 30
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (North)",
+    "score": 35
+   },
+   "b": {
+    "name": "Rolling Meadows",
+    "score": 0
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rockton (Hononegah)",
+    "score": 32
+   },
+   "b": {
+    "name": "Villa Park (Willowbrook)",
+    "score": 3
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Park (Fenwick)",
+    "score": 38
+   },
+   "b": {
+    "name": "Highland Park",
+    "score": 20
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "East Moline (United)",
+    "score": 51
+   },
+   "b": {
+    "name": "Chicago (Kennedy)",
+    "score": 17
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Quincy (Sr.)",
+    "score": 88
+   },
+   "b": {
+    "name": "Chicago (Goode)",
+    "score": 84
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange Park (Nazareth Academy)",
+    "score": 28
+   },
+   "b": {
+    "name": "Dunlap",
+    "score": 7
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Simeon)",
+    "score": 28
+   },
+   "b": {
+    "name": "Oak Lawn (Community)",
+    "score": 19
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Normal (Community West)",
+    "score": 51
+   },
+   "b": {
+    "name": "Chatham (Glenwood)",
+    "score": 34
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Pekin",
+    "score": 50
+   },
+   "b": {
+    "name": "Harvey (Thornton)",
+    "score": 6
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Riverside (R.-Brookfield)",
+    "score": 56
+   },
+   "b": {
+    "name": "South Holland (Thornwood)",
+    "score": 28
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (Warrenville South)",
+    "score": 38
+   },
+   "b": {
+    "name": "Joliet (Catholic Academy)",
+    "score": 7
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Machesney Park (Harlem)",
+    "score": 17
+   },
+   "b": {
+    "name": "Burlington (Central)",
+    "score": 7
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Niles (Notre Dame)",
+    "score": 48
+   },
+   "b": {
+    "name": "Libertyville",
+    "score": 29
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (North)",
+    "score": 36
+   },
+   "b": {
+    "name": "Geneva",
+    "score": 35
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Park (Fenwick)",
+    "score": 38
+   },
+   "b": {
+    "name": "Rockton (Hononegah)",
+    "score": 13
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Quincy (Sr.)",
+    "score": 24
+   },
+   "b": {
+    "name": "East Moline (United)",
+    "score": 21
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange Park (Nazareth Academy)",
+    "score": 49
+   },
+   "b": {
+    "name": "Chicago (Simeon)",
+    "score": 6
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Normal (Community West)",
+    "score": 33
+   },
+   "b": {
+    "name": "Pekin",
+    "score": 21
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (Warrenville South)",
+    "score": 45
+   },
+   "b": {
+    "name": "Riverside (R.-Brookfield)",
+    "score": 15
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Machesney Park (Harlem)",
+    "score": 45
+   },
+   "b": {
+    "name": "Niles (Notre Dame)",
+    "score": 41
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Park (Fenwick)",
+    "score": 14
+   },
+   "b": {
+    "name": "Wheaton (North)",
+    "score": 7
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange Park (Nazareth Academy)",
+    "score": 62
+   },
+   "b": {
+    "name": "Quincy (Sr.)",
+    "score": 21
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wheaton (Warrenville South)",
+    "score": 45
+   },
+   "b": {
+    "name": "Normal (Community West)",
+    "score": 20
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Park (Fenwick)",
+    "score": 56
+   },
+   "b": {
+    "name": "Machesney Park (Harlem)",
+    "score": 35
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange Park (Nazareth Academy)",
+    "score": 14
+   },
+   "b": {
+    "name": "Wheaton (Warrenville South)",
+    "score": 7
+   },
+   "cls": "6A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-6A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Park (Fenwick)",
+    "rec": "10-3"
+   },
+   "b": {
+    "name": "LaGrange Park (Nazareth Academy)",
+    "rec": "9-5"
+   },
+   "cls": "6A",
+   "date": "2026-11-28T13:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-6A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Edwardsville (H.S.)",
+    "score": 42
+   },
+   "b": {
+    "name": "Chicago (Lincoln Park)",
+    "score": 0
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lombard (Glenbard East)",
+    "score": 42
+   },
+   "b": {
+    "name": "Bartlett",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "St. Charles (North)",
+    "score": 54
+   },
+   "b": {
+    "name": "McHenry",
+    "score": 6
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Lincoln-Way Central)",
+    "score": 53
+   },
+   "b": {
+    "name": "Rockford (Jefferson)",
+    "score": 12
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Burbank (Reavis)",
+    "score": 31
+   },
+   "b": {
+    "name": "Elgin (H.S.)",
+    "score": 28
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (St. Patrick)",
+    "score": 54
+   },
+   "b": {
+    "name": "Collinsville",
+    "score": 37
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (DePaul College Prep)",
+    "score": 37
+   },
+   "b": {
+    "name": "Hampshire",
+    "score": 34
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-7",
+   "ot": "OT",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Zion (Z.-Benton)",
+    "score": 44
+   },
+   "b": {
+    "name": "Northbrook (Glenbrook North)",
+    "score": 0
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Yorkville (H.S.)",
+    "score": 41
+   },
+   "b": {
+    "name": "Palatine (H.S.)",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Moline (H.S.)",
+    "score": 42
+   },
+   "b": {
+    "name": "Lisle (Benet Academy)",
+    "score": 38
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Burbank (St. Laurence)",
+    "score": 25
+   },
+   "b": {
+    "name": "Belleville (East)",
+    "score": 16
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Lincoln-Way West)",
+    "score": 42
+   },
+   "b": {
+    "name": "Mundelein (H.S.)",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "West Chicago (H.S.)",
+    "score": 48
+   },
+   "b": {
+    "name": "Chicago (Prosser)",
+    "score": 24
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Buffalo Grove",
+    "score": 28
+   },
+   "b": {
+    "name": "Tinley Park (Andrew)",
+    "score": 27
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carol Stream (Glenbard North)",
+    "score": 34
+   },
+   "b": {
+    "name": "Hoffman Estates (H.S.)",
+    "score": 20
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Skokie (Niles North)",
+    "score": 48
+   },
+   "b": {
+    "name": "Richton Park (Rich Township)",
+    "score": 41
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Normal (Community)",
+    "score": 28
+   },
+   "b": {
+    "name": "Edwardsville (H.S.)",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Kenwood)",
+    "score": 46
+   },
+   "b": {
+    "name": "Lombard (Glenbard East)",
+    "score": 9
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Brother Rice)",
+    "score": 48
+   },
+   "b": {
+    "name": "St. Charles (North)",
+    "score": 7
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Batavia",
+    "score": 39
+   },
+   "b": {
+    "name": "New Lenox (Lincoln-Way Central)",
+    "score": 10
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "East St. Louis (Sr.)",
+    "score": 69
+   },
+   "b": {
+    "name": "Burbank (Reavis)",
+    "score": 0
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (St. Patrick)",
+    "score": 49
+   },
+   "b": {
+    "name": "Chicago (Westinghouse College Prep)",
+    "score": 13
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Prospect (Prospect)",
+    "score": 56
+   },
+   "b": {
+    "name": "Chicago (DePaul College Prep)",
+    "score": 22
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Rockford (Guilford)",
+    "score": 40
+   },
+   "b": {
+    "name": "Zion (Z.-Benton)",
+    "score": 20
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Arlington Heights (Hersey)",
+    "score": 49
+   },
+   "b": {
+    "name": "Yorkville (H.S.)",
+    "score": 7
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Glen Ellyn (Glenbard West)",
+    "score": 56
+   },
+   "b": {
+    "name": "Moline (H.S.)",
+    "score": 0
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Burbank (St. Laurence)",
+    "score": 28
+   },
+   "b": {
+    "name": "Plainfield (South)",
+    "score": 13
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Lincoln-Way West)",
+    "score": 21
+   },
+   "b": {
+    "name": "Plainfield (North)",
+    "score": 7
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Downers Grove (North)",
+    "score": 49
+   },
+   "b": {
+    "name": "West Chicago (H.S.)",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (St. Rita)",
+    "score": 36
+   },
+   "b": {
+    "name": "Buffalo Grove",
+    "score": 10
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Carol Stream (Glenbard North)",
+    "score": 35
+   },
+   "b": {
+    "name": "Algonquin (Jacobs)",
+    "score": 13
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Lawn (Richards)",
+    "score": 50
+   },
+   "b": {
+    "name": "Skokie (Niles North)",
+    "score": 8
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Normal (Community)",
+    "score": 49
+   },
+   "b": {
+    "name": "Chicago (Kenwood)",
+    "score": 48
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-33",
+   "ot": "OT",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Brother Rice)",
+    "score": 49
+   },
+   "b": {
+    "name": "Batavia",
+    "score": 6
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "East St. Louis (Sr.)",
+    "score": 72
+   },
+   "b": {
+    "name": "Chicago (St. Patrick)",
+    "score": 12
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Mt. Prospect (Prospect)",
+    "score": 50
+   },
+   "b": {
+    "name": "Rockford (Guilford)",
+    "score": 10
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Arlington Heights (Hersey)",
+    "score": 31
+   },
+   "b": {
+    "name": "Glen Ellyn (Glenbard West)",
+    "score": 21
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "New Lenox (Lincoln-Way West)",
+    "score": 21
+   },
+   "b": {
+    "name": "Burbank (St. Laurence)",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-38",
+   "ot": "OT",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Downers Grove (North)",
+    "score": 17
+   },
+   "b": {
+    "name": "Chicago (St. Rita)",
+    "score": 7
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Lawn (Richards)",
+    "score": 21
+   },
+   "b": {
+    "name": "Carol Stream (Glenbard North)",
+    "score": 18
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Brother Rice)",
+    "score": 41
+   },
+   "b": {
+    "name": "Normal (Community)",
+    "score": 10
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "East St. Louis (Sr.)",
+    "score": 65
+   },
+   "b": {
+    "name": "Mt. Prospect (Prospect)",
+    "score": 35
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Arlington Heights (Hersey)",
+    "score": 33
+   },
+   "b": {
+    "name": "New Lenox (Lincoln-Way West)",
+    "score": 14
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Downers Grove (North)",
+    "score": 38
+   },
+   "b": {
+    "name": "Oak Lawn (Richards)",
+    "score": 29
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Brother Rice)",
+    "score": 24
+   },
+   "b": {
+    "name": "East St. Louis (Sr.)",
+    "score": 12
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Arlington Heights (Hersey)",
+    "score": 21
+   },
+   "b": {
+    "name": "Downers Grove (North)",
+    "score": 10
+   },
+   "cls": "7A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-7A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Brother Rice)",
+    "rec": "11-2"
+   },
+   "b": {
+    "name": "Arlington Heights (Hersey)",
+    "rec": "13-0"
+   },
+   "cls": "7A",
+   "date": "2026-11-28T16:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-7A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oak Park (River Forest)",
+    "score": 58
+   },
+   "b": {
+    "name": "Aurora (East)",
+    "score": 7
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-1",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Hinsdale (Central)",
+    "score": 41
+   },
+   "b": {
+    "name": "Roselle (Lake Park)",
+    "score": 19
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-2",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Marist)",
+    "score": 49
+   },
+   "b": {
+    "name": "Naperville (Neuqua Valley)",
+    "score": 28
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-3",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Barrington",
+    "score": 38
+   },
+   "b": {
+    "name": "Aurora (Waubonsie Valley)",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-4",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Naperville (Central)",
+    "score": 18
+   },
+   "b": {
+    "name": "Gurnee (Warren)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-5",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Palatine (Fremd)",
+    "score": 42
+   },
+   "b": {
+    "name": "Chicago (Taft)",
+    "score": 12
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-6",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Lockport (Twp.)",
+    "score": 35
+   },
+   "b": {
+    "name": "Lincolnshire (Stevenson)",
+    "score": 21
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-7",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange (Lyons)",
+    "score": 36
+   },
+   "b": {
+    "name": "Aurora (Metea Valley)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-8",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oswego (East)",
+    "score": 49
+   },
+   "b": {
+    "name": "Chicago (Curie)",
+    "score": 8
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-9",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Lane)",
+    "score": 56
+   },
+   "b": {
+    "name": "Joliet (Central)",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-10",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Glenview (Glenbrook South)",
+    "score": 42
+   },
+   "b": {
+    "name": "Chicago (Whitney Young)",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-11",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Hoffman Estates (Conant)",
+    "score": 21
+   },
+   "b": {
+    "name": "Carpentersville (Dundee-Crown)",
+    "score": 12
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-12",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Minooka",
+    "score": 35
+   },
+   "b": {
+    "name": "Evanston (Twp.)",
+    "score": 21
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-13",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (York)",
+    "score": 47
+   },
+   "b": {
+    "name": "Chicago Heights (Bloom Twp.)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-14",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "O'Fallon (H.S.)",
+    "score": 36
+   },
+   "b": {
+    "name": "Joliet (West)",
+    "score": 6
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-15",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Aurora (West Aurora)",
+    "score": 40
+   },
+   "b": {
+    "name": "Franklin Park-Northlake (Leyden)",
+    "score": 21
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-16",
+   "ot": "",
+   "round": "Opening Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Frankfort (Lincoln-Way East)",
+    "score": 31
+   },
+   "b": {
+    "name": "Oak Park (River Forest)",
+    "score": 7
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-17",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Hinsdale (Central)",
+    "score": 63
+   },
+   "b": {
+    "name": "Chicago (Von Steuben)",
+    "score": 3
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-18",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Mt. Carmel)",
+    "score": 55
+   },
+   "b": {
+    "name": "Chicago (Marist)",
+    "score": 21
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-19",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Barrington",
+    "score": 24
+   },
+   "b": {
+    "name": "Orland Park (Sandburg)",
+    "score": 17
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-20",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oswego (H.S.)",
+    "score": 27
+   },
+   "b": {
+    "name": "Naperville (Central)",
+    "score": 6
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-21",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Naperville (North)",
+    "score": 38
+   },
+   "b": {
+    "name": "Palatine (Fremd)",
+    "score": 31
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-22",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Bolingbrook",
+    "score": 38
+   },
+   "b": {
+    "name": "Lockport (Twp.)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-23",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "LaGrange (Lyons)",
+    "score": 55
+   },
+   "b": {
+    "name": "Chicago (Perspectives/Leadership) [Coop]",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-24",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Huntley",
+    "score": 48
+   },
+   "b": {
+    "name": "Oswego (East)",
+    "score": 17
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-25",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Lane)",
+    "score": 33
+   },
+   "b": {
+    "name": "South Elgin",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-26",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Winnetka (New Trier)",
+    "score": 21
+   },
+   "b": {
+    "name": "Glenview (Glenbrook South)",
+    "score": 6
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-27",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Flossmoor (Homewood-F.)",
+    "score": 35
+   },
+   "b": {
+    "name": "Hoffman Estates (Conant)",
+    "score": 7
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-28",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmette (Loyola Academy)",
+    "score": 41
+   },
+   "b": {
+    "name": "Minooka",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-29",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Elmhurst (York)",
+    "score": 42
+   },
+   "b": {
+    "name": "Downers Grove (South)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-30",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Park Ridge (Maine South)",
+    "score": 49
+   },
+   "b": {
+    "name": "O'Fallon (H.S.)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-31",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (St. Ignatius)",
+    "score": 55
+   },
+   "b": {
+    "name": "Aurora (West Aurora)",
+    "score": 7
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-32",
+   "ot": "",
+   "round": "First Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Frankfort (Lincoln-Way East)",
+    "score": 24
+   },
+   "b": {
+    "name": "Hinsdale (Central)",
+    "score": 7
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-33",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Mt. Carmel)",
+    "score": 56
+   },
+   "b": {
+    "name": "Barrington",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-34",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oswego (H.S.)",
+    "score": 21
+   },
+   "b": {
+    "name": "Naperville (North)",
+    "score": 19
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-35",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Bolingbrook",
+    "score": 22
+   },
+   "b": {
+    "name": "LaGrange (Lyons)",
+    "score": 14
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-36",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Huntley",
+    "score": 42
+   },
+   "b": {
+    "name": "Chicago (Lane)",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-37",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Winnetka (New Trier)",
+    "score": 26
+   },
+   "b": {
+    "name": "Flossmoor (Homewood-F.)",
+    "score": 23
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-38",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Wilmette (Loyola Academy)",
+    "score": 42
+   },
+   "b": {
+    "name": "Elmhurst (York)",
+    "score": 0
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-39",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (St. Ignatius)",
+    "score": 35
+   },
+   "b": {
+    "name": "Park Ridge (Maine South)",
+    "score": 21
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-40",
+   "ot": "",
+   "round": "Second Round",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Mt. Carmel)",
+    "score": 21
+   },
+   "b": {
+    "name": "Frankfort (Lincoln-Way East)",
+    "score": 16
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-41",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Oswego (H.S.)",
+    "score": 31
+   },
+   "b": {
+    "name": "Bolingbrook",
+    "score": 7
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-42",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Winnetka (New Trier)",
+    "score": 42
+   },
+   "b": {
+    "name": "Huntley",
+    "score": 28
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-43",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (St. Ignatius)",
+    "score": 21
+   },
+   "b": {
+    "name": "Wilmette (Loyola Academy)",
+    "score": 18
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-44",
+   "ot": "",
+   "round": "Quarterfinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Mt. Carmel)",
+    "score": 38
+   },
+   "b": {
+    "name": "Oswego (H.S.)",
+    "score": 18
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-45",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Winnetka (New Trier)",
+    "score": 45
+   },
+   "b": {
+    "name": "Chicago (St. Ignatius)",
+    "score": 35
+   },
+   "cls": "8A",
+   "final": true,
+   "finalAt": null,
+   "id": "fb-8A-46",
+   "ot": "",
+   "round": "Semifinals",
+   "sport": "fb"
+  },
+  {
+   "a": {
+    "name": "Chicago (Mt. Carmel)",
+    "rec": "11-2"
+   },
+   "b": {
+    "name": "Winnetka (New Trier)",
+    "rec": "12-1"
+   },
+   "cls": "8A",
+   "date": "2026-11-28T19:00:00-06:00",
+   "final": false,
+   "finalAt": null,
+   "id": "fb-8A-47",
+   "neutral": true,
+   "round": "Championship",
+   "site": "Normal (Hancock Stadium)",
+   "sport": "fb"
+  }
+ ],
+ "source": "IHSA",
+ "updated": "2026-11-22T19:42:40-06:00"
+}
