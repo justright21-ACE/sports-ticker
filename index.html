@@ -463,6 +463,18 @@
   .rank.pr .rkrow .fl { display: inline-block; width: 3vh; height: 2vh; margin-right: 0.6vw; vertical-align: middle; border-radius: 0.3vh; background-size: cover; background-position: center; }
   .rank.pr.golf .rkrow .rt { max-width: 17vw; }
   /* CR7: the chase to 1,000 */
+  .hsb { padding: 1vh 2vw 0; }
+  .hsr { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 6.6vh; border-bottom: 0.15vh solid rgba(255,255,255,0.08); font-size: 3.4vh; color: #fff; }
+  .hsr .hsc { width: 5vw; -webkit-flex: none; flex: none; text-align: center; font-size: 2.4vh; font-weight: 800; color: #0d1117; background: #9BA3B8; border-radius: 0.6vh; padding: 0.4vh 0; margin-right: 1.6vw; }
+  .hsr .hst { -webkit-flex: 1; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+  .hsr .hst:nth-of-type(3) { text-align: right; } .hsr .hst i { font-style: normal; font-weight: 400; color: #8b95ab; font-size: 2.6vh; }
+  .hsr .hst.chi { color: #f5c400; } .hsr .hst.lose { color: #8b95ab; font-weight: 400; }
+  .hsr .hss, .hsr .hsv { width: 12vw; -webkit-flex: none; flex: none; text-align: center; font-size: 4vh; font-weight: 900; }
+  .hsr .hss span { color: #8b95ab; margin: 0 0.6vw; } .hsr .hsv { font-size: 2.4vh; color: #8b95ab; font-weight: 600; }
+  .hsr .hsx { width: 17vw; -webkit-flex: none; flex: none; text-align: right; font-size: 2.3vh; letter-spacing: 0.15vw; color: #9BA3B8; }
+  .hsr .hsx em { font-style: normal; color: #ff4d5e; } .hsr.live .hsc { background: #ff4d5e; }
+  .hsn { margin-top: 1.6vh; font-size: 2vh; color: #8b95ab; }
+  @media (max-aspect-ratio: 3/2) { .hsr { font-size: 2.3vw; } .hsr .hss { font-size: 2.8vw; } .hsr .hst i { font-size: 1.8vw; } .hsr .hsx { font-size: 1.6vw; } }
   .cr7 { position: relative; height: 66vh; }
   .cr7 .c7bg { position: absolute; left: -3vw; right: -3vw; top: -6vh; bottom: -4vh; background-size: cover; background-position: 50% 25%; background-repeat: no-repeat; opacity: 0.2; pointer-events: none;
                -webkit-mask-image: -webkit-radial-gradient(55% 45%, ellipse, #000 30%, transparent 75%); mask-image: radial-gradient(ellipse at 55% 45%, #000 30%, transparent 75%); }
@@ -1797,6 +1809,7 @@ var CONFIG = {
   tdRun: true,           // a touchdown in a game with its own big screen, while that screen isn't up: the team's animal (or helmet) runs across and sweeps onto the game (?tdrun=0 off; ?tdtest=CHI to preview one)
   fighterPics: true,     // COMBAT cards: each fighter's photo and country flag (?fighterpics=0 off)
   hockeyLast: true,      // matchup screen: while football is in season, any other game beats a hockey game (?hockeylast=0)
+  hs: true,              // Illinois high school (IHSA) playoff games: a screen and a crawl line (data/hs.json, kept up to date by a GitHub job) (?hs=0)
   cr7: true,             // Cristiano Ronaldo's chase to 1,000 career goals: a screen, a crawl line, a jump to it when he scores (?cr7=0)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
   eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
@@ -2027,6 +2040,7 @@ function readParams() {
     if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'golf') CONFIG.golf = v !== '0';
     if (k === 'cr7') CONFIG.cr7 = v !== '0';
+    if (k === 'hs') CONFIG.hs = v !== '0';
     if (k === 'hockeylast') CONFIG.hockeyLast = v !== '0';
     if (k === 'fighterpics') CONFIG.fighterPics = v !== '0';
     if (k === 'tdrun') CONFIG.tdRun = v !== '0';
@@ -3854,6 +3868,7 @@ function buildPages() {
   var gmaj = golfFeatured() ? golfPages() : [];                  // golf: a major while play is on comes back like a primetime game
   if (!gmaj.length) pages = pages.concat(golfPages());
   pages = pages.concat(cr7Pages());
+  pages = pages.concat(hsPages());
   for (var q = 0; q < pages.length; q++) if (!pages[q].key) pages[q].key = pages[q].lg + ':' + pages[q].num;
   // featured games (NFL primetime, World Series): during the game they come back after every other
   // screen; otherwise once per loop
@@ -4466,6 +4481,7 @@ function renderTabs(activeLg) {
   }
   html += gtab;
   if (cr7On()) html += '<span class="tab' + (activeLg === 'cr7' ? ' on' : '') + '">' + (cr7.live ? '<i></i>' : '') + 'CR7</span>';
+  if (hsShown().length) html += '<span class="tab' + (activeLg === 'hs' ? ' on' : '') + '">' + (hsLiveNow() ? '<i></i>' : '') + 'IHSA</span>';
   $('tabs').innerHTML = html;
   fitTabs();
 }
@@ -8697,6 +8713,89 @@ function cr7Jump() {                               // he just scored: go to his 
   for (var i = 0; i < state.pages.length; i++) if (state.pages[i].cr7) { cr7.jumped = true; state.pageIndex = i; state.holdOnce = 30; return true; }
   return false;
 }
+/* =================== ILLINOIS HIGH SCHOOL (IHSA) ===================
+   data/hs.json is written every 10 minutes by a GitHub job (tools/hs_scores.py, .github/workflows/hs-scores.yml) from
+   IHSA's own playoff pages. IHSA posts a score after the game, not during it, so a game past kickoff with no score
+   shows "In progress". Shown: games in the next 7 days, ones in progress, and results for 36 hours. Chicago schools
+   (IHSA lists them as "Chicago (school)") in gold. Football playoffs now; basketball to come. */
+var hs = { at: 0, games: [], updated: '' };
+function loadHs(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !CONFIG.hs || now - hs.at < (hsLiveNow() ? 3 : 10) * 60000) return cb();
+  hs.at = now;
+  try {
+    var x = new XMLHttpRequest();
+    x.open('GET', 'data/hs.json?t=' + now, true);
+    try { x.timeout = 20000; } catch (t) {}
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      try { if (x.status >= 200 && x.status < 300) { var d = JSON.parse(x.responseText); hs.games = d.games || []; hs.updated = d.updated || ''; } } catch (e) {}
+      cb();
+    };
+    x.send();
+  } catch (e) { cb(); }
+}
+var HS_PLAIN = /^(h\.?s\.?|sr\.?|high school|senior)$/i, HS_PART = /^(north|south|east|west|central|community|northwest|northeast|southwest|southeast|academy)$/i;
+function hsName(n) {                                // "Chicago (Brother Rice)" -> Brother Rice; "Downers Grove (North)" -> Downers Grove North
+  var m = String(n || '').match(/^(.*?) \((.+)\)$/);
+  if (!m) return String(n || '');
+  if (/^chicago$/i.test(m[1])) return m[2];
+  if (HS_PLAIN.test(m[2])) return m[1];
+  if (HS_PART.test(m[2])) return m[1] + ' ' + m[2];
+  return m[2];
+}
+function hsChi(n) { return /^chicago \(/i.test(String(n || '')); }
+function hsState(g, now) {                          // 'final' | 'live' | 'pending' (past kickoff, no score yet) | 'pre' | ''
+  var t = g.date ? parseDate(g.date) : 0;
+  if (g.final) return g.finalAt && now - parseDate(g.finalAt) < 36 * 3600000 ? 'final' : '';
+  if (!t) return '';
+  if (now < t) return t - now < 7 * 86400000 ? 'pre' : '';
+  if (now - t < 3.5 * 3600000) return 'live';
+  return now - t < 14 * 3600000 ? 'pending' : '';
+}
+function hsShown() {
+  if (!CONFIG.hs || !hs.games.length) return [];
+  var now = new Date().getTime(), out = [];
+  for (var i = 0; i < hs.games.length; i++) { var st = hsState(hs.games[i], now); if (st) out.push({ g: hs.games[i], st: st }); }
+  var rank = { live: 0, pending: 1, final: 2, pre: 3 };
+  out.sort(function (a, b) {
+    return (rank[a.st] - rank[b.st]) || ((a.g.date ? parseDate(a.g.date) : 0) - (b.g.date ? parseDate(b.g.date) : 0)) ||
+           (parseInt(b.g.cls, 10) - parseInt(a.g.cls, 10));
+  });
+  return out;
+}
+function hsLiveNow() { var L = hsShown(); for (var i = 0; i < L.length; i++) if (L[i].st === 'live') return true; return false; }
+function hsPages() { return hsShown().length ? [{ lg: 'hs', hs: true, hold: 20, num: 'hs', of: 1, games: [], key: 'hs:board' }] : []; }
+function hsRound(L) { var r = {}, n = 0, k; for (var i = 0; i < L.length; i++) if (L[i].g.round && !r[L[i].g.round]) { r[L[i].g.round] = 1; n++; k = L[i].g.round; } return n === 1 ? k : ''; }
+function hsHeading() {
+  var L = hsShown(), rd = hsRound(L), sp = L.length && L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL';
+  return '<span class="lg">IHSA ' + sp + '</span><span class="sub">' + esc(rd === 'Championship' ? 'State championships' : (rd ? 'State playoffs · ' + rd : 'State playoffs')) +
+         (L.length && L[0].g.site && rd === 'Championship' ? ' &middot; ' + esc(hsName(L[0].g.site)) : '') + '</span>';
+}
+function hsTime(g) { var d = parseDate(g.date); return CR7_DAY[d.getDay()] + ' ' + esc(timeStr(d)); }
+function hsHTML() {
+  var L = hsShown().slice(0, 8), rows = '';
+  for (var i = 0; i < L.length; i++) {
+    var g = L[i].g, st = L[i].st, fin = st === 'final', aw = fin && g.a.score > g.b.score, bw = fin && g.b.score > g.a.score;
+    var team = function (t, win) {
+      return '<span class="hst' + (hsChi(t.name) ? ' chi' : '') + (fin && !win ? ' lose' : '') + '">' + esc(hsName(t.name)) + (t.rec && !fin ? ' <i>' + esc(t.rec) + '</i>' : '') + '</span>';
+    };
+    var mid = fin ? '<b class="hss">' + g.a.score + '<span>&ndash;</span>' + g.b.score + '</b>' : '<b class="hsv">' + (g.neutral ? 'vs' : 'at') + '</b>';
+    var tag = fin ? 'FINAL' + (g.ot ? ' (' + esc(g.ot) + ')' : '') : (st === 'live' ? '<em>IN PROGRESS</em>' : (st === 'pending' ? 'SCORE PENDING' : hsTime(g)));
+    rows += '<div class="hsr ' + st + '"><span class="hsc">' + esc(g.cls) + '</span>' + team(g.a, aw) + mid + team(g.b, bw) + '<span class="hsx">' + tag + '</span></div>';
+  }
+  return '<div class="hsb">' + rows + '<div class="hsn">Chicago schools in gold &middot; scores from IHSA, posted after each game</div></div>';
+}
+function hsCrawlSeg() {
+  var L = hsShown(), h = '';
+  if (!L.length) return null;
+  for (var i = 0; i < L.length; i++) {
+    var g = L[i].g, a = hsName(g.a.name).toUpperCase(), b = hsName(g.b.name).toUpperCase();
+    h += '<span class="g">' + esc(g.cls) + ': ' + (L[i].st === 'final' ? esc(a) + ' ' + g.a.score + ', ' + esc(b) + ' ' + g.b.score + '<span class="st">F' + (g.ot ? '/' + esc(g.ot) : '') + '</span>' :
+         esc(a) + ' VS ' + esc(b) + '<span class="st' + (L[i].st === 'live' ? ' lv' : '') + '">' + (L[i].st === 'live' ? 'IN PROGRESS' : (L[i].st === 'pending' ? 'PENDING' : hsTime(g).toUpperCase())) + '</span>') + '</span>';
+  }
+  return { label: 'IHSA FOOTBALL', lg: 'hs', html: h };
+}
 function cr7HTML() {
   var n = cr7Total(), togo = Math.max(0, 1000 - n), L = cr7Last(), fresh = cr7.newAt && new Date().getTime() - cr7.newAt < 30 * 60000;
   var pips = '', lo = Math.min(981, Math.floor((n - 1) / 20) * 20 + 1);
@@ -9611,6 +9710,12 @@ function renderPage() {
     $('cards').innerHTML = rankHTML(pg.lg, rk);
     return;
   }
+  if (pg.hs) {
+    renderTabs('hs');
+    $('heading').innerHTML = hsHeading();
+    try { $('cards').innerHTML = hsHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.cr7) {
     renderTabs('cr7');
     $('heading').innerHTML = '<span class="lg">CR7</span><span class="sub">Cristiano Ronaldo &middot; the road to 1,000 career goals</span>';
@@ -9821,6 +9926,8 @@ function renderCrawl() {
   if (gseg) groups.push([gseg]);
   var c7seg = cr7CrawlSeg();
   if (c7seg) groups.push([c7seg]);
+  var hsseg = hsCrawlSeg();
+  if (hsseg) groups.push([hsseg]);
   if (CONFIG.crawlNews && news.items.length) {
     var ns = [];
     for (var n = 0; n < news.items.length; n += 3) {
@@ -10213,7 +10320,7 @@ function refreshAll() {
     // the extras in three waves, everything in a wave at once: the second needs the first (rankings, the season calendar,
     // the close-game lists, the missing odds), injuries need the game details
     runAll([loadTeams, loadNews, loadBreaking, loadNflPower, loadPerf, loadH2h, loadGolf, loadEplTable, loadFighters, loadMajorCfb, loadMajorCbb,
-            loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadIdle, loadCup, loadCr7], function () {
+            loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadIdle, loadCup, loadCr7, loadHs], function () {
     runAll([loadChampBackfill, loadCrawlFull, loadPtDetails, loadStandings, loadCfpConf], function () {
     loadInjuries(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo

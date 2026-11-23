@@ -1,0 +1,31 @@
+name: High school scores
+# Every 10 minutes: read IHSA's playoff pages and save data/hs.json for the ticker.
+# Only commits when a score or game changes. Editing data/hs.json doesn't touch index.html,
+# so it never makes the TV reload.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: hs-scores
+  cancel-in-progress: false
+jobs:
+  scores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read IHSA
+        run: python3 tools/hs_scores.py
+      - name: Save if changed
+        run: |
+          git add -N data/hs.json
+          if git diff --quiet -- data/hs.json; then echo "no change"; exit 0; fi
+          git config user.name "fancave-scores"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/hs.json
+          git commit -q -m "High school scores update"
+          for i in 1 2 3; do git pull -q --rebase && git push -q && exit 0; sleep 5; done
+          exit 1
