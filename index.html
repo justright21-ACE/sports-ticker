@@ -8736,7 +8736,10 @@ function loadHs(cb) {
   } catch (e) { cb(); }
 }
 var HS_PLAIN = /^(h\.?s\.?|sr\.?|high school|senior)$/i, HS_PART = /^(north|south|east|west|central|community|northwest|northeast|southwest|southeast|academy)$/i;
+var HS_NAMES = { 'Cary (Grove)': 'Cary-Grove', 'St. Joseph (Ogden)': 'St. Joseph-Ogden', 'Prairie (Central)': 'Prairie Central', 'Normal (Community)': 'Normal Community',
+                 'Normal (West)': 'Normal West', 'Bradley (Bradley-Bourbonnais)': 'Bradley-Bourbonnais', 'Lena (Lena-Winslow)': 'Lena-Winslow' };   // IHSA's "town (school)" that reads wrong split up
 function hsName(n) {                                // "Chicago (Brother Rice)" -> Brother Rice; "Downers Grove (North)" -> Downers Grove North
+  if (HS_NAMES[n]) return HS_NAMES[n];
   var m = String(n || '').match(/^(.*?) \((.+)\)$/);
   if (!m) return String(n || '');
   if (/^chicago$/i.test(m[1])) return m[2];
