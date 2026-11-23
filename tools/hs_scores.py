@@ -5,8 +5,8 @@ Run by .github/workflows/hs-scores.yml every 10 minutes. Reads IHSA's public pla
 (plain HTML, updated by IHSA after games) and writes data/hs.json, which the ticker reads.
 
 Football: the IHSA state playoffs, all eight classes (www.ihsa.org/data/fb/<n>pair.htm).
-Basketball: not yet (regular-season Top 25 needs a live source such as ScoreStream; the IHSA
-state series pages can be added here when IHSA posts them in February).
+Boys basketball: the IHSA state series, all four classes (www.ihsa.org/data/bkb/<n>pair.htm),
+regionals in late February through the state finals in March. The ticker picks which to show.
 
 Only the standard library, so the workflow needs no installs.
 """
@@ -25,7 +25,8 @@ CENTRAL = timezone(timedelta(hours=-6))          # IHSA times are Central; playo
 MONTHS = {m: i + 1 for i, m in enumerate(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])}
 ROUNDS = ['Opening Round', 'First Round', 'Second Round', 'Quarterfinals', 'Semifinals', 'Championship', 'Third Place', 'Finals']
 
-SOURCES = [{'sport': 'fb', 'cls': '%dA' % n, 'url': 'https://www.ihsa.org/data/fb/%dpair.htm' % n} for n in range(1, 9)]
+SOURCES = ([{'sport': 'fb', 'cls': '%dA' % n, 'url': 'https://www.ihsa.org/data/fb/%dpair.htm' % n} for n in range(1, 9)] +
+           [{'sport': 'bkb', 'cls': '%dA' % n, 'url': 'https://www.ihsa.org/data/bkb/%dpair.htm' % n} for n in range(1, 5)])
 
 
 def fetch(url):
@@ -43,7 +44,7 @@ def text_lines(page):
     return [re.sub(r'\s+', ' ', ln).strip() for ln in page.split('\n') if ln.strip()]
 
 
-DASH = r'\s*[—–-]+\s*'
+DASH = r'\s*(?:[—–-]+|:)\s*'          # football: "Game 47 — ..."; basketball: "Game 1: ..."
 PLAYED = re.compile(r'^Game (\d+)' + DASH + r'(.+?) (\d+), (.+?) (\d+)(?: \(([^)]*OT[^)]*)\))?\.?$', re.I)
 UNPLAYED = re.compile(r'^Game (\d+)' + DASH + r'(.+?)(?: \((\d+-\d+)\))? (vs\.?|at) (.+?)(?: \((\d+-\d+)\))? at (.+?), '
                       r'(?:\w+\.?,? )?(\w+)\.? (\d{1,2}),? (\d{1,2})(?::(\d\d))? ?([ap])\.?m\.?', re.I)
@@ -59,7 +60,62 @@ def kickoff(mon, day, hh, mm, ap, now):
     return datetime(y, m, int(day), h, int(mm or 0), tzinfo=CENTRAL).isoformat()
 
 
+DAYLINE = re.compile(r'^(?:mon|tue|wed|thu|fri|sat|sun)\w*\.?,? (\w+)\.? (\d{1,2})$', re.I)
+SECTION = re.compile(r'^(State Final Tournament|.+? (?:Super-Sectional|Sectional|Regional))\b', re.I)
+BK_UNPLAYED = re.compile(r'^Game (\d+)' + DASH + r'(.+?) (?:vs\.?|at) (.+?)(?:,? (\d{1,2})(?::(\d\d))? ?([ap])\.?m\.?)?\.?$', re.I)
+
+
+def slug(t):
+    return re.sub(r'[^a-z0-9]+', '-', t.lower()).strip('-')[:40]
+
+
+def parse_bkb(src, page, now):
+    """IHSA basketball pages: section headers (... Regional / Sectional / Super-Sectional / State Final Tournament),
+    day lines ("Mon., Feb. 23"), then "Game N: A 55, B 38" or "Game N: A vs. B, 7:00 pm"."""
+    games, sec, day = [], '', None
+    for ln in text_lines(page):
+        if not ln.lower().startswith('game'):
+            m = SECTION.match(ln)
+            if m:
+                sec, day = m.group(1), None
+                continue
+        m = DAYLINE.match(ln)
+        if m:
+            day = (m.group(1), m.group(2))
+            continue
+        if not sec:
+            continue
+        low = sec.lower()
+        rnd = 'State Finals' if low.startswith('state') else ('Super-Sectional' if 'super' in low else ('Sectional' if low.endswith('sectional') else 'Regional'))
+        site = 'Champaign (State Farm Center)' if rnd == 'State Finals' else re.sub(r' (Super-Sectional|Sectional|Regional)$', '', sec, flags=re.I)
+        gid = lambda n: '%s-%s-%s-%s-%s' % (src['sport'], src.get('season', ''), src['cls'], slug(sec), n)
+        base = {'sport': src['sport'], 'cls': src['cls'], 'round': rnd, 'site': site, 'final': False}
+        m = PLAYED.match(ln)
+        if m:
+            g = dict(base, id=gid(m.group(1)), a={'name': m.group(2).strip(), 'score': int(m.group(3))},
+                     b={'name': m.group(4).strip(), 'score': int(m.group(5))}, ot=m.group(6) or '', final=True)
+            if day:
+                g['date'] = kickoff(day[0], day[1], '12', '0', 'p', now)
+            games.append(g)
+            continue
+        m = BK_UNPLAYED.match(ln)
+        if m and not re.search(r'winner|loser', ln, re.I):     # "Winner Game 1 vs. ...": not set yet
+            g = dict(base, id=gid(m.group(1)), a={'name': m.group(2).strip()}, b={'name': m.group(3).strip()})
+            if day:
+                g['date'] = kickoff(day[0], day[1], m.group(4) or '7', m.group(5) or '0', m.group(6) or 'p', now)
+            games.append(g)
+    return games
+
+
+def season(page):
+    m = re.search(r'Schedule\s*&(?:amp;)?\s*Scores\s*(?:&mdash;|\u2014|-)\s*(\d{4}-\d{2})', page)
+    return m.group(1) if m else ''
+
+
 def parse(src, page, now):
+    src = dict(src, season=season(page))
+    if src['sport'] == 'bkb':
+        return parse_bkb(src, page, now)
     games, rnd = [], ''
     for ln in text_lines(page):
         head = next((r for r in ROUNDS if ln.lower().startswith(r.lower()) and len(ln) < len(r) + 12), None)
@@ -68,13 +124,13 @@ def parse(src, page, now):
             continue
         m = PLAYED.match(ln)
         if m:
-            games.append({'id': '%s-%s-%s' % (src['sport'], src['cls'], m.group(1)), 'sport': src['sport'], 'cls': src['cls'],
+            games.append({'id': '%s-%s-%s-%s' % (src['sport'], src.get('season', ''), src['cls'], m.group(1)), 'sport': src['sport'], 'cls': src['cls'],
                           'round': rnd, 'a': {'name': m.group(2).strip(), 'score': int(m.group(3))},
                           'b': {'name': m.group(4).strip(), 'score': int(m.group(5))}, 'ot': m.group(6) or '', 'final': True})
             continue
         m = UNPLAYED.match(ln)
         if m:
-            games.append({'id': '%s-%s-%s' % (src['sport'], src['cls'], m.group(1)), 'sport': src['sport'], 'cls': src['cls'],
+            games.append({'id': '%s-%s-%s-%s' % (src['sport'], src.get('season', ''), src['cls'], m.group(1)), 'sport': src['sport'], 'cls': src['cls'],
                           'round': rnd, 'a': {'name': m.group(2).strip(), 'rec': m.group(3) or ''},
                           'b': {'name': m.group(5).strip(), 'rec': m.group(6) or ''}, 'neutral': m.group(4).lower().startswith('vs'),
                           'site': m.group(7).strip(), 'date': kickoff(m.group(8), m.group(9), m.group(10), m.group(11), m.group(12), now),

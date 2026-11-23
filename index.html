@@ -8736,7 +8736,7 @@ function loadHs(cb) {
   } catch (e) { cb(); }
 }
 var HS_PLAIN = /^(h\.?s\.?|sr\.?|high school|senior)$/i, HS_PART = /^(north|south|east|west|central|community|northwest|northeast|southwest|southeast|academy)$/i;
-var HS_NAMES = { 'Cary (Grove)': 'Cary-Grove', 'St. Joseph (Ogden)': 'St. Joseph-Ogden', 'Prairie (Central)': 'Prairie Central', 'Normal (Community)': 'Normal Community',
+var HS_NAMES = { 'Champaign (State Farm Center)': 'State Farm Center', 'Cary (Grove)': 'Cary-Grove', 'St. Joseph (Ogden)': 'St. Joseph-Ogden', 'Prairie (Central)': 'Prairie Central', 'Normal (Community)': 'Normal Community',
                  'Normal (West)': 'Normal West', 'Bradley (Bradley-Bourbonnais)': 'Bradley-Bourbonnais', 'Lena (Lena-Winslow)': 'Lena-Winslow' };   // IHSA's "town (school)" that reads wrong split up
 function hsName(n) {                                // "Chicago (Brother Rice)" -> Brother Rice; "Downers Grove (North)" -> Downers Grove North
   if (HS_NAMES[n]) return HS_NAMES[n];
@@ -8753,13 +8753,17 @@ function hsState(g, now) {                          // 'final' | 'live' | 'pendi
   if (g.final) return g.finalAt && now - parseDate(g.finalAt) < 36 * 3600000 ? 'final' : '';
   if (!t) return '';
   if (now < t) return t - now < 7 * 86400000 ? 'pre' : '';
-  if (now - t < 3.5 * 3600000) return 'live';
+  if (now - t < (g.sport === 'bkb' ? 2 : 3.5) * 3600000) return 'live';
   return now - t < 14 * 3600000 ? 'pending' : '';
 }
 function hsShown() {
   if (!CONFIG.hs || !hs.games.length) return [];
   var now = new Date().getTime(), out = [];
-  for (var i = 0; i < hs.games.length; i++) { var st = hsState(hs.games[i], now); if (st) out.push({ g: hs.games[i], st: st }); }
+  for (var i = 0; i < hs.games.length; i++) {
+    var g0 = hs.games[i], st = hsState(g0, now);
+    if (g0.sport === 'bkb' && !/super|state/i.test(g0.round || '') && !hsChi(g0.a.name) && !hsChi(g0.b.name)) continue;   // basketball: Chicago schools every round, everyone from the super-sectionals on
+    if (st) out.push({ g: g0, st: st });
+  }
   var rank = { live: 0, pending: 1, final: 2, pre: 3 };
   out.sort(function (a, b) {
     return (rank[a.st] - rank[b.st]) || ((a.g.date ? parseDate(a.g.date) : 0) - (b.g.date ? parseDate(b.g.date) : 0)) ||
@@ -8771,9 +8775,9 @@ function hsLiveNow() { var L = hsShown(); for (var i = 0; i < L.length; i++) if 
 function hsPages() { return hsShown().length ? [{ lg: 'hs', hs: true, hold: 20, num: 'hs', of: 1, games: [], key: 'hs:board' }] : []; }
 function hsRound(L) { var r = {}, n = 0, k; for (var i = 0; i < L.length; i++) if (L[i].g.round && !r[L[i].g.round]) { r[L[i].g.round] = 1; n++; k = L[i].g.round; } return n === 1 ? k : ''; }
 function hsHeading() {
-  var L = hsShown(), rd = hsRound(L), sp = L.length && L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL';
-  return '<span class="lg">IHSA ' + sp + '</span><span class="sub">' + esc(rd === 'Championship' ? 'State championships' : (rd ? 'State playoffs · ' + rd : 'State playoffs')) +
-         (L.length && L[0].g.site && rd === 'Championship' ? ' &middot; ' + esc(hsName(L[0].g.site)) : '') + '</span>';
+  var L = hsShown(), rd = hsRound(L), sp = L.length && L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL', top = rd === 'Championship' || rd === 'State Finals';
+  return '<span class="lg">IHSA ' + sp + '</span><span class="sub">' + esc(top ? (sp === 'BASKETBALL' ? 'State finals' : 'State championships') : (rd ? 'State playoffs \u00b7 ' + rd : 'State playoffs')) +
+         (L.length && L[0].g.site && top ? ' &middot; ' + esc(hsName(L[0].g.site)) : '') + '</span>';
 }
 function hsTime(g) { var d = parseDate(g.date); return CR7_DAY[d.getDay()] + ' ' + esc(timeStr(d)); }
 function hsHTML() {
@@ -8797,7 +8801,7 @@ function hsCrawlSeg() {
     h += '<span class="g">' + esc(g.cls) + ': ' + (L[i].st === 'final' ? esc(a) + ' ' + g.a.score + ', ' + esc(b) + ' ' + g.b.score + '<span class="st">F' + (g.ot ? '/' + esc(g.ot) : '') + '</span>' :
          esc(a) + ' VS ' + esc(b) + '<span class="st' + (L[i].st === 'live' ? ' lv' : '') + '">' + (L[i].st === 'live' ? 'IN PROGRESS' : (L[i].st === 'pending' ? 'PENDING' : hsTime(g).toUpperCase())) + '</span>') + '</span>';
   }
-  return { label: 'IHSA FOOTBALL', lg: 'hs', html: h };
+  return { label: 'IHSA ' + (L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL'), lg: 'hs', html: h };
 }
 function cr7HTML() {
   var n = cr7Total(), togo = Math.max(0, 1000 - n), L = cr7Last(), fresh = cr7.newAt && new Date().getTime() - cr7.newAt < 30 * 60000;
