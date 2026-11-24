@@ -4160,9 +4160,9 @@ function muBest(skipId) {
     var g = x.g, A = g.teams.away, H = g.teams.home, q = gotdQuality(g, x.lg);
     if (x.lg === 'ncaaf' || x.lg === 'nfl') q += (A.rank && A.rank <= 25 ? (26 - A.rank) * 1.5 : 0) + (H.rank && H.rank <= 25 ? (26 - H.rank) * 1.5 : 0);
     var sp = R.indexOf(x.lg);
-    return [muHockeyLast(x.lg), gotdFav(g, x.lg) ? 0 : (gotdTitle(g, x.lg) ? 1 : 2), sp < 0 ? 99 : sp, -q];
+    return [x.lg === 'nfl' || x.lg === 'ncaaf' ? 0 : 1, muHockeyLast(x.lg), gotdFav(g, x.lg) ? 0 : (gotdTitle(g, x.lg) ? 1 : 2), sp < 0 ? 99 : sp, -q];   // football first, always
   };
-  var better = function (a, b) { var s1 = score(a), s2 = score(b); for (var k = 0; k < 4; k++) if (s1[k] !== s2[k]) return s1[k] < s2[k]; return false; };
+  var better = function (a, b) { var s1 = score(a), s2 = score(b); for (var k = 0; k < s1.length; k++) if (s1[k] !== s2[k]) return s1[k] < s2[k]; return false; };
   var live = [], soon = [];
   for (i = 0; i < pool.length; i++) {
     var x = pool[i], g = x.g;
@@ -4174,7 +4174,7 @@ function muBest(skipId) {
   var L = live.length ? live : soon, best = null, held = null;
   if (!live.length) soon.sort(function (a, b) { return parseDate(a.g.date) - parseDate(b.g.date); });
   for (i = 0; i < L.length; i++) { if (L[i].g.id === muBestId) held = L[i]; if (!best || better(L[i], best)) best = L[i]; }
-  if (held && score(held)[0] <= score(best)[0] && score(held)[1] <= score(best)[1]) best = held;          // stay on the game until it's over, unless one of your teams starts
+  if (held) { var sh = score(held), sb = score(best); if (sh[0] <= sb[0] && sh[1] <= sb[1] && sh[2] <= sb[2]) best = held; }   // stay on the game until it's over, unless football or one of your teams starts
   if (!live.length && soon.length) { var t0 = parseDate(soon[0].g.date).getTime(); best = null;   // nothing on: the best of the next start time
     for (i = 0; i < soon.length; i++) if (parseDate(soon[i].g.date).getTime() - t0 < 20 * 60000 && (!best || better(soon[i], best))) best = soon[i]; }
   muBestId = best && best.g.live ? best.g.id : '';
@@ -4238,8 +4238,15 @@ function muPages() {
   var out = [], L = live.length ? live : fin;                          // two or more on at once: 90 s each
   for (i = 0; i < L.length; i++) out.push(muPage(L[i], 90));
   if (out.length) return out;
+  var mbf = muBest();                                                  // football first, always: any football game on (the best of them), before the game of the day
+  if (mbf && mbf.g.live && (mbf.lg === 'nfl' || mbf.lg === 'ncaaf')) return [muPage(mbf, 60)];
   var gd = CONFIG.gotd ? gotdPick() : null;                            // no football on: the game of the day
   var tonight = up.length && ymd(parseDate(up[0].g.date)) === ymd(new Date()) ? up[0] : null;
+  if (!tonight) for (i = 0; i < all.length; i++) {                     // any football later today (the earliest)
+    var tg = all[i].g;
+    if ((all[i].lg === 'nfl' || all[i].lg === 'ncaaf') && !tg.live && !isFinal(tg) && parseDate(tg.date).getTime() > now && ymd(parseDate(tg.date)) === ymd(new Date()) &&
+        (!tonight || parseDate(tg.date) < parseDate(tonight.g.date))) tonight = all[i];
+  }
   if (tonight && !(gd && gd.g.live && parseDate(tonight.g.date).getTime() - now > 60 * 60000)) return [muPage(tonight, 60)];   // football later today beats it (a live game of the day keeps the screen until the hour before kickoff)
   if (gd) return [muPage(gd, 60)];
   if (up.length) return [muPage(up[0], 60)];                           // nothing on: the next one, with its kickoff time
