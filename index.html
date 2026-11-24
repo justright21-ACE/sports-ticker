@@ -1411,6 +1411,52 @@
   .narrow .ws table.q.ls { font-size: 1.8vh; }
 
   /* =========== THEMES (picked automatically by day, see CONFIG.theme) =========== */
+  /* =========== SUNSET (a one-day look in the spirit of a Miami crime-game poster: sunset sky, neon, palms,
+     tilted comic panels with black outlines and a pink offset shadow; all original, no game logos or art) =========== */
+  body.t-sunset { background: #12052a; background-image: -webkit-linear-gradient(top, #2b0a52 0%, #4a0f5e 30%, #1a0838 62%, #0b0620 100%); background-image: linear-gradient(180deg, #2b0a52 0%, #4a0f5e 30%, #1a0838 62%, #0b0620 100%); }
+  .t-sunset #shift::before { content: ''; position: absolute; right: 6vw; top: 14vh; width: 34vh; height: 34vh; border-radius: 50%; opacity: 0.22; pointer-events: none;
+    background: -webkit-linear-gradient(top, #ffd23f 0%, #ff7a2f 55%, #ff2e88 100%); background: linear-gradient(180deg, #ffd23f 0%, #ff7a2f 55%, #ff2e88 100%);
+    -webkit-mask-image: -webkit-linear-gradient(top, #000 0, #000 58%, transparent 58%, transparent 63%, #000 63%, #000 72%, transparent 72%, transparent 77%, #000 77%, #000 84%, transparent 84%, transparent 89%, #000 89%);
+    mask-image: linear-gradient(180deg, #000 0, #000 58%, transparent 58%, transparent 63%, #000 63%, #000 72%, transparent 72%, transparent 77%, #000 77%, #000 84%, transparent 84%, transparent 89%, #000 89%); }
+  .t-sunset #shift::after { content: ''; position: absolute; left: 0; right: 0; bottom: 13vh; height: 34vh; opacity: 0.5; pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20400%20300'%3E%3Cg%20fill='%23000'%3E%3Cpath%20d='M118%20300%20C124%20230%20128%20170%20150%20100%20L158%20102%20C138%20170%20134%20232%20132%20300Z'/%3E%3Cpath%20d='M152%2098%20C120%2070%2080%2066%2040%2084%20C82%2074%20118%2082%20148%20104Z'/%3E%3Cpath%20d='M152%2098%20C130%2058%2098%2038%2060%2034%20C98%2048%20126%2070%20146%20104Z'/%3E%3Cpath%20d='M154%2096%20C160%2056%20186%2030%20222%2022%20C192%2040%20172%2066%20160%20102Z'/%3E%3Cpath%20d='M156%2098%20C196%2076%20238%2080%20270%20104%20C236%2094%20200%2094%20160%20106Z'/%3E%3Cpath%20d='M156%20100%20C186%20108%20206%20134%20214%20168%20C198%20140%20180%20120%20154%20108Z'/%3E%3Cpath%20d='M150%20100%20C126%20112%20110%20136%20104%20168%20C118%20140%20132%20122%20152%20108Z'/%3E%3Cpath%20d='M262%20300%20C266%20250%20268%20210%20282%20160%20L288%20161%20C276%20210%20274%20252%20274%20300Z'/%3E%3Cpath%20d='M284%20158%20C262%20138%20234%20136%20206%20150%20C236%20142%20260%20148%20282%20164Z'/%3E%3Cpath%20d='M285%20157%20C290%20128%20308%20110%20334%20104%20C312%20118%20298%20136%20290%20162Z'/%3E%3Cpath%20d='M286%20158%20C314%20144%20344%20146%20366%20164%20C342%20156%20316%20156%20290%20166Z'/%3E%3Cpath%20d='M284%20160%20C276%20132%20258%20116%20234%20110%20C254%20124%20268%20140%20280%20164Z'/%3E%3C/g%3E%3C/svg%3E") no-repeat left bottom, url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20400%20300'%3E%3Cg%20fill='%23000'%3E%3Cpath%20d='M118%20300%20C124%20230%20128%20170%20150%20100%20L158%20102%20C138%20170%20134%20232%20132%20300Z'/%3E%3Cpath%20d='M152%2098%20C120%2070%2080%2066%2040%2084%20C82%2074%20118%2082%20148%20104Z'/%3E%3Cpath%20d='M152%2098%20C130%2058%2098%2038%2060%2034%20C98%2048%20126%2070%20146%20104Z'/%3E%3Cpath%20d='M154%2096%20C160%2056%20186%2030%20222%2022%20C192%2040%20172%2066%20160%20102Z'/%3E%3Cpath%20d='M156%2098%20C196%2076%20238%2080%20270%20104%20C236%2094%20200%2094%20160%20106Z'/%3E%3Cpath%20d='M156%20100%20C186%20108%20206%20134%20214%20168%20C198%20140%20180%20120%20154%20108Z'/%3E%3Cpath%20d='M150%20100%20C126%20112%20110%20136%20104%20168%20C118%20140%20132%20122%20152%20108Z'/%3E%3Cpath%20d='M262%20300%20C266%20250%20268%20210%20282%20160%20L288%20161%20C276%20210%20274%20252%20274%20300Z'/%3E%3Cpath%20d='M284%20158%20C262%20138%20234%20136%20206%20150%20C236%20142%20260%20148%20282%20164Z'/%3E%3Cpath%20d='M285%20157%20C290%20128%20308%20110%20334%20104%20C312%20118%20298%20136%20290%20162Z'/%3E%3Cpath%20d='M286%20158%20C314%20144%20344%20146%20366%20164%20C342%20156%20316%20156%20290%20166Z'/%3E%3Cpath%20d='M284%20160%20C276%20132%20258%20116%20234%20110%20C254%20124%20268%20140%20280%20164Z'/%3E%3C/g%3E%3C/svg%3E") no-repeat right bottom; background-size: auto 100%, auto 80%; }
+  .t-sunset #board, .t-sunset #top, .t-sunset #crawlbar, .t-sunset #foot { z-index: 1; }
+  .t-sunset #top { background: #ff2e88; background: -webkit-linear-gradient(left, #ff2e88 0%, #ff6a3d 55%, #ffc23d 100%); background: linear-gradient(90deg, #ff2e88 0%, #ff6a3d 55%, #ffc23d 100%); border-bottom: 0.5vh solid #12052a; }
+  .t-sunset #brand { color: #ffffff; font-style: italic; text-shadow: 0.35vh 0.35vh 0 #12052a, -0.1vh -0.1vh 0 #12052a; }
+  .t-sunset #brand span { color: #12052a; text-shadow: 0.2vh 0.2vh 0 #ffffff; }
+  .t-sunset #brand small { color: #2b0a52; text-shadow: none; }
+  .t-sunset .tab { color: #3a0a4a; font-style: italic; } .t-sunset .tab.empty { color: rgba(58,10,74,0.4); }
+  .t-sunset .tab.on { background: #12052a; color: #ffd23f; box-shadow: 0.4vh 0.4vh 0 rgba(255,255,255,0.6); }
+  .t-sunset #clock { color: #ffffff; text-shadow: 0.3vh 0.3vh 0 #12052a; } .t-sunset #clock small { color: #2b0a52; text-shadow: none; }
+  .t-sunset #heading .lg { color: #ffd23f; font-style: italic; text-shadow: 0.35vh 0.35vh 0 #ff2e88, 0 0 2vh rgba(255,46,136,0.6); }
+  .t-sunset #heading .sub { color: #ffb3d6; }
+  .t-sunset .card { background: #24093f; background: -webkit-linear-gradient(-65deg, #3b0d5c 0%, #1c0733 70%); background: linear-gradient(155deg, #3b0d5c 0%, #1c0733 70%);
+    border: 0.45vh solid #000; border-radius: 0.4vh; box-shadow: 0.9vh 0.9vh 0 #ff2e88; -webkit-transform: rotate(-0.9deg); transform: rotate(-0.9deg); }
+  .t-sunset .card:nth-child(2n) { -webkit-transform: rotate(0.7deg); transform: rotate(0.7deg); box-shadow: 0.9vh 0.9vh 0 #ff7a2f; }
+  .t-sunset .card:nth-child(3n) { -webkit-transform: rotate(-0.4deg); transform: rotate(-0.4deg); box-shadow: 0.9vh 0.9vh 0 #31e0ff; }
+  .t-sunset .card.live { border-color: #000; box-shadow: 0.9vh 0.9vh 0 #31e0ff, 0 0 2.6vh rgba(49,224,255,0.55); }
+  .t-sunset .card.fav { box-shadow: 0.9vh 0.9vh 0 #ffd23f; }
+  .t-sunset .row + .row { border-color: rgba(255,255,255,0.08); }
+  .t-sunset .abbr { background: #ff2e88; color: #ffffff; font-style: italic; text-shadow: 0.2vh 0.2vh 0 #12052a; }
+  .t-sunset .score { color: #ffffff; text-shadow: 0 0 1.4vh rgba(49,224,255,0.75), 0.25vh 0.25vh 0 #12052a; }
+  .t-sunset .status { background: #12052a; } .t-sunset .status .tag { color: #ffd23f; }
+  .t-sunset .lines { border-color: rgba(255,255,255,0.08); } .t-sunset .lines .lbl { color: #ff7ab8; }
+  .t-sunset .ptv .band, .t-sunset .ptv .panel { background: #24093f; background: -webkit-linear-gradient(-65deg, #3b0d5c 0%, #1c0733 70%); background: linear-gradient(155deg, #3b0d5c 0%, #1c0733 70%);
+    border: 0.45vh solid #000; box-shadow: 0.9vh 0.9vh 0 #ff2e88; }
+  .t-sunset .ptv .ph, .t-sunset .ptv .note b, .t-sunset .ptv .ln b, .t-sunset .ptv .pthead b { color: #ffd23f; }
+  .t-sunset .ptv .bar i { background: #ff2e88; }
+  .t-sunset #crawlbar { background: #12052a; border-top: 0.45vh solid #000; box-shadow: 0 -0.5vh 0 #ff2e88; }
+  .t-sunset #crawllabel { background: -webkit-linear-gradient(left, #ff2e88, #ff7a2f); background: linear-gradient(90deg, #ff2e88, #ff7a2f); color: #12052a; font-style: italic; }
+  .t-sunset #crawl .lg, .t-sunset #crawl .nl { color: #31e0ff; } .t-sunset #crawl .hl { background: #ffd23f; color: #12052a; }
+  .t-sunset #foot { color: #b585c9; }
+  .t-sunset #pbar b { background: #31e0ff; }
+  .t-sunset .ptv.mu { background: transparent; }                      /* matchup screen: the sky, the sun and the palms behind it */
+  .t-sunset.mview #shift::after { bottom: 0; height: 40vh; opacity: 0.55; } .t-sunset.mview #shift::before { right: 50%; margin-right: -22vh; top: 6vh; width: 44vh; height: 44vh; opacity: 0.28; }
+  body.t-sunset.mview .ptv.mu .bigsc { color: #ffffff; font-style: italic; text-shadow: 0.6vh 0.6vh 0 #ff2e88, 0 0 3vh rgba(49,224,255,0.55); }
+  body.t-sunset.mview .ptv.mu .bigsc .dash, body.t-sunset.mview .ptv.mu .bigsc i { color: #ffd23f; }
+  body.t-sunset.mview .ptv.mu .side .nm { color: #ffd23f; font-style: italic; text-shadow: 0.35vh 0.35vh 0 #ff2e88; }
+  body.t-sunset.mview .ptv.mu .clk { color: #ffb3d6; font-style: italic; }
+
 
   /* Chicago Bears: navy + orange (Sunday - Friday) */
   body.t-bears { background: #050a14; }
@@ -10329,9 +10375,10 @@ function holidayCard() {                         // every few minutes: the greet
   el.className = ''; void el.offsetWidth; el.className = 'on';
   setTimeout(function () { el.className = ''; }, 7200);
 }
+var THEME_DAYS = {};                               // one-day looks, by date: { '2026-11-25': 'sunset' } (?theme=sunset to preview)
 function applyTheme(d) {
   var t = CONFIG.theme;
-  if (t === 'auto') t = gameDayTheme() || 'house';
+  if (t === 'auto') t = THEME_DAYS[ymd(d || new Date())] || gameDayTheme() || 'house';
   var cls = t === 'classic' ? '' : 't-' + t;
   var vw = window.innerWidth || document.documentElement.clientWidth, vh = window.innerHeight || document.documentElement.clientHeight;
   if (vh && vw / vh < 1.7) cls += (cls ? ' ' : '') + 'narrow';     // 16:10 and squarer
