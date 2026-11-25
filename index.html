@@ -1067,6 +1067,28 @@
   .ptv .bzbig .bzt i { position: relative; display: inline-block; margin-top: 1vh; padding: 0 1.2vw; font-style: normal; font-size: 2.6vh; line-height: 4.2vh; font-weight: 800; color: #fff; border-radius: 0.6vh; letter-spacing: 0.15vw;
     -webkit-animation: bzIn 0.4s 0.9s both; animation: bzIn 0.4s 0.9s both; }
   @media (max-aspect-ratio: 3/2) { .ptv .bzbig .bzt b { font-size: 3.9vw; line-height: 4.6vw; white-space: nowrap; } .card .bzx b { font-size: 2.4vw; line-height: 2.7vw; } }
+  .ptv .bzk { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 9; pointer-events: none; overflow: hidden;
+    background: -webkit-radial-gradient(50% 30%, ellipse, #16324f 0%, #070b14 75%); background: radial-gradient(ellipse at 50% 30%, #16324f 0%, #070b14 75%);
+    -webkit-animation: bzIn 0.3s ease-out both, bzOut 0.4s ease-in both; animation: bzIn 0.3s ease-out both, bzOut 0.4s ease-in both; }
+  .ptv .bzk .bzgr { position: absolute; left: 0; right: 0; top: 49vh; bottom: 0;
+    background: -webkit-linear-gradient(top, #0f3a1b 0%, #1d6a31 100%); background: linear-gradient(180deg, #0f3a1b 0%, #1d6a31 100%); }
+  .ptv .bzk .bzgr:after { content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,0) 0, rgba(255,255,255,0) 5vh, rgba(255,255,255,0.18) 5vh, rgba(255,255,255,0.18) 5.4vh); }
+  .ptv .bzk .bzgp { position: absolute; left: 50%; top: 4vh; height: 46vh; width: 35.4vh; margin-left: -17.7vh;
+    -webkit-animation: bzPost 0.25s steps(1) 6; animation: bzPost 0.25s steps(1) 6; }
+  .ptv .bzk .bzbf { position: absolute; left: 50%; top: 0; width: 12vh; height: 7.2vh; margin-left: -6vh; opacity: 0;
+    -webkit-animation: bzFly 1.5s cubic-bezier(.15,.55,.45,1) both; animation: bzFly 1.5s cubic-bezier(.15,.55,.45,1) both; }
+  .ptv .bzk .bzbs, .ptv .bzk .bzbs svg { display: block; width: 100%; height: 100%; }
+  .ptv .bzk .bzbs { -webkit-animation: bzRoll 0.3s linear 5; animation: bzRoll 0.3s linear 5; }
+  .ptv .bzk .bzgd { position: absolute; left: 0; right: 0; top: 58vh; text-align: center; color: #ffd23f; font-size: 12vh; line-height: 13vh; font-weight: 900; font-style: italic;
+    letter-spacing: 0.3vw; text-shadow: 0.6vh 0.6vh 0 #000, 0 0 4vh rgba(255,210,63,0.6); -webkit-animation: bzSlam 0.45s cubic-bezier(.2,1.6,.4,1) both; animation: bzSlam 0.45s cubic-bezier(.2,1.6,.4,1) both; }
+  @-webkit-keyframes bzFly { 0% { opacity: 1; -webkit-transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; -webkit-transform: translate(-1vh, 38vh) scale(0.62); }
+    82% { opacity: 1; -webkit-transform: translate(0, 13vh) scale(0.3); } 100% { opacity: 0; -webkit-transform: translate(0, 6vh) scale(0.16); } }
+  @keyframes bzFly { 0% { opacity: 1; transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; transform: translate(-1vh, 38vh) scale(0.62); }
+    82% { opacity: 1; transform: translate(0, 13vh) scale(0.3); } 100% { opacity: 0; transform: translate(0, 6vh) scale(0.16); } }
+  @-webkit-keyframes bzRoll { from { -webkit-transform: rotate(0deg); } to { -webkit-transform: rotate(-360deg); } } @keyframes bzRoll { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+  @-webkit-keyframes bzPost { 0% { -webkit-filter: drop-shadow(0 0 2.5vh #ffd23f) brightness(1.5); } 50% { -webkit-filter: none; } }
+  @keyframes bzPost { 0% { filter: drop-shadow(0 0 2.5vh #ffd23f) brightness(1.5); } 50% { filter: none; } }
   @-webkit-keyframes bzIn { from { opacity: 0; } to { opacity: 1; } } @keyframes bzIn { from { opacity: 0; } to { opacity: 1; } }
   @-webkit-keyframes bzOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } } @keyframes bzOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
   @-webkit-keyframes bzBlink { 0% { opacity: 1; } 50% { opacity: 0.15; } } @keyframes bzBlink { 0% { opacity: 1; } 50% { opacity: 0.15; } }
@@ -7369,20 +7391,41 @@ function bzbCardHTML(e, lg) {
   return '<div class="bzx"><div class="bzl">0.0</div><b>' + (b.win ? 'GAME-WINNING' : 'BUZZER') + '<br>' + (b.win ? 'BUZZER BEATER' : 'BEATER') + '</b>' +
          '<i style="' + bzbChip(col) + '">' + esc([b.who ? String(b.who).toUpperCase() : '', b.win ? '' : b.label].join(b.who && !b.win ? ' · ' : '')) + '</i></div>';
 }
+var bzbRun = {};                                          // when this game's big-screen celebration started, so a data refresh doesn't restart it
+function bzbDelay(L, el) {
+  for (var o = [], i = 0; i < L.length; i++) o.push((Math.round((L[i] - el) * 100) / 100) + 's');
+  return '-webkit-animation-delay:' + o.join(',') + ';animation-delay:' + o.join(',');
+}
+var FG_POSTS = '<svg class="bzgp" viewBox="0 0 200 260"><g fill="none" stroke="#ffd23f" stroke-width="7" stroke-linecap="round">' +
+  '<path d="M100 258 L100 150"/><path d="M30 150 L170 150"/><path d="M30 150 L30 10"/><path d="M170 150 L170 10"/></g></svg>';
+var FG_BALL = '<svg viewBox="0 0 100 60"><ellipse cx="50" cy="30" rx="47" ry="27" fill="#7b3f1c" stroke="#3f1d0a" stroke-width="3"/>' +
+  '<path d="M18 12 Q12 30 18 48 M82 12 Q88 30 82 48" fill="none" stroke="#ffffff" stroke-width="4"/>' +
+  '<path d="M33 30 L67 30 M38 24 L38 36 M44 24 L44 36 M50 24 L50 36 M56 24 L56 36 M62 24 L62 36" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>';
 function bzbBigHTML(g, lg) {
   var b = bzbOf(g);
   if (!b) return '';
+  var now = new Date().getTime();
+  if (bzbRun.id !== g.id + ':' + b.at) bzbRun = { id: g.id + ':' + b.at, t: now };
+  var el = (now - bzbRun.t) / 1000, K = b.fb && CONFIG.motion !== false ? 3.6 : 0;
+  if (el > K + 11) return '';                                    // played through on this visit
   var t = b.side ? g.teams[b.side] : null, col = (t && homeColor(t, lg)) || 'ff3b30', rays = '';
   for (var i = 0; i < 12; i++) rays += '<span style="-webkit-transform:rotate(' + (i * 30) + 'deg);transform:rotate(' + (i * 30) + 'deg)"></span>';
+  var band = function (clock, title, chip) {
+    return '<div class="bzbig" style="' + bzbDelay([K, K + 9], el) + '"><div class="bzr" style="' + bzbDelay([K], el) + '">' + rays + '</div>' +
+           '<div class="bzl" style="' + bzbDelay([K], el) + '">' + clock + '</div><div class="bzt"><b style="' + bzbDelay([K + 0.4], el) + '">' + title + '</b>' +
+           '<i style="' + bzbChip(col) + ';' + bzbDelay([K + 0.9], el) + '">' + esc(chip) + '</i></div></div>';
+  };
   if (b.fb) {
     var kp = b.kp || (t ? kickerFor(lg, t.tid, b.who) : null);
-    return '<div class="bzbig"><div class="bzr">' + rays + '</div><div class="bzl">' + (b.ot ? 'OT' : '0:00') + '</div><div class="bzt"><b>GAME-WINNING FIELD GOAL!</b>' +
-           '<i style="' + bzbChip(col) + '">' + esc((b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.yds ? b.yds + ' YARDS · ' : '') + b.label) + '</i></div></div>' +
-           ((b.who || kp) && t ? spotlightHTML(kp, b.who, t, lg, (b.yds ? b.yds + '-yard ' : '') + 'game-winner', 1.2) : '');
+    var kick = !K || el > K ? '' :                                 // the kick: end over end, through the uprights
+      '<div class="bzk" style="' + bzbDelay([0, K - 0.3], el) + '"><i class="bzgr"></i>' + FG_POSTS.replace('class="bzgp"', 'class="bzgp" style="' + bzbDelay([1.6], el) + '"') +
+      '<div class="bzbf" style="' + bzbDelay([0.15], el) + '"><div class="bzbs" style="' + bzbDelay([0.15], el) + '">' + FG_BALL + '</div></div>' +
+      '<b class="bzgd" style="' + bzbDelay([1.55], el) + '">IT’S GOOD!</b></div>';
+    return kick + band(b.ot ? 'OT' : '0:00', 'GAME-WINNING FIELD GOAL!', (b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.yds ? b.yds + ' YARDS · ' : '') + b.label) +
+           ((b.who || kp) && t ? spotlightHTML(kp, b.who, t, lg, (b.yds ? b.yds + '-yard ' : '') + 'game-winner', K + 1.2 - el) : '');
   }
-  return '<div class="bzbig"><div class="bzr">' + rays + '</div><div class="bzl">0.0</div><div class="bzt"><b>' + (b.win ? 'GAME-WINNING BUZZER BEATER!' : 'BUZZER BEATER!') + '</b>' +
-         '<i style="' + bzbChip(col) + '">' + esc((b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.pts === 3 ? '3-POINTER ' : '') + (b.win ? 'AT THE HORN' : b.label)) + '</i></div></div>' +
-         (b.who && t ? spotlightHTML(b.aid ? { id: b.aid, name: b.who } : null, b.who, t, lg, b.pts === 3 ? 'Buzzer-beating 3' : 'At the buzzer', 1.2) : '');
+  return band('0.0', b.win ? 'GAME-WINNING BUZZER BEATER!' : 'BUZZER BEATER!', (b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.pts === 3 ? '3-POINTER ' : '') + (b.win ? 'AT THE HORN' : b.label)) +
+         (b.who && t ? spotlightHTML(b.aid ? { id: b.aid, name: b.who } : null, b.who, t, lg, b.pts === 3 ? 'Buzzer-beating 3' : 'At the buzzer', 1.2 - el) : '');
 }
 /* football score cards: timeouts left, only when they matter (last 5 minutes of the 4th, and OT) */
 function cardTimeouts(e, lg) {
@@ -10048,7 +10091,7 @@ function renderPage() {
   }
   $('msg').style.display = 'none';
   $('heading').style.display = pg.pt ? 'none' : '';
-  if (!pg.pt) ptLastKey = '';                          // next big screen gets its entrance
+  if (!pg.pt) { ptLastKey = ''; bzbRun = {}; }         // next big screen gets its entrance (and a celebration plays again)
   if (pg.lines) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Lines · ' + esc(linesDay(pg.games)) + '</span>' +
