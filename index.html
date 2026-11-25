@@ -2095,6 +2095,7 @@ var CONFIG = {
   bracketHoldSec: 20,    // ...seconds per bracket screen
   standings: true,       // standings screens, shown before a league's games start or after its last final
   standingsHoldSec: 15,  // ...seconds per standings screen
+  nbaLeaders: true,      // NBA per-game leaders screen (points, rebounds, assists, threes, steals, blocks), from the start of the NFL playoffs to the end of the NBA season (?nbaleaders=0)
   // college football standings: these conferences, in this order
   cfbConferences: ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Pac-12', 'Mountain West', 'American'],
   primetimeHoldLive: 90, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
@@ -2196,6 +2197,7 @@ function readParams() {
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
+    if (k === 'nbaleaders') CONFIG.nbaLeaders = v !== '0';
     if (k === 'bigevery' && +v >= 1) CONFIG.bigEvery = Math.round(+v);
     if (k === 'tabq') CONFIG.tabQueue = v !== '0';
     if (k === 'idlehold' && +v > 2) CONFIG.idleBigHoldSec = +v;
@@ -4070,6 +4072,7 @@ function buildPages() {
     if (lg === 'ncaaf') pages = pages.concat(cfpOddsPage());
     if (lg === 'nfl') pages = pages.concat(perfPage()).concat(nflPowerPage());
     if (lg === 'epl') pages = pages.concat(eplTablePage());
+    if (lg === 'nba') pages = pages.concat(nbaLeadersPage());
     pages = pages.concat(standingsPages(lg));
   }
   var gmaj = golfFeatured() ? golfPages() : [];                  // golf: a major while play is on comes back like a primetime game
@@ -7889,8 +7892,79 @@ function statTableTop(data, statNames) {
 }
 var LEADER_UNITS = { passingYards: 'YDS', passingTouchdowns: 'TD', QBR: 'QBR', passerRating: 'RTG', rushingYards: 'YDS', rushingTouchdowns: 'TD',
                      receivingYards: 'YDS', receivingTouchdowns: 'TD', sacks: 'SACKS', interceptions: 'INT' };
-function leadersHTML(grp) {                     // like the top performers: the leader big with his photo, 2-5 underneath
-  var all = nflLeaders.cats, cats = [], favs = favList('nfl'), html = '';
+/* =================== NBA LEAGUE LEADERS ===================
+   One screen in the NBA rotation, per-game leaders, top 5 each: points, rebounds, assists, threes, steals,
+   blocks. Starts when the NFL playoffs do (football's done taking the spotlight) and runs to the end of the
+   NBA season. From ESPN's core leaders feed (players come as links: names, teams and photos are looked up
+   once and kept). Fresh every hour. ?nbaleaders=0 off. */
+var NBA_LEADER_CATS = [['pointsPerGame', 'POINTS', 'PPG'], ['reboundsPerGame', 'REBOUNDS', 'RPG'], ['assistsPerGame', 'ASSISTS', 'APG'],
+                       ['3PointsMadePerGame', '3-POINTERS MADE', '3PM'], ['stealsPerGame', 'STEALS', 'SPG'], ['blocksPerGame', 'BLOCKS', 'BPG']];
+var nbaLeaders = { at: 0, cats: [] }, nbaAth = {}, nbaTeamAb = null;
+function nflPlayoffsStarted() {
+  var d = new Date(), m = d.getMonth(), y = d.getFullYear();
+  if (m >= 6) return false;                                       // Jul-Dec: the NFL's regular season (or no football)
+  var seen = false;
+  try { seen = window.localStorage.getItem('fcw_nflpo') === String(y); } catch (e) {}
+  var nd = state.data.nfl;
+  if (!seen && nd) for (var i = 0; i < nd.games.length; i++) { var r = nd.games[i].raw; if (r && r.season && +r.season.type === 3) { seen = true; try { window.localStorage.setItem('fcw_nflpo', String(y)); } catch (e2) {} break; } }
+  return seen || m >= 1 || d.getDate() >= 16;                     // Wild Card weekend is mid-January
+}
+function nbaLeadersOn() { return CONFIG.nbaLeaders && inList(CONFIG.leagues, 'nba') && !seasonOver('nba') && nflPlayoffsStarted(); }
+function nbaLeadersPage() { return nbaLeadersOn() && nbaLeaders.cats.length ? [{ lg: 'nba', leaders: true, nba: true, hold: CONFIG.standingsHoldSec + 7, num: 'leaders', of: 1, games: [] }] : []; }
+function loadNbaLeaders(cb) {
+  var now = new Date().getTime();
+  if (DEMO || !nbaLeadersOn() || now - nbaLeaders.at < 60 * 60000) return cb();
+  nbaLeaders.at = now;
+  var d = new Date(), season = d.getMonth() >= 6 ? d.getFullYear() + 1 : d.getFullYear(), bust = '&_=' + Math.floor(now / 600000);
+  function teams(next) {
+    if (nbaTeamAb) return next();
+    getJSON(ESPN_API + 'basketball/nba/teams?limit=50', function (err, data) {
+      var T = (!err && data && data.sports && data.sports[0] && data.sports[0].leagues && data.sports[0].leagues[0] && data.sports[0].leagues[0].teams) || [];
+      if (T.length) { nbaTeamAb = {}; for (var i = 0; i < T.length; i++) if (T[i].team) nbaTeamAb[String(T[i].team.id)] = T[i].team.abbreviation; }
+      next();
+    });
+  }
+  teams(function () {
+    getJSON('https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba/seasons/' + season + '/types/2/leaders?limit=' + LEADER_TOP + bust, function (err, data) {
+      var C = (!err && data && data.categories) || [], by = {}, cats = [], need = [], i, j;
+      for (i = 0; i < C.length; i++) by[C[i].name] = C[i];
+      for (i = 0; i < NBA_LEADER_CATS.length; i++) {
+        var c = by[NBA_LEADER_CATS[i][0]];
+        if (!c || !c.leaders || !c.leaders.length) continue;
+        var rows = [];
+        for (j = 0; j < c.leaders.length && j < LEADER_TOP; j++) {
+          var L = c.leaders[j], ref = (L.athlete && L.athlete.$ref) || '', id = (ref.match(/athletes\/(\d+)/) || [])[1] || '';
+          var tid = (((L.team && L.team.$ref) || '').match(/teams\/(\d+)/) || [])[1] || '';
+          var row = { id: id, ref: ref, tid: tid, val: L.displayValue || (L.value !== undefined ? (+L.value).toFixed(1) : ''), name: '', full: '', pos: '', team: '', hs: id ? headshotOf({ id: id }, 'nba') : '' };
+          rows.push(row);
+          if (id && !nbaAth[id] && ref) need.push(row);
+        }
+        cats.push({ key: NBA_LEADER_CATS[i][0], title: NBA_LEADER_CATS[i][1], unit: NBA_LEADER_CATS[i][2], grp: 'all', rows: rows });
+      }
+      if (!cats.length) { nbaLeaders.at = now - 50 * 60000; return cb(); }   // nothing yet: try again in 10 minutes
+      var seen = {}, list = [];
+      for (i = 0; i < need.length; i++) if (!seen[need[i].id]) { seen[need[i].id] = 1; list.push(need[i]); }
+      runEach(list.length, function (ix, done) {
+        getJSON(String(list[ix].ref).replace(/^http:/, 'https:'), function (e2, a) {
+          if (!e2 && a) nbaAth[list[ix].id] = { name: a.shortName || a.displayName || '', full: a.displayName || '', pos: (a.position && a.position.abbreviation) || '',
+                                               tid: (((a.team && a.team.$ref) || '').match(/teams\/(\d+)/) || [])[1] || '' };
+          done();
+        });
+      }, function () {
+        for (var c2 = 0; c2 < cats.length; c2++) for (var r2 = 0; r2 < cats[c2].rows.length; r2++) {
+          var rw = cats[c2].rows[r2], at = nbaAth[rw.id] || {};
+          rw.name = at.name || rw.name; rw.full = at.full || rw.full; rw.pos = at.pos || rw.pos;
+          rw.team = (nbaTeamAb && nbaTeamAb[rw.tid || at.tid]) || '';
+        }
+        nbaLeaders = { at: now, cats: cats };
+        cb();
+      });
+    });
+  });
+}
+function leadersHTML(grp, lg) {                 // like the top performers: the leader big with his photo, 2-5 underneath
+  lg = lg || 'nfl';
+  var all = lg === 'nba' ? nbaLeaders.cats : nflLeaders.cats, cats = [], favs = favList(lg), html = '';
   for (var c0 = 0; c0 < all.length; c0++) if (!grp || (all[c0].grp || 'off') === grp) cats.push(all[c0]);
   for (var c = 0; c < cats.length; c++) {
     var R = cats[c].rows, p = R[0];
@@ -7899,13 +7973,13 @@ function leadersHTML(grp) {                     // like the top performers: the 
     var tm = { abbreviation: p.team }, rest = '';
     for (var r = 1; r < R.length; r++) {
       var q = R[r], fav = inList(favs, String(q.team).toUpperCase());
-      rest += '<div class="pfr' + (fav ? ' fav' : '') + '"><span class="pfn">' + (r + 1) + '</span>' + logoHTML({ abbreviation: q.team }, 'nfl') +
+      rest += '<div class="pfr' + (fav ? ' fav' : '') + '"><span class="pfn">' + (r + 1) + '</span>' + logoHTML({ abbreviation: q.team }, lg) +
               '<span class="pfnm">' + esc(q.name) + (q.team ? '<em>' + esc(q.team) + '</em>' : '') + '</span><span class="pfv">' + esc(q.val) + '</span></div>';
     }
     html += '<div class="pf' + (inList(favs, String(p.team).toUpperCase()) ? ' fav' : '') + '"><div class="pfh">' + esc(cats[c].title) + '</div><div class="pftop">' +
-      '<div class="pfph">' + (p.hs ? '<img src="' + esc(p.hs) + '" alt="" onerror="this.style.display=\'none\'">' : '') + '<span class="pflg">' + logoHTML(tm, 'nfl') + '</span></div>' +
+      '<div class="pfph">' + (p.hs ? '<img src="' + esc(p.hs) + '" alt="" onerror="this.style.display=\'none\'">' : '') + '<span class="pflg">' + logoHTML(tm, lg) + '</span></div>' +
       '<div class="pfwho">' + (first ? '<div class="pffirst">' + esc(first) + '</div>' : '') + '<div class="pfname">' + esc(last) + '</div><div class="pfsub">' + esc(p.team + (p.pos ? ' · ' + p.pos : '')) + '</div></div>' +
-      '<div class="pfbig">' + esc(p.val) + '<i>' + (LEADER_UNITS[cats[c].key] || '') + '</i></div></div>' + rest + '</div>';
+      '<div class="pfbig">' + esc(p.val) + '<i>' + (cats[c].unit || LEADER_UNITS[cats[c].key] || '') + '</i></div></div>' + rest + '</div>';
   }
   return '<div class="perf lead2 n' + cats.length + '">' + html + '</div>';
 }
@@ -10394,6 +10468,13 @@ function renderPage() {
     try { $('cards').innerHTML = inactHTML(pg); runInactives(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
+  if (pg.leaders && pg.nba) {
+    renderTabs('nba');
+    var ny = new Date().getMonth() >= 6 ? new Date().getFullYear() : new Date().getFullYear() - 1;
+    $('heading').innerHTML = '<span class="lg">NBA</span><span class="sub">League leaders &middot; per game &middot; ' + ny + '-' + String(ny + 1).slice(2) + ' season' + (nbaLeaders.at ? ' &middot; as of ' + timeStr(new Date(nbaLeaders.at)) : '') + '</span>';
+    try { $('cards').innerHTML = leadersHTML('all', 'nba'); } catch (err) { $('cards').innerHTML = ''; }
+    return;
+  }
   if (pg.leaders) {
     renderTabs(pg.lg);
     var sy = new Date().getMonth() < 6 ? new Date().getFullYear() - 1 : new Date().getFullYear();
@@ -10956,7 +11037,7 @@ function refreshAll() {
     // the extras in three waves, everything in a wave at once: the second needs the first (rankings, the season calendar,
     // the close-game lists, the missing odds), injuries need the game details
     runAll([loadTeams, loadNews, loadBreaking, loadNflPower, loadCfpOdds, loadPerf, loadH2h, loadGolf, loadEplTable, loadFighters, loadMajorCfb, loadMajorCbb,
-            loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadIdle, loadCup, loadCr7, loadHs], function () {
+            loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadNbaLeaders, loadIdle, loadCup, loadCr7, loadHs], function () {
     runAll([loadChampBackfill, loadCrawlFull, loadPtDetails, loadStandings, loadCfpConf], function () {
     loadInjuries(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
