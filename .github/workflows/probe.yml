@@ -11,14 +11,17 @@ jobs:
               return json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})))
           A='https://site.api.espn.com/apis/site/v2/sports/'
           import urllib.error
-          for q in ['dates=20261121-20261216&limit=500','dates=20261121-20261216','dates=20261121-20261125&limit=500','dates=20261124','dates=20261121-20261130&limit=100','dates=20261121-20261216&limit=200']:
-              for lg in ['afc.champions','ksa.1','usa.1']:
+          for q in ['dates=202611','dates=20261101-20261130','dates=20261124-20261125','dates=20261124-20261124','dates=20261124&limit=500']:
+              for lg in ['afc.champions','ksa.1','eng.1']:
                   try:
                       d=get(A+'soccer/'+lg+'/scoreboard?'+q); print('OK ', lg, q, len(d.get('events',[])))
                   except urllib.error.HTTPError as ex:
-                      print('ERR', lg, q, ex.code, ex.read()[:200])
-          for lg in ['afc.champions','ksa.1']:
-              d=get(A+'soccer/'+lg+'/scoreboard?dates=20261121-20261130')
+                      print('ERR', lg, q, ex.code)
+          for q in ['basketball/nba/scoreboard?dates=20261124-20261126','football/nfl/scoreboard?dates=20261124-20261130&limit=1000','hockey/nhl/scoreboard?dates=20261124-20261126']:
+              try: d=get(A+q); print('OK ', q, len(d.get('events',[])))
+              except urllib.error.HTTPError as ex: print('ERR', q, ex.code)
+          for lg in ['afc.champions']:
+              d=get(A+'soccer/'+lg+'/scoreboard?dates=20261124')
               for e in d.get('events',[]):
                   if 'nassr' not in e.get('name','').lower(): continue
                   c=e['competitions'][0]
