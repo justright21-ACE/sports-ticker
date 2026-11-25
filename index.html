@@ -505,6 +505,34 @@
   .cr7 .c7rows b.lv { color: #ff4d5e; } .cr7 .c7rows em { font-style: normal; color: #f5c400; }
   .cr7 .c7rows .c7sm { font-size: 2vh; color: #8b95ab; white-space: normal; line-height: 1.4; }
   #crawl .c7g { color: #f5c400; }
+  .cr7.msi .c7pips span.on { background: #75aadb; border-color: #75aadb; } .cr7.msi .c7bar span { background: #75aadb; }
+  .cr7.msi .c7pips span.k.on { background: #f5c400; border-color: #f5c400; }
+  /* the race to 1,000: Ronaldo vs Messi */
+  .race { position: relative; height: 66vh; padding: 0 2vw; }
+  .race .rkh { text-align: center; font-size: 3.2vh; letter-spacing: 0.5vw; color: #9BA3B8; font-weight: 800; margin: 0.6vh 0 1.4vh; }
+  .race .rkh b { color: #f5c400; font-size: 4.4vh; margin: 0 0.3vw; vertical-align: -0.4vh; }
+  .race .rkr { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 24vh; }
+  .race .rkw { width: 18vw; -webkit-flex: none; flex: none; text-align: center; }
+  .race .rkp { display: block; height: 14vh; margin: 0 auto; -webkit-mask-image: linear-gradient(to top, transparent, #000 25%); }
+  .race .rkn { font-size: 4vh; font-weight: 900; letter-spacing: 0.4vw; color: #fff; margin-top: -0.6vh; }
+  .race .rkt { -webkit-flex: 1; flex: 1; min-width: 0; padding-right: 2vw; }
+  .race .rkl { position: relative; height: 6.4vh; border-radius: 1vh; background: rgba(255,255,255,0.06); border: 0.2vh solid rgba(255,255,255,0.14); }
+  .race .rkl:after { content: ''; position: absolute; right: -0.2vh; top: -1.2vh; bottom: -1.2vh; width: 1.4vh; border-radius: 0.3vh;
+    background: repeating-linear-gradient(180deg, #ffffff 0, #ffffff 0.9vh, #111 0.9vh, #111 1.8vh); }
+  .race .rkl span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0.8vh; -webkit-animation: rkGrow 1.6s ease-out both; animation: rkGrow 1.6s ease-out both; }
+  .race .cr7 .rkl span { background: -webkit-linear-gradient(left, #5a0714, #c8102e); background: linear-gradient(90deg, #5a0714, #c8102e); }
+  .race .messi .rkl span { background: -webkit-linear-gradient(left, #2b4d73, #75aadb); background: linear-gradient(90deg, #2b4d73, #75aadb); }
+  .race .rkl i { position: absolute; top: 50%; font-style: normal; font-size: 4.4vh; line-height: 6vh; font-weight: 900; color: #fff; padding-right: 1vw; text-shadow: 0 0.3vh 0.6vh rgba(0,0,0,0.6);
+    -webkit-transform: translate(-100%, -50%); transform: translate(-100%, -50%); }
+  .race .rks { margin-top: 1.2vh; font-size: 2.6vh; color: #c9d0de; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .race .rks b { color: #f5c400; } .race .rks em { font-style: normal; color: #f5c400; font-weight: 900; }
+  .race .rkx { margin-top: 0.6vh; font-size: 2vh; color: #8b95ab; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .race .rkx b { color: #9BA3B8; font-weight: 700; margin-right: 0.4vw; } .race .rkx b.lv { color: #ff4d5e; } .race .rkx em { font-style: normal; color: #f5c400; }
+  .race .rkr.fresh .rkl span { -webkit-animation: rkGrow 1.6s ease-out both, pulse 1.2s 1.6s infinite; animation: rkGrow 1.6s ease-out both, pulse 1.2s 1.6s infinite; }
+  .race .rkk { position: relative; margin: 0.4vh 2vw 0 18vw; height: 3vh; }
+  .race .rkk span { position: absolute; top: 0; font-size: 1.8vh; color: #6b7590; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+  .race .rkk span:last-child { color: #f5c400; font-weight: 800; }
+  @-webkit-keyframes rkGrow { from { max-width: 0; } to { max-width: 100%; } } @keyframes rkGrow { from { max-width: 0; } to { max-width: 100%; } }
+  @media (max-aspect-ratio: 3/2) { .race .rks { font-size: 1.9vw; } .race .rkx { font-size: 1.5vw; } .race .rkn { font-size: 3vw; } }
   @media (max-aspect-ratio: 3/2) { .cr7 .c7n { font-size: 11vw; } .cr7 .c7l { width: 29vw; left: 1.5vw; } .cr7 .c7pips i { font-size: 1vw; } .cr7 .c7pips span { height: 7vh; }
     .cr7 .c7rows div { font-size: 2.6vh; } .cr7 .c7rows b { min-width: 8.5vw; font-size: 1.8vh; } }
   .rank.pr .rkrow.cutl { border-bottom: 0.35vh dashed #ff6b6b; }
@@ -1968,6 +1996,8 @@ var CONFIG = {
   hockeyLast: true,      // matchup screen: while football is in season, any other game beats a hockey game (?hockeylast=0)
   hs: true,              // Illinois high school (IHSA) playoff games: a screen and a crawl line (data/hs.json, kept up to date by a GitHub job) (?hs=0)
   cr7: true,             // Cristiano Ronaldo's chase to 1,000 career goals: a screen, a crawl line, a jump to it when he scores (?cr7=0)
+  messi: true,           // Lionel Messi's chase to 1,000 too, plus a race screen with both of them (?messi=0; ?cr7=0 turns all of it off)
+  messiBg: '',           // a Messi celebration photo behind his screen, like cr7Bg (none yet)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
   eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
   nflPower: true,        // NFL power rankings screen (ESPN's Football Power Index, all 32 teams) in the NFL rotation (?power=0 off)
@@ -2198,6 +2228,7 @@ function readParams() {
     if (k === 'power') CONFIG.nflPower = v !== '0';
     if (k === 'golf') CONFIG.golf = v !== '0';
     if (k === 'cr7') CONFIG.cr7 = v !== '0';
+    if (k === 'messi') CONFIG.messi = v !== '0';
     if (k === 'cfpodds') CONFIG.cfpOdds = v !== '0';
     if (k === 'hs') CONFIG.hs = v !== '0';
     if (k === 'hockeylast') CONFIG.hockeyLast = v !== '0';
@@ -4650,7 +4681,8 @@ function renderTabs(activeLg) {
     html += '<span class="' + cls + (CONFIG.leagueLogos ? ' lgo' : '') + '">' + (CONFIG.leagueLogos ? leagueMarkHTML(lg, tnm, 'tl', true) : tnm) + '</span>';
   }
   html += gtab;
-  if (cr7On()) html += '<span class="tab' + (activeLg === 'cr7' ? ' on' : '') + '">' + (cr7.live ? '<i></i>' : '') + 'CR7</span>';
+  if (cr7On()) html += '<span class="tab' + (activeLg === 'cr7' || activeLg === 'race' ? ' on' : '') + '">' + (cr7.live ? '<i></i>' : '') + 'CR7</span>';
+  if (chaseOn(MESSI)) html += '<span class="tab' + (activeLg === 'messi' || activeLg === 'race' ? ' on' : '') + '">' + (messi.live ? '<i></i>' : '') + 'MESSI</span>';
   if (hsShown().length) html += '<span class="tab' + (activeLg === 'hs' ? ' on' : '') + '">' + (hsLiveNow() ? '<i></i>' : '') + 'IHSA</span>';
   $('tabs').innerHTML = html;
   fitTabs();
@@ -9107,19 +9139,31 @@ function golfHTML() {
    King's Cup and the Asian cups are looked up in one request each (from the day after CR7.day to three weeks
    ahead), which also gives the live match and the next one. Own goals and shootout kicks don't count.
    If ESPN can't be reached the screen still shows the checked total. */
-var CR7 = { base: 986, day: '2026-11-20', last: { day: '2026-11-20', opp: 'Al-Ahli', min: "14'" } };   // checked 21 Nov 2026
-var CR7_LEAGUES = ['ksa.1', 'ksa.kings.cup', 'afc.champions', 'afc.cup'];
+var CR7 = { key: 'cr7', name: 'Cristiano Ronaldo', short: 'RONALDO', base: 986, day: '2026-11-20', last: { day: '2026-11-20', opp: 'Al-Ahli', min: "14'" },   // checked 21 Nov 2026
+            leagues: ['ksa.1', 'ksa.kings.cup', 'afc.champions', 'afc.cup'], team: /nassr/i, me: /cristiano ronaldo/i, pid: '22774', store: 'fcw_cr7',
+            jan26: 957,                                   // career total on 1 Jan 2026 (for the pace on the race screen)
+            split: function (st, n) { return 'Sporting 5 &middot; Man United 145 &middot; Real Madrid 450 &middot; Juventus 101 &middot; Portugal 146 &middot; Al Nassr ' + (n - 847); } };
+/* Messi: same idea. Inter Miami (MLS, playoffs, Concacaf, Leagues Cup, US Open Cup) and Argentina (friendlies, qualifiers, Copa America). */
+var MESSI = { key: 'messi', name: 'Lionel Messi', short: 'MESSI', base: 937, day: '2026-11-23', last: { day: '2026-11-01', opp: 'New England', min: "83'" },   // checked 25 Nov 2026
+              leagues: ['usa.1', 'concacaf.champions', 'concacaf.leagues.cup', 'usa.open', 'fifa.friendly', 'fifa.worldq.conmebol', 'conmebol.america'],
+              team: /inter miami|argentina/i, me: /lionel messi/i, pid: '45843', store: 'fcw_messi', jan26: 896,
+              split: function (st, n) { var a = 0; for (var i = 0; i < st.goals.length; i++) if (/argentina/i.test(st.goals[i].us || '')) a++;
+                                        return 'Barcelona 672 &middot; PSG 32 &middot; Inter Miami ' + (n - 937 + 107 - a) + ' &middot; Argentina ' + (126 + a); } };
 var cr7 = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '' };
-try { cr7.pid = window.localStorage.getItem('fcw_cr7pid') || ''; } catch (e) {}
-function cr7Total() { return CR7.base + cr7.goals.length; }
+var messi = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '' };
+try { cr7.pid = window.localStorage.getItem('fcw_cr7pid') || ''; messi.pid = window.localStorage.getItem('fcw_messipid') || ''; } catch (e) {}
+function chaseSt(C) { return C === MESSI ? messi : cr7; }
+function chaseTotal(C) { return C.base + chaseSt(C).goals.length; }
+function cr7Total() { return chaseTotal(CR7); }
 function cr7Ymd(d) { return d.getFullYear() + '' + pad(d.getMonth() + 1) + pad(d.getDate()); }
-function loadCr7(cb) {
-  var now = new Date().getTime();
-  if (DEMO || !CONFIG.cr7 || now - cr7.at < (cr7.live ? 2 : 10) * 60000) return cb();
-  cr7.at = now;
-  var p = CR7.day.split('-'), from = new Date(+p[0], +p[1] - 1, +p[2] + 1), to = addDays(new Date(), 21), got = {};
-  runEach(CR7_LEAGUES.length, function (ix, done) {
-    getJSON(ESPN_API + 'soccer/' + CR7_LEAGUES[ix] + '/scoreboard?dates=' + cr7Ymd(from) + '-' + cr7Ymd(to) + '&limit=500', function (err, data) {
+function loadCr7(cb) { loadChase(CR7, function () { loadChase(MESSI, cb); }); }
+function loadChase(C, cb) {
+  var now = new Date().getTime(), st = chaseSt(C);
+  if (DEMO || !CONFIG.cr7 || (C === MESSI && !CONFIG.messi) || now - st.at < (st.live ? 2 : 10) * 60000) return cb();
+  st.at = now;
+  var p = C.day.split('-'), from = new Date(+p[0], +p[1] - 1, +p[2] + 1), to = addDays(new Date(), 21), got = {};
+  runEach(C.leagues.length, function (ix, done) {
+    getJSON(ESPN_API + 'soccer/' + C.leagues[ix] + '/scoreboard?dates=' + cr7Ymd(from) + '-' + cr7Ymd(to) + '&limit=500', function (err, data) {
       var evs = (!err && data && data.events) || [];
       for (var i = 0; i < evs.length; i++) got[evs[i].id] = evs[i];
       done();
@@ -9128,48 +9172,61 @@ function loadCr7(cb) {
     var goals = [], live = null, next = null, any = false, k;
     for (k in got) {
       var ev = got[k], c = (ev.competitions || [])[0] || {}, cs = c.competitors || [], me = null, op = null;
-      for (var j = 0; j < cs.length; j++) { if (/nassr/i.test((cs[j].team && (cs[j].team.displayName || cs[j].team.name)) || '')) me = cs[j]; else op = cs[j]; }
+      for (var j = 0; j < cs.length; j++) { if (!me && C.team.test((cs[j].team && (cs[j].team.displayName || cs[j].team.name)) || '')) me = cs[j]; else op = cs[j]; }
       if (!me || !op) continue;
       any = true;
-      var st = (ev.status && ev.status.type && ev.status.type.state) || '', t = parseDate(ev.date).getTime(), opn = (op.team && (op.team.shortDisplayName || op.team.displayName)) || '';
-      if (st === 'pre') { if (t > now - 3 * 3600000 && (!next || t < next.t)) next = { t: t, opp: opn, home: me.homeAway === 'home' }; continue; }
+      var st8 = (ev.status && ev.status.type && ev.status.type.state) || '', t = parseDate(ev.date).getTime(), opn = (op.team && (op.team.shortDisplayName || op.team.displayName)) || '';
+      var usn = (me.team && (me.team.shortDisplayName || me.team.displayName)) || '';
+      if (st8 === 'pre') { if (t > now - 3 * 3600000 && (!next || t < next.t)) next = { t: t, opp: opn, us: usn, home: me.homeAway === 'home' }; continue; }
       var det = c.details || [], mine = 0;
       for (j = 0; j < det.length; j++) {
         var d = det[j], ath = d.athletesInvolved || [], cr = null;
         if (!d.scoringPlay || d.ownGoal || d.shootout || (d.team && me.team && String(d.team.id) !== String(me.team.id))) continue;
-        for (var q = 0; q < ath.length; q++) if (/cristiano ronaldo/i.test(ath[q].displayName || ath[q].fullName || '')) cr = ath[q];
+        for (var q = 0; q < ath.length; q++) if (C.me.test(ath[q].displayName || ath[q].fullName || '')) cr = ath[q];
         if (!cr) continue;
-        if (cr.id && cr.id !== cr7.pid) { cr7.pid = String(cr.id); try { window.localStorage.setItem('fcw_cr7pid', cr7.pid); } catch (e) {} }
+        if (cr.id && cr.id !== st.pid) { st.pid = String(cr.id); try { window.localStorage.setItem(C.store + 'pid', st.pid); } catch (e) {} }
         mine++;
-        goals.push({ t: t, opp: opn, min: (d.clock && d.clock.displayValue) || '', pen: !!d.penaltyKick, live: st === 'in' });
+        goals.push({ t: t, opp: opn, us: usn, min: (d.clock && d.clock.displayValue) || '', pen: !!d.penaltyKick, live: st8 === 'in' });
       }
-      if (st === 'in') live = { opp: opn, home: me.homeAway === 'home', us: me.score, them: op.score, clock: (ev.status.type.shortDetail || ev.status.displayClock || ''), mine: mine };
+      if (st8 === 'in') live = { opp: opn, usn: usn, home: me.homeAway === 'home', us: me.score, them: op.score, clock: (ev.status.type.shortDetail || ev.status.displayClock || ''), mine: mine };
     }
-    if (!any && !cr7.goals.length) return cb();                          // nothing came back: keep the checked total
+    if (!any && !st.goals.length) return cb();                          // nothing came back: keep the checked total
     goals.sort(function (a, b) { return a.t - b.t || parseInt(a.min, 10) - parseInt(b.min, 10); });
-    var before = cr7Total(), prev = null;
-    cr7.goals = goals; cr7.live = live; cr7.next = next;
-    try { prev = +window.localStorage.getItem('fcw_cr7n') || null; window.localStorage.setItem('fcw_cr7n', String(cr7Total())); } catch (e) {}
-    if (cr7Total() > (prev || before) && (prev || cr7.at)) { cr7.newAt = now; cr7.jumped = false; }   // he scored since we last looked
+    var before = chaseTotal(C), prev = null;
+    st.goals = goals; st.live = live; st.next = next;
+    try { prev = +window.localStorage.getItem(C.store + 'n') || null; window.localStorage.setItem(C.store + 'n', String(chaseTotal(C))); } catch (e) {}
+    if (chaseTotal(C) > (prev || before) && (prev || st.at)) { st.newAt = now; st.jumped = false; }   // he scored since we last looked
     cb();
   });
 }
-function cr7Last() {
-  var g = cr7.goals.length ? cr7.goals[cr7.goals.length - 1] : null;
-  if (!g) { var p = CR7.last.day.split('-'); return { when: new Date(+p[0], +p[1] - 1, +p[2]), opp: CR7.last.opp, min: CR7.last.min, n: CR7.base }; }
-  return { when: new Date(g.t), opp: g.opp, min: g.min + (g.pen ? ' (pen)' : ''), n: cr7Total() };
+function chaseLast(C) {
+  var st = chaseSt(C), g = st.goals.length ? st.goals[st.goals.length - 1] : null;
+  if (!g) { var p = C.last.day.split('-'); return { when: new Date(+p[0], +p[1] - 1, +p[2]), opp: C.last.opp, min: C.last.min, n: C.base }; }
+  return { when: new Date(g.t), opp: g.opp, min: g.min + (g.pen ? ' (pen)' : ''), n: chaseTotal(C) };
 }
+function cr7Last() { return chaseLast(CR7); }
 var CR7_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], CR7_DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-function cr7On() {                                 // up until a week after the 1,000th
-  if (!CONFIG.cr7) return false;
-  if (cr7Total() < 1000) return true;
-  var g = cr7.goals[1000 - CR7.base - 1];
+function chaseOn(C) {                              // up until a week after the 1,000th
+  if (!CONFIG.cr7 || (C === MESSI && !CONFIG.messi)) return false;
+  if (chaseTotal(C) < 1000) return true;
+  var g = chaseSt(C).goals[1000 - C.base - 1];
   return !!g && new Date().getTime() - g.t < 7 * 86400000;
 }
-function cr7Pages() { return cr7On() ? [{ lg: 'cr7', cr7: true, hold: 22, num: 'cr7', of: 1, games: [], key: 'cr7:board' }] : []; }
+function cr7On() { return chaseOn(CR7); }
+function cr7Pages() {
+  var P = [];
+  if (chaseOn(CR7)) P.push({ lg: 'cr7', cr7: true, chase: CR7, hold: 22, num: 'cr7', of: 1, games: [], key: 'cr7:board' });
+  if (chaseOn(CR7) && chaseOn(MESSI)) P.push({ lg: 'race', cr7: true, race: true, hold: 22, num: 'race', of: 1, games: [], key: 'race:board' });
+  if (chaseOn(MESSI)) P.push({ lg: 'messi', cr7: true, chase: MESSI, hold: 22, num: 'messi', of: 1, games: [], key: 'messi:board' });
+  return P;
+}
 function cr7Jump() {                               // he just scored: go to his screen once
-  if (cr7.jumped || !cr7.newAt) return false;
-  for (var i = 0; i < state.pages.length; i++) if (state.pages[i].cr7) { cr7.jumped = true; state.pageIndex = i; state.holdOnce = 30; return true; }
+  var C = [CR7, MESSI];
+  for (var c = 0; c < 2; c++) {
+    var st = chaseSt(C[c]);
+    if (st.jumped || !st.newAt) continue;
+    for (var i = 0; i < state.pages.length; i++) if (state.pages[i].chase === C[c]) { st.jumped = true; state.pageIndex = i; state.holdOnce = 30; return true; }
+  }
   return false;
 }
 /* =================== ILLINOIS HIGH SCHOOL (IHSA) ===================
@@ -9262,32 +9319,65 @@ function hsCrawlSeg() {
   }
   return { label: 'IHSA ' + (L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL'), lg: 'hs', html: h };
 }
-function cr7HTML() {
-  var n = cr7Total(), togo = Math.max(0, 1000 - n), L = cr7Last(), fresh = cr7.newAt && new Date().getTime() - cr7.newAt < 30 * 60000;
+function chasePhoto(C, cls) {
+  var pid = chaseSt(C).pid || C.pid;
+  return pid ? '<img class="' + cls + '" src="https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/' + esc(pid) + '.png&w=350&h=254" onerror="this.style.display=\'none\'" alt="">' : '';
+}
+function chaseNext(C) {
+  var st = chaseSt(C);
+  if (st.live) return '<b class="lv">LIVE</b>' + esc(st.live.usn) + ' ' + esc(st.live.us) + '&ndash;' + esc(st.live.them) + ' ' + esc(st.live.opp) + ' &middot; ' + esc(st.live.clock) + (st.live.mine ? ' &middot; <em>' + st.live.mine + (st.live.mine > 1 ? ' goals' : ' goal') + ' today</em>' : '');
+  if (st.next) { var d = new Date(st.next.t); return '<b>NEXT</b>' + (C === MESSI && st.next.us ? esc(st.next.us) + ' ' : '') + (st.next.home ? 'vs ' : 'at ') + esc(st.next.opp) + ' &middot; ' + CR7_DAY[d.getDay()] + ' ' + CR7_MON[d.getMonth()] + ' ' + d.getDate() + ', ' + esc(timeStr(d)); }
+  return '';
+}
+function cr7HTML(C) {
+  C = C || CR7;
+  var st = chaseSt(C), n = chaseTotal(C), togo = Math.max(0, 1000 - n), L = chaseLast(C), fresh = st.newAt && new Date().getTime() - st.newAt < 30 * 60000;
   var pips = '', lo = Math.min(981, Math.floor((n - 1) / 20) * 20 + 1);
   for (var k = lo; k < lo + 20; k++) pips += '<span class="' + (k <= n ? 'on' : (k === n + 1 ? 'nx' : '')) + (k === 1000 ? ' k' : '') + '"><i>' + k + '</i></span>';
-  var nx = '';
-  if (cr7.live) nx = '<b class="lv">LIVE</b>Al Nassr ' + esc(cr7.live.us) + '&ndash;' + esc(cr7.live.them) + ' ' + esc(cr7.live.opp) + ' &middot; ' + esc(cr7.live.clock) + (cr7.live.mine ? ' &middot; <em>' + cr7.live.mine + (cr7.live.mine > 1 ? ' goals' : ' goal') + ' today</em>' : '');
-  else if (cr7.next) { var d = new Date(cr7.next.t); nx = '<b>NEXT</b>' + (cr7.next.home ? 'vs ' : 'at ') + esc(cr7.next.opp) + ' &middot; ' + CR7_DAY[d.getDay()] + ' ' + CR7_MON[d.getMonth()] + ' ' + d.getDate() + ', ' + esc(timeStr(d)); }
-  var photo = cr7.pid ? '<img class="c7ph" src="https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/' + esc(cr7.pid) + '.png&w=350&h=254" onerror="this.style.display=\'none\'" alt="">' : '';
-  var bg = CONFIG.cr7Bg ? '<div class="c7bg" style="background-image:url(' + CONFIG.cr7Bg + ')"></div>' : '';   // his goal celebration, faded in behind (a photo you add)
-  return '<div class="cr7' + (fresh ? ' fresh' : '') + '">' + bg + photo +
+  var nx = chaseNext(C), bgf = C === MESSI ? CONFIG.messiBg : CONFIG.cr7Bg;
+  var bg = bgf ? '<div class="c7bg" style="background-image:url(' + bgf + ')"></div>' : '';   // his goal celebration, faded in behind (a photo you add)
+  return '<div class="cr7' + (C === MESSI ? ' msi' : '') + (fresh ? ' fresh' : '') + '">' + bg + chasePhoto(C, 'c7ph') +
     '<div class="c7l">' + (fresh ? '<div class="c7goal">GOAL!</div>' : '') + '<div class="c7n">' + n + '</div><div class="c7lab">CAREER GOALS</div>' +
       (togo ? '<div class="c7to"><b>' + togo + '</b> TO GO</div>' : '<div class="c7to"><b>1,000</b> REACHED</div>') + '</div>' +
     '<div class="c7r"><div class="c7pips">' + pips + '</div>' +
       '<div class="c7bar"><span style="width:' + Math.min(100, n / 10).toFixed(1) + '%"></span></div><div class="c7pct">' + Math.min(100, n / 10).toFixed(1) + '% of the way to 1,000</div>' +
       '<div class="c7rows"><div><b>LAST</b>#' + L.n + ' &middot; ' + CR7_MON[L.when.getMonth()] + ' ' + L.when.getDate() + ' vs ' + esc(L.opp) + (L.min ? ' &middot; ' + esc(L.min) : '') + '</div>' +
-      (nx ? '<div>' + nx + '</div>' : '') + '<div class="c7sm">Sporting 5 &middot; Man United 145 &middot; Real Madrid 450 &middot; Juventus 101 &middot; Portugal 146 &middot; Al Nassr ' + (n - 847) + '</div></div></div></div>';
+      (nx ? '<div>' + nx + '</div>' : '') + '<div class="c7sm">' + C.split(st, n) + '</div></div></div></div>';
 }
-function cr7CrawlSeg() {
-  if (!cr7On()) return null;
-  var n = cr7Total(), L = cr7Last(), fresh = cr7.newAt && new Date().getTime() - cr7.newAt < 30 * 60000, h = '';
-  if (fresh) h += '<span class="g c7g">GOAL! RONALDO #' + n + '</span>';
+/* the race: both of them on one track, 900 to 1,000 */
+function chasePace(C) {                            // goals a day since 1 Jan 2026, and when that gets him to 1,000
+  var n = chaseTotal(C), j = new Date(2026, 0, 1).getTime(), now = new Date().getTime(), days = Math.max(30, (now - j) / 86400000), rate = (n - C.jan26) / days;
+  if (n >= 1000 || rate <= 0) return null;
+  var d = new Date(now + (1000 - n) / rate * 86400000);
+  return { perYr: Math.round(rate * 365), when: CR7_MON[d.getMonth()] + ' ' + d.getFullYear() };
+}
+function raceHTML() {
+  var C = [CR7, MESSI], lo = 900, rows = '', n0 = chaseTotal(CR7), n1 = chaseTotal(MESSI), lead = n0 === n1 ? null : (n0 > n1 ? CR7 : MESSI);
+  for (var i = 0; i < 2; i++) {
+    var c = C[i], st = chaseSt(c), n = chaseTotal(c), togo = Math.max(0, 1000 - n), pc = chasePace(c), L = chaseLast(c), nx = chaseNext(c);
+    var x = Math.max(0, Math.min(100, (n - lo) / (1000 - lo) * 100)), fresh = st.newAt && new Date().getTime() - st.newAt < 30 * 60000;
+    rows += '<div class="rkr ' + c.key + (fresh ? ' fresh' : '') + '"><div class="rkw">' + chasePhoto(c, 'rkp') + '<div class="rkn">' + esc(c.short) + '</div></div>' +
+      '<div class="rkt"><div class="rkl"><span style="width:' + x.toFixed(1) + '%"></span><i style="left:' + x.toFixed(1) + '%">' + n + '</i></div>' +
+        '<div class="rks">' + (fresh ? '<em>GOAL! </em>' : '') + (togo ? '<b>' + togo + '</b> to go' : '<b>1,000</b> reached') +
+        (pc ? ' &middot; at his 2026 pace (' + pc.perYr + ' a year): 1,000 around <b>' + pc.when + '</b>' : '') + '</div>' +
+        '<div class="rkx">Last #' + L.n + ' ' + CR7_MON[L.when.getMonth()] + ' ' + L.when.getDate() + ' vs ' + esc(L.opp) + (nx ? ' &middot; ' + nx : '') + '</div></div></div>';
+  }
+  var ticks = '';
+  for (var t = lo; t <= 1000; t += 20) ticks += '<span style="left:' + ((t - lo) / (1000 - lo) * 100) + '%">' + (t === 1000 ? '1,000' : t) + '</span>';
+  return '<div class="race"><div class="rkh">' + (lead ? esc(lead.short) + ' LEADS BY <b>' + Math.abs(n0 - n1) + '</b>' : 'DEAD EVEN') + '</div>' + rows +
+         '<div class="rkk">' + ticks + '</div><div class="rkf"></div></div>';
+}
+function cr7CrawlSeg() { return chaseCrawl(CR7); }
+function messiCrawlSeg() { return chaseCrawl(MESSI); }
+function chaseCrawl(C) {
+  if (!chaseOn(C)) return null;
+  var st = chaseSt(C), n = chaseTotal(C), L = chaseLast(C), fresh = st.newAt && new Date().getTime() - st.newAt < 30 * 60000, h = '';
+  if (fresh) h += '<span class="g c7g">GOAL! ' + C.short + ' #' + n + '</span>';
   h += '<span class="g">' + n + ' CAREER GOALS &middot; ' + Math.max(0, 1000 - n) + ' TO GO</span>';
   h += '<span class="g">LAST: ' + CR7_MON[L.when.getMonth()] + ' ' + L.when.getDate() + ' vs ' + esc(L.opp).toUpperCase() + '</span>';
-  if (cr7.live) h += '<span class="g">AL NASSR ' + esc(cr7.live.us) + '-' + esc(cr7.live.them) + ' ' + esc(cr7.live.opp).toUpperCase() + '<span class="st lv">' + esc(cr7.live.clock) + '</span></span>';
-  else if (cr7.next) { var d = new Date(cr7.next.t); h += '<span class="g">NEXT: ' + (cr7.next.home ? 'VS ' : 'AT ') + esc(cr7.next.opp).toUpperCase() + ' ' + CR7_DAY[d.getDay()].toUpperCase() + ' ' + esc(timeStr(d)) + '</span>'; }
-  return { label: 'CR7 \u2192 1,000', lg: 'cr7', html: h };
+  if (st.live) h += '<span class="g">' + esc(st.live.usn).toUpperCase() + ' ' + esc(st.live.us) + '-' + esc(st.live.them) + ' ' + esc(st.live.opp).toUpperCase() + '<span class="st lv">' + esc(st.live.clock) + '</span></span>';
+  else if (st.next) { var d = new Date(st.next.t); h += '<span class="g">NEXT: ' + (C === MESSI && st.next.us ? esc(st.next.us).toUpperCase() + ' ' : '') + (st.next.home ? 'VS ' : 'AT ') + esc(st.next.opp).toUpperCase() + ' ' + CR7_DAY[d.getDay()].toUpperCase() + ' ' + esc(timeStr(d)) + '</span>'; }
+  return { label: (C === MESSI ? 'MESSI' : 'CR7') + ' → 1,000', lg: C.key, html: h };
 }
 function golfCrawlSeg() {
   if (!golfOn()) return null;
@@ -10183,9 +10273,10 @@ function renderPage() {
     return;
   }
   if (pg.cr7) {
-    renderTabs('cr7');
-    $('heading').innerHTML = '<span class="lg">CR7</span><span class="sub">Cristiano Ronaldo &middot; the road to 1,000 career goals</span>';
-    try { $('cards').innerHTML = cr7HTML(); } catch (err) { $('cards').innerHTML = ''; }
+    renderTabs(pg.lg);
+    $('heading').innerHTML = pg.race ? '<span class="lg">THE RACE TO 1,000</span><span class="sub">Cristiano Ronaldo vs Lionel Messi &middot; career goals</span>' :
+      '<span class="lg">' + (pg.chase === MESSI ? 'MESSI' : 'CR7') + '</span><span class="sub">' + esc(pg.chase.name) + ' &middot; the road to 1,000 career goals</span>';
+    try { $('cards').innerHTML = pg.race ? raceHTML() : cr7HTML(pg.chase); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
   if (pg.golf) {
@@ -10396,8 +10487,9 @@ function renderCrawl() {
   }
   var gseg = golfCrawlSeg();
   if (gseg) groups.push([gseg]);
-  var c7seg = cr7CrawlSeg();
+  var c7seg = cr7CrawlSeg(), m10seg = messiCrawlSeg();
   if (c7seg) groups.push([c7seg]);
+  if (m10seg) groups.push([m10seg]);
   var hsseg = hsCrawlSeg();
   if (hsseg) groups.push([hsseg]);
   if (CONFIG.crawlNews && news.items.length) {
@@ -10802,7 +10894,7 @@ function refreshAll() {
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages(); tdPreload();
       var jumped = tdJump(hit) ? false : jumpTo(hit);   // a touchdown elsewhere: the team's animal runs across first
-      if (!jumped && cr7Jump()) jumped = true;      // Ronaldo scored: his screen
+      if (!jumped && cr7Jump()) jumped = true;      // Ronaldo or Messi scored: his screen
       refreshRender(jumped); if (jumped && !hl.playing) scheduleRotate(); crunchJump(); renderCrawl(); renderFoot(errs);
       highlightCheck();                           // a new clip for the Bears / USC / Wisconsin / primetime: play it
       state.refreshing = false;
