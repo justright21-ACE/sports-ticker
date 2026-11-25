@@ -1089,6 +1089,24 @@
   @-webkit-keyframes bzRoll { from { -webkit-transform: rotate(0deg); } to { -webkit-transform: rotate(-360deg); } } @keyframes bzRoll { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
   @-webkit-keyframes bzPost { 0% { -webkit-filter: drop-shadow(0 0 2.5vh #ffd23f) brightness(1.5); } 50% { -webkit-filter: none; } }
   @keyframes bzPost { 0% { filter: drop-shadow(0 0 2.5vh #ffd23f) brightness(1.5); } 50% { filter: none; } }
+  .ptv .bzk.bzkx .bzgp { -webkit-animation: none; animation: none; }
+  .ptv .bzk.bzkx .bzgp.bzdk { -webkit-animation: bzShake 0.08s linear 6; animation: bzShake 0.08s linear 6; }
+  .ptv .bzk.bzkx .bzgd { color: #ff3b30; text-shadow: 0.6vh 0.6vh 0 #000, 0 0 4vh rgba(255,59,48,0.6); }
+  .bzno .bzl { color: #ff3b30; }
+  @-webkit-keyframes bzShake { 0%, 100% { -webkit-transform: none; } 25% { -webkit-transform: translateX(-0.5vh); } 75% { -webkit-transform: translateX(0.5vh); } }
+  @keyframes bzShake { 0%, 100% { transform: none; } 25% { transform: translateX(-0.5vh); } 75% { transform: translateX(0.5vh); } }
+  @-webkit-keyframes bzFlyWR { 0% { opacity: 1; -webkit-transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; -webkit-transform: translate(6vh, 38vh) scale(0.62); } 82% { opacity: 1; -webkit-transform: translate(20vh, 13vh) scale(0.3); } 100% { opacity: 0; -webkit-transform: translate(26vh, 6vh) scale(0.16); } }
+  @keyframes bzFlyWR { 0% { opacity: 1; transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; transform: translate(6vh, 38vh) scale(0.62); } 82% { opacity: 1; transform: translate(20vh, 13vh) scale(0.3); } 100% { opacity: 0; transform: translate(26vh, 6vh) scale(0.16); } }
+  @-webkit-keyframes bzFlyWL { 0% { opacity: 1; -webkit-transform: translate(3vh, 84vh) scale(1.8); } 55% { opacity: 1; -webkit-transform: translate(-6vh, 38vh) scale(0.62); } 82% { opacity: 1; -webkit-transform: translate(-20vh, 13vh) scale(0.3); } 100% { opacity: 0; -webkit-transform: translate(-26vh, 6vh) scale(0.16); } }
+  @keyframes bzFlyWL { 0% { opacity: 1; transform: translate(3vh, 84vh) scale(1.8); } 55% { opacity: 1; transform: translate(-6vh, 38vh) scale(0.62); } 82% { opacity: 1; transform: translate(-20vh, 13vh) scale(0.3); } 100% { opacity: 0; transform: translate(-26vh, 6vh) scale(0.16); } }
+  @-webkit-keyframes bzFlyUR { 0% { opacity: 1; -webkit-transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; -webkit-transform: translate(4vh, 36vh) scale(0.62); } 73% { opacity: 1; -webkit-transform: translate(11.5vh, 15vh) scale(0.32); } 100% { opacity: 0; -webkit-transform: translate(5vh, 40vh) scale(0.3); } }
+  @keyframes bzFlyUR { 0% { opacity: 1; transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; transform: translate(4vh, 36vh) scale(0.62); } 73% { opacity: 1; transform: translate(11.5vh, 15vh) scale(0.32); } 100% { opacity: 0; transform: translate(5vh, 40vh) scale(0.3); } }
+  @-webkit-keyframes bzFlyUL { 0% { opacity: 1; -webkit-transform: translate(3vh, 84vh) scale(1.8); } 55% { opacity: 1; -webkit-transform: translate(-4vh, 36vh) scale(0.62); } 73% { opacity: 1; -webkit-transform: translate(-11.5vh, 15vh) scale(0.32); } 100% { opacity: 0; -webkit-transform: translate(-5vh, 40vh) scale(0.3); } }
+  @keyframes bzFlyUL { 0% { opacity: 1; transform: translate(3vh, 84vh) scale(1.8); } 55% { opacity: 1; transform: translate(-4vh, 36vh) scale(0.62); } 73% { opacity: 1; transform: translate(-11.5vh, 15vh) scale(0.32); } 100% { opacity: 0; transform: translate(-5vh, 40vh) scale(0.3); } }
+  @-webkit-keyframes bzFlyS { 0% { opacity: 1; -webkit-transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; -webkit-transform: translate(-1vh, 42vh) scale(0.62); } 78% { opacity: 1; -webkit-transform: translate(0, 36vh) scale(0.42); } 100% { opacity: 0; -webkit-transform: translate(0, 52vh) scale(0.34); } }
+  @keyframes bzFlyS { 0% { opacity: 1; transform: translate(-3vh, 84vh) scale(1.8); } 55% { opacity: 1; transform: translate(-1vh, 42vh) scale(0.62); } 78% { opacity: 1; transform: translate(0, 36vh) scale(0.42); } 100% { opacity: 0; transform: translate(0, 52vh) scale(0.34); } }
+  @-webkit-keyframes bzFlyB { 0% { opacity: 1; -webkit-transform: translate(-3vh, 84vh) scale(1.8); } 20% { opacity: 1; -webkit-transform: translate(-2vh, 64vh) scale(1.3); } 45% { opacity: 1; -webkit-transform: translate(-11vh, 57vh) scale(1.4); } 100% { opacity: 0; -webkit-transform: translate(-34vh, 96vh) scale(1.7); } }
+  @keyframes bzFlyB { 0% { opacity: 1; transform: translate(-3vh, 84vh) scale(1.8); } 20% { opacity: 1; transform: translate(-2vh, 64vh) scale(1.3); } 45% { opacity: 1; transform: translate(-11vh, 57vh) scale(1.4); } 100% { opacity: 0; transform: translate(-34vh, 96vh) scale(1.7); } }
   @-webkit-keyframes bzIn { from { opacity: 0; } to { opacity: 1; } } @keyframes bzIn { from { opacity: 0; } to { opacity: 1; } }
   @-webkit-keyframes bzOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } } @keyframes bzOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
   @-webkit-keyframes bzBlink { 0% { opacity: 1; } 50% { opacity: 0.15; } } @keyframes bzBlink { 0% { opacity: 1; } 50% { opacity: 0.15; } }
@@ -7337,22 +7355,56 @@ function bzbWatch() {
 }
 function bzbLookFb(e, lg, id) {
   getJSON(ESPN_API + BZB_FB[lg] + '/summary?event=' + id + '&_=' + Math.floor(new Date().getTime() / 10000), function (err, data) {
-    var S = (!err && data && data.scoringPlays) || [], p = S[S.length - 1];
-    if (!p || !isFinal(e)) return;
+    if (err || !data || !isFinal(e)) return;
+    if (!bzbFgWin(e, lg, data)) bzbFgMiss(e, lg, data);
+  });
+}
+function bzbFgWin(e, lg, data) {
+    var S = data.scoringPlays || [], p = S[S.length - 1];
+    if (!p) return false;
     var tx = String(p.text || ''), ty = String((p.type && (p.type.text || p.type.abbreviation)) || '') + ' ' + String((p.scoringType && p.scoringType.name) || '');
-    if (!/field.?goal|\bFG\b/i.test(ty + ' ' + tx) || /missed|no good|blocked/i.test(ty + ' ' + tx) || bzbSeen[p.id || tx]) return;
+    if (!/field.?goal|\bFG\b/i.test(ty + ' ' + tx) || /missed|no good|blocked/i.test(ty + ' ' + tx) || bzbSeen[p.id || tx]) return false;
     var per = +((p.period || {}).number || 0), sec = bzbSecs((p.clock || {}).displayValue), A = +p.awayScore, H = +p.homeScore;
-    if (!(per >= 5 || (per === 4 && sec >= 0 && sec <= 5))) return;   // the last kick of regulation (clock at or near 0:00), or a walk-off in OT
+    if (!(per >= 5 || (per === 4 && sec >= 0 && sec <= 5))) return false;   // the last kick of regulation (clock at or near 0:00), or a walk-off in OT
     var tid = String((p.team || {}).id || ''), side = tid && String(e.teams.away.tid || '') === tid ? 'away' : (tid && String(e.teams.home.tid || '') === tid ? 'home' : '');
     var mg = side === 'away' ? A - H : H - A;
-    if (!side || isNaN(mg) || mg < 1 || mg > 3) return;           // it has to be the kick that put them ahead
+    if (!side || isNaN(mg) || mg < 1 || mg > 3) return false;           // it has to be the kick that put them ahead
     bzbSeen[p.id || tx] = 1;
     var m = tx.match(/^(.+?)\s+(\d+)\s*(?:yd|yard)/i) || [], who = m[1] || '', yds = m[2] ? +m[2] : 0;
     var kp = kickerFor(lg, tid, who) || (who ? null : kickerFor(lg, tid, ''));
     bzb[e.id] = { at: new Date().getTime(), fb: true, side: side, who: who || (kp ? kp.name : ''), kp: kp, yds: yds, ot: per >= 5,
                   label: per >= 5 ? 'IN OVERTIME' : 'AS TIME EXPIRES', win: true, text: tx };
     try { renderPage(); } catch (x) {}
-  });
+    return true;
+}
+/* a missed (or blocked) field goal that lost the game: the kick would have tied or won it, nobody scored after,
+   and the kicking team lost. A miss with the score tied (on to overtime) doesn't count. */
+function bzbFgMiss(e, lg, data) {
+  var D = ((data.drives && data.drives.previous) || []).slice(0), cur = data.drives && data.drives.current, P = [];
+  if (cur && cur.plays) D.push(cur);
+  for (var i = 0; i < D.length; i++) for (var j = 0; D[i] && D[i].plays && j < D[i].plays.length; j++) P.push({ p: D[i].plays[j], tid: String((D[i].team || {}).id || '') });
+  for (var k = P.length - 1; k >= 0 && k >= P.length - 8; k--) {
+    var p = P[k].p, tx = String(p.text || ''), ty = String((p.type && p.type.text) || '');
+    if (!/field goal/i.test(ty + ' ' + tx)) continue;
+    if (!/miss|no good|block/i.test(ty + ' ' + tx) || bzbSeen[p.id || tx]) return false;
+    var per = +((p.period || {}).number || 0), sec = bzbSecs((p.clock || {}).displayValue);
+    if (!(per >= 5 || (per === 4 && sec >= 0 && sec <= 10))) return false;
+    var tid = String(((p.start || {}).team || {}).id || P[k].tid || ''), side = tid && String(e.teams.away.tid || '') === tid ? 'away' : (tid && String(e.teams.home.tid || '') === tid ? 'home' : '');
+    var fa = num(scoreOf(e, 'away')), fh = num(scoreOf(e, 'home')), A = p.awayScore !== undefined ? +p.awayScore : fa, H = p.homeScore !== undefined ? +p.homeScore : fh;
+    if (!side || A !== fa || H !== fh) return false;               // somebody scored after it
+    var dn = side === 'away' ? fh - fa : fa - fh;                  // how far the kicking team finished behind
+    if (dn < 1 || dn > 3) return false;
+    bzbSeen[p.id || tx] = 1;
+    var m = tx.match(/^(.+?)\s+(\d+)\s*(?:yd|yard)/i) || [], who = m[1] || '', yds = m[2] ? +m[2] : 0;
+    var up = /upright|doink|post/i.test(tx), dir = /block/i.test(ty + ' ' + tx) ? 'b' : /short/i.test(tx) ? 's' : /right/i.test(tx) ? 'r' : /left/i.test(tx) ? 'l' : 'r';
+    var why = dir === 'b' ? 'BLOCKED' : dir === 's' ? 'SHORT' : up ? 'OFF THE ' + (dir === 'l' ? 'LEFT' : 'RIGHT') + ' UPRIGHT' : 'WIDE ' + (dir === 'l' ? 'LEFT' : 'RIGHT');
+    var wt = e.teams[side === 'away' ? 'home' : 'away'];
+    bzb[e.id] = { at: new Date().getTime(), fb: true, miss: true, side: side, who: who, yds: yds, ot: per >= 5, dir: dir, up: up && dir !== 'b' && dir !== 's',
+                  why: why, wab: String(wt.abbreviation || '').toUpperCase(), wside: side === 'away' ? 'home' : 'away', text: tx };
+    try { renderPage(); } catch (x) {}
+    return true;
+  }
+  return false;
 }
 function bzbLook(e, lg, id) {
   getJSON(ESPN_API + BZB_LG[lg] + '/summary?event=' + id + '&_=' + Math.floor(new Date().getTime() / 10000), function (err, data) {
@@ -7386,6 +7438,8 @@ function bzbCardHTML(e, lg) {
   var b = bzbOf(e);
   if (!b) return '';
   var t = b.side ? e.teams[b.side] : null, col = (t && homeColor(t, lg)) || 'ff3b30';
+  if (b.miss) return '<div class="bzx bzno"><div class="bzl">' + (b.ot ? 'OT' : '0:00') + '</div><b>NO GOOD!<br>' + esc(b.wab) + ' WINS</b>' +
+                     '<i style="' + bzbChip(col) + '">' + esc([b.yds ? b.yds + ' YDS' : '', b.why].join(b.yds ? ' · ' : '')) + '</i></div>';
   if (b.fb) return '<div class="bzx"><div class="bzl">' + (b.ot ? 'OT' : '0:00') + '</div><b>GAME-WINNING<br>FIELD GOAL</b>' +
                    '<i style="' + bzbChip(col) + '">' + esc([b.who ? String(b.who).toUpperCase() : '', b.yds ? b.yds + ' YDS' : ''].join(b.who && b.yds ? ' · ' : '')) + '</i></div>';
   return '<div class="bzx"><div class="bzl">0.0</div><b>' + (b.win ? 'GAME-WINNING' : 'BUZZER') + '<br>' + (b.win ? 'BUZZER BEATER' : 'BEATER') + '</b>' +
@@ -7415,6 +7469,14 @@ function bzbBigHTML(g, lg) {
            '<div class="bzl" style="' + bzbDelay([K], el) + '">' + clock + '</div><div class="bzt"><b style="' + bzbDelay([K + 0.4], el) + '">' + title + '</b>' +
            '<i style="' + bzbChip(col) + ';' + bzbDelay([K + 0.9], el) + '">' + esc(chip) + '</i></div></div>';
   };
+  if (b.miss) {
+    var path = b.dir === 'b' ? 'bzFlyB' : b.dir === 's' ? 'bzFlyS' : (b.up ? 'bzFlyU' : 'bzFlyW') + (b.dir === 'l' ? 'L' : 'R');
+    var miss = !K || el > K ? '' :                                 // the kick: wide, short, off the post or blocked
+      '<div class="bzk bzkx" style="' + bzbDelay([0, K - 0.3], el) + '"><i class="bzgr"></i>' + FG_POSTS.replace('class="bzgp"', 'class="bzgp' + (b.up ? ' bzdk bzdk' + b.dir : '') + '" style="' + bzbDelay([1.25], el) + '"') +
+      '<div class="bzbf" style="-webkit-animation-name:' + path + ';animation-name:' + path + ';' + bzbDelay([0.15], el) + '"><div class="bzbs" style="' + bzbDelay([0.15], el) + '">' + FG_BALL + '</div></div>' +
+      '<b class="bzgd" style="' + bzbDelay([1.55], el) + '">' + (b.dir === 'b' ? 'BLOCKED!' : 'NO GOOD!') + '</b></div>';
+    return miss + band(b.ot ? 'OT' : '0:00', 'NO GOOD! ' + esc(b.wab) + ' WINS!', (b.who ? String(b.who).toUpperCase() + ' \u00b7 ' : '') + (b.yds ? b.yds + ' YARDS \u00b7 ' : '') + b.why).replace('class="bzbig"', 'class="bzbig bzno"');
+  }
   if (b.fb) {
     var kp = b.kp || (t ? kickerFor(lg, t.tid, b.who) : null);
     var kick = !K || el > K ? '' :                                 // the kick: end over end, through the uprights
