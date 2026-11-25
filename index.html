@@ -505,6 +505,8 @@
   .cr7 .c7rows b.lv { color: #ff4d5e; } .cr7 .c7rows em { font-style: normal; color: #f5c400; }
   .cr7 .c7rows .c7sm { font-size: 2vh; color: #8b95ab; white-space: normal; line-height: 1.4; }
   #crawl .c7g { color: #f5c400; }
+  .cr7 .c7gp { margin-top: 1.6vh; font-size: 2.2vh; letter-spacing: 0.25vw; color: #9BA3B8; } .cr7 .c7gp b { color: #fff; font-size: 3vh; } .cr7 .c7gp span { margin: 0 0.4vw; }
+  .race .rkg { margin-top: 0.4vh; font-size: 1.9vh; color: #9BA3B8; letter-spacing: 0.05vw; }
   .cr7.msi .c7pips span.on { background: #75aadb; border-color: #75aadb; } .cr7.msi .c7bar span { background: #75aadb; }
   .cr7.msi .c7pips span.k.on { background: #f5c400; border-color: #f5c400; }
   /* the race to 1,000: Ronaldo vs Messi */
@@ -9139,18 +9141,18 @@ function golfHTML() {
    King's Cup and the Asian cups are looked up in one request each (from the day after CR7.day to three weeks
    ahead), which also gives the live match and the next one. Own goals and shootout kicks don't count.
    If ESPN can't be reached the screen still shows the checked total. */
-var CR7 = { key: 'cr7', name: 'Cristiano Ronaldo', short: 'RONALDO', base: 986, day: '2026-11-20', last: { day: '2026-11-20', opp: 'Al-Ahli', min: "14'" },   // checked 21 Nov 2026
+var CR7 = { key: 'cr7', name: 'Cristiano Ronaldo', short: 'RONALDO', base: 987, gp: 1345, day: '2026-11-24', last: { day: '2026-11-24', opp: 'Al Sadd', min: "13' (pen)" },   // checked 25 Nov 2026 (ESPN: 986 in 1,344 through 20 Nov, then 1 in 1 vs Al Sadd)
             leagues: ['ksa.1', 'ksa.kings.cup', 'afc.champions', 'afc.cup'], team: /nassr/i, me: /cristiano ronaldo/i, pid: '22774', store: 'fcw_cr7',
             jan26: 957,                                   // career total on 1 Jan 2026 (for the pace on the race screen)
             split: function (st, n) { return 'Sporting 5 &middot; Man United 145 &middot; Real Madrid 450 &middot; Juventus 101 &middot; Portugal 146 &middot; Al Nassr ' + (n - 847); } };
 /* Messi: same idea. Inter Miami (MLS, playoffs, Concacaf, Leagues Cup, US Open Cup) and Argentina (friendlies, qualifiers, Copa America). */
-var MESSI = { key: 'messi', name: 'Lionel Messi', short: 'MESSI', base: 937, day: '2026-11-23', last: { day: '2026-11-01', opp: 'New England', min: "83'" },   // checked 25 Nov 2026
+var MESSI = { key: 'messi', name: 'Lionel Messi', short: 'MESSI', base: 937, gp: 1186, day: '2026-11-23', last: { day: '2026-11-01', opp: 'New England', min: "83'" },   // checked 25 Nov 2026
               leagues: ['usa.1', 'concacaf.champions', 'concacaf.leagues.cup', 'usa.open', 'fifa.friendly', 'fifa.worldq.conmebol', 'conmebol.america'],
               team: /inter miami|argentina/i, me: /lionel messi/i, pid: '45843', store: 'fcw_messi', jan26: 896,
               split: function (st, n) { var a = 0; for (var i = 0; i < st.goals.length; i++) if (/argentina/i.test(st.goals[i].us || '')) a++;
                                         return 'Barcelona 672 &middot; PSG 32 &middot; Inter Miami ' + (n - 937 + 107 - a) + ' &middot; Argentina ' + (126 + a); } };
-var cr7 = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '' };
-var messi = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '' };
+var cr7 = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '', apps: {} };
+var messi = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '', apps: {} };
 try { cr7.pid = window.localStorage.getItem('fcw_cr7pid') || ''; messi.pid = window.localStorage.getItem('fcw_messipid') || ''; } catch (e) {}
 function chaseSt(C) { return C === MESSI ? messi : cr7; }
 function chaseTotal(C) { return C.base + chaseSt(C).goals.length; }
@@ -9161,11 +9163,14 @@ function loadChase(C, cb) {
   var now = new Date().getTime(), st = chaseSt(C);
   if (DEMO || !CONFIG.cr7 || (C === MESSI && !CONFIG.messi) || now - st.at < (st.live ? 2 : 10) * 60000) return cb();
   st.at = now;
-  var p = C.day.split('-'), from = new Date(+p[0], +p[1] - 1, +p[2] + 1), to = addDays(new Date(), 21), got = {};
-  runEach(C.leagues.length, function (ix, done) {
-    getJSON(ESPN_API + 'soccer/' + C.leagues[ix] + '/scoreboard?dates=' + cr7Ymd(from) + '-' + cr7Ymd(to) + '&limit=500', function (err, data) {
+  var p = C.day.split('-'), from = new Date(+p[0], +p[1] - 1, +p[2] + 1), to = addDays(new Date(), 21), got = {}, Q = [];
+  // ESPN stopped taking date ranges (400); a whole month (YYYYMM) still works, so ask month by month
+  for (var mo = new Date(from.getFullYear(), from.getMonth(), 1); mo <= to; mo = new Date(mo.getFullYear(), mo.getMonth() + 1, 1))
+    for (var li = 0; li < C.leagues.length; li++) Q.push(C.leagues[li] + '/scoreboard?dates=' + mo.getFullYear() + pad(mo.getMonth() + 1) + '&limit=500');
+  runEach(Q.length, function (ix, done) {
+    getJSON(ESPN_API + 'soccer/' + Q[ix], function (err, data) {
       var evs = (!err && data && data.events) || [];
-      for (var i = 0; i < evs.length; i++) got[evs[i].id] = evs[i];
+      for (var i = 0; i < evs.length; i++) if (parseDate(evs[i].date).getTime() >= from.getTime()) { evs[i].__lg = Q[ix].split('/')[0]; got[evs[i].id] = evs[i]; }
       done();
     });
   }, function () {
@@ -9188,6 +9193,7 @@ function loadChase(C, cb) {
         mine++;
         goals.push({ t: t, opp: opn, us: usn, min: (d.clock && d.clock.displayValue) || '', pen: !!d.penaltyKick, live: st8 === 'in' });
       }
+      if (st8 === 'post' && st.apps[ev.id] === undefined) chaseApp(C, st, ev);
       if (st8 === 'in') live = { opp: opn, usn: usn, home: me.homeAway === 'home', us: me.score, them: op.score, clock: (ev.status.type.shortDetail || ev.status.displayClock || ''), mine: mine };
     }
     if (!any && !st.goals.length) return cb();                          // nothing came back: keep the checked total
@@ -9199,6 +9205,27 @@ function loadChase(C, cb) {
     cb();
   });
 }
+/* games played since the checked total: did he start or come on? (one look at each finished match's lineups) */
+function chaseApp(C, st, ev) {
+  st.apps[ev.id] = null;                                         // looking
+  getJSON(ESPN_API + 'soccer/' + ev.__lg + '/summary?event=' + ev.id, function (err, data) {
+    if (err || !data) { delete st.apps[ev.id]; return; }
+    var R = data.rosters || [], seen = false, played = false;
+    for (var i = 0; i < R.length; i++) for (var j = 0; R[i].roster && j < R[i].roster.length; j++) {
+      var a = R[i].roster[j];
+      if (!C.me.test((a.athlete && (a.athlete.displayName || a.athlete.fullName)) || '')) continue;
+      seen = true; if (a.starter || a.subbedIn) played = true;
+    }
+    st.apps[ev.id] = seen ? played : (R.length ? false : true);   // no lineups at all: count it (he nearly always plays)
+  });
+}
+function chaseGames(C) {
+  var st = chaseSt(C), n = C.gp;
+  for (var k in st.apps) if (st.apps[k] === true) n++;
+  return n;
+}
+function fmtThou(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function chaseRatio(C) { var gp = chaseGames(C); return gp ? (chaseTotal(C) / gp).toFixed(2) : ''; }
 function chaseLast(C) {
   var st = chaseSt(C), g = st.goals.length ? st.goals[st.goals.length - 1] : null;
   if (!g) { var p = C.last.day.split('-'); return { when: new Date(+p[0], +p[1] - 1, +p[2]), opp: C.last.opp, min: C.last.min, n: C.base }; }
@@ -9296,7 +9323,7 @@ function hsHeading() {
          (L.length && L[0].g.site && top ? ' &middot; ' + esc(hsName(L[0].g.site)) : '') + '</span>';
 }
 function hsTime(g) { var d = parseDate(g.date); return CR7_DAY[d.getDay()] + ' ' + esc(timeStr(d)); }
-function hsHTML() {
+function hsBoardHTML() {
   var L = hsShown().slice(0, 8), rows = '';
   for (var i = 0; i < L.length; i++) {
     var g = L[i].g, st = L[i].st, fin = st === 'final', aw = fin && g.a.score > g.b.score, bw = fin && g.b.score > g.a.score;
@@ -9338,7 +9365,8 @@ function cr7HTML(C) {
   var bg = bgf ? '<div class="c7bg" style="background-image:url(' + bgf + ')"></div>' : '';   // his goal celebration, faded in behind (a photo you add)
   return '<div class="cr7' + (C === MESSI ? ' msi' : '') + (fresh ? ' fresh' : '') + '">' + bg + chasePhoto(C, 'c7ph') +
     '<div class="c7l">' + (fresh ? '<div class="c7goal">GOAL!</div>' : '') + '<div class="c7n">' + n + '</div><div class="c7lab">CAREER GOALS</div>' +
-      (togo ? '<div class="c7to"><b>' + togo + '</b> TO GO</div>' : '<div class="c7to"><b>1,000</b> REACHED</div>') + '</div>' +
+      (togo ? '<div class="c7to"><b>' + togo + '</b> TO GO</div>' : '<div class="c7to"><b>1,000</b> REACHED</div>') +
+      '<div class="c7gp"><b>' + fmtThou(chaseGames(C)) + '</b> GAMES <span>&middot;</span> <b>' + chaseRatio(C) + '</b> PER GAME</div></div>' +
     '<div class="c7r"><div class="c7pips">' + pips + '</div>' +
       '<div class="c7bar"><span style="width:' + Math.min(100, n / 10).toFixed(1) + '%"></span></div><div class="c7pct">' + Math.min(100, n / 10).toFixed(1) + '% of the way to 1,000</div>' +
       '<div class="c7rows"><div><b>LAST</b>#' + L.n + ' &middot; ' + CR7_MON[L.when.getMonth()] + ' ' + L.when.getDate() + ' vs ' + esc(L.opp) + (L.min ? ' &middot; ' + esc(L.min) : '') + '</div>' +
@@ -9356,7 +9384,7 @@ function raceHTML() {
   for (var i = 0; i < 2; i++) {
     var c = C[i], st = chaseSt(c), n = chaseTotal(c), togo = Math.max(0, 1000 - n), pc = chasePace(c), L = chaseLast(c), nx = chaseNext(c);
     var x = Math.max(0, Math.min(100, (n - lo) / (1000 - lo) * 100)), fresh = st.newAt && new Date().getTime() - st.newAt < 30 * 60000;
-    rows += '<div class="rkr ' + c.key + (fresh ? ' fresh' : '') + '"><div class="rkw">' + chasePhoto(c, 'rkp') + '<div class="rkn">' + esc(c.short) + '</div></div>' +
+    rows += '<div class="rkr ' + c.key + (fresh ? ' fresh' : '') + '"><div class="rkw">' + chasePhoto(c, 'rkp') + '<div class="rkn">' + esc(c.short) + '</div><div class="rkg">' + fmtThou(chaseGames(c)) + ' games &middot; ' + chaseRatio(c) + ' a game</div></div>' +
       '<div class="rkt"><div class="rkl"><span style="width:' + x.toFixed(1) + '%"></span><i style="left:' + x.toFixed(1) + '%">' + n + '</i></div>' +
         '<div class="rks">' + (fresh ? '<em>GOAL! </em>' : '') + (togo ? '<b>' + togo + '</b> to go' : '<b>1,000</b> reached') +
         (pc ? ' &middot; at his 2026 pace (' + pc.perYr + ' a year): 1,000 around <b>' + pc.when + '</b>' : '') + '</div>' +
@@ -10269,7 +10297,7 @@ function renderPage() {
   if (pg.hs) {
     renderTabs('hs');
     $('heading').innerHTML = hsHeading();
-    try { $('cards').innerHTML = hsHTML(); } catch (err) { $('cards').innerHTML = ''; }
+    try { $('cards').innerHTML = hsBoardHTML(); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
   if (pg.cr7) {
