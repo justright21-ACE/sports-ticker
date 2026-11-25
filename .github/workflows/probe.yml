@@ -1,0 +1,34 @@
+name: probe
+on: { push: { branches: [probe-espn] } }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          def get(u):
+              return json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})))
+          A='https://site.api.espn.com/apis/site/v2/sports/'
+          for lg in ['afc.champions','ksa.1']:
+              d=get(A+'soccer/'+lg+'/scoreboard?dates=20261121-20261216&limit=500')
+              for e in d.get('events',[]):
+                  if 'nassr' not in e.get('name','').lower(): continue
+                  c=e['competitions'][0]
+                  print(lg, e['id'], e['date'], e['name'], e['status']['type']['state'], [x['score'] if 'score' in x else '' for x in c['competitors']])
+                  print('  details:', json.dumps([{k: d2.get(k) for k in ('type','clock','scoringPlay','penaltyKick','ownGoal','team')} | {'ath': [a.get('displayName') for a in d2.get('athletesInvolved',[])]} for d2 in c.get('details',[])])[:1500])
+                  if e['status']['type']['state']=='post':
+                      s=get(A+'soccer/'+lg+'/summary?event='+e['id'])
+                      print('  summary keys:', list(s.keys()))
+                      ke=s.get('keyEvents',[])
+                      print('  keyEvents:', json.dumps([{ 'type': k.get('type',{}).get('text'), 'clock': k.get('clock',{}).get('displayValue'), 'scoring': k.get('scoringPlay'), 'parts': [p.get('athlete',{}).get('displayName') for p in k.get('participants',[])], 'text': k.get('text','')[:80]} for k in ke if k.get('scoringPlay')])[:1500])
+          d=get(A+'football/nfl/scoreboard')
+          for e in d.get('events',[]):
+              if 'Bears' not in e.get('name',''): continue
+              print('NFL', e['id'], e['name'], e['date'])
+              s=get(A+'football/nfl/summary?event='+e['id'])
+              for t in s.get('injuries',[]):
+                  print(' team', t.get('team',{}).get('id'), t.get('team',{}).get('abbreviation'), 'n=', len(t.get('injuries',[])))
+                  for x in t.get('injuries',[])[:4]:
+                      print('   ', json.dumps(x)[:700])
+          PY
