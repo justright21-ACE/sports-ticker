@@ -68,6 +68,10 @@
   #tabs.s4 .tab.bdg, #tabs.s5 .tab.bdg { height: 6vh; line-height: 6vh; } #tabs.s4 .tab.bdg img, #tabs.s5 .tab.bdg img { height: 5.6vh; }
   .tab.empty { color: #2e3548; }
   /* lots of tabs: step the size down until they fit between the name and the clock */
+  #tabs .tab.tout { -webkit-animation: tabOut 0.45s ease-in both; animation: tabOut 0.45s ease-in both; }
+  #tabs .tab.tback { -webkit-animation: tabBack 0.6s ease-out both; animation: tabBack 0.6s ease-out both; }
+  @-webkit-keyframes tabOut { to { opacity: 0; -webkit-transform: translateY(-3vh) scale(0.8); } } @keyframes tabOut { to { opacity: 0; transform: translateY(-3vh) scale(0.8); } }
+  @-webkit-keyframes tabBack { from { opacity: 0; -webkit-transform: translateX(4vw); } to { opacity: 1; -webkit-transform: none; } } @keyframes tabBack { from { opacity: 0; transform: translateX(4vw); } to { opacity: 1; transform: none; } }
   #tabs.s1 .tab { font-size: 2.7vh; padding: 0 0.6vw; margin: 0 0.12vw; letter-spacing: 0.04vw; }
   #tabs.s2 .tab { font-size: 2.4vh; padding: 0 0.5vw; margin: 0 0.1vw; letter-spacing: 0; }
   #tabs.s3 .tab { font-size: 2.1vh; padding: 0 0.4vw; margin: 0 0.08vw; letter-spacing: 0; }
@@ -1978,6 +1982,7 @@ var CONFIG = {
   bowls: true,           // bowl season: every bowl game on the NCAAF scores screens, and a big screen for CFP games, New Year's Six bowls and bowls with a Top 25 team (?bowls=0 off)
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
+  tabQueue: true,        // the sport tabs line up in the order they come up: the one on now is first, and when it's done it moves to the back (the big-game, CLOSE and UPSET tabs stay put up front) (?tabq=0)
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   specialDays: true,     // NFL games on any day but Sunday (Tue / Wed / Thu afternoon / Fri / Sat, holidays) get their own tab and big screen like MNF (?specialdays=0: just SNF / MNF / TNF)
   scoringSummary: true,  // football big screens: the box under the field takes turns between the quarter scores, the latest scores and (NFL) head to head (?scoring=0 off)
@@ -2190,6 +2195,7 @@ function readParams() {
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
+    if (k === 'tabq') CONFIG.tabQueue = v !== '0';
     if (k === 'idlehold' && +v > 2) CONFIG.idleBigHoldSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
@@ -4675,6 +4681,7 @@ function renderTabs(activeLg) {
     html += '<span class="tab pt' + (bdg ? ' bdg' : '') + (activeLg === 'pt:' + codes[c2] ? ' on' : '') + '">' + (liveBy[codes[c2]] ? '<i></i>' : '') +
             (bdg ? '<img src="img/badge/' + bdg + '.png" alt="' + esc(codes[c2]) + '">' : codes[c2]) + '</span>';
   }
+  var rot = [];                                                    // the sport tabs: these line up in the order they come up
   var gtab = golfOn() ? '<span class="tab' + (golf.ev.major ? ' pt' : '') + (activeLg === 'golf' ? ' on' : '') + '">' + (golf.ev.state === 'in' ? '<i></i>' : '') + esc(golfTab()) + '</span>' : '';
   if (gtab && golf.ev.major) { html += gtab; gtab = ''; }          // a major sits up front with the big games
   var order = leagueOrder();
@@ -4683,14 +4690,41 @@ function renderTabs(activeLg) {
     if (seasonOver(lg) || hiddenLeague(lg) || quietLeague(lg)) continue;
     var cls = 'tab' + (lg === activeLg ? ' on' : '') + (!windowGames(lg).length && !rankingsFor(lg) && !standingsPages(lg).length && !(lg === 'ncaab' && bracketPages().length) ? ' empty' : '');
     var tnm = LEAGUE_NAMES[lg] || lg.toUpperCase();
-    html += '<span class="' + cls + (CONFIG.leagueLogos ? ' lgo' : '') + '">' + (CONFIG.leagueLogos ? leagueMarkHTML(lg, tnm, 'tl', true) : tnm) + '</span>';
+    rot.push({ k: lg, h: '<span class="' + cls + (CONFIG.leagueLogos ? ' lgo' : '') + '" data-k="' + lg + '">' + (CONFIG.leagueLogos ? leagueMarkHTML(lg, tnm, 'tl', true) : tnm) + '</span>' });
   }
-  html += gtab;
-  if (cr7On()) html += '<span class="tab' + (activeLg === 'cr7' || activeLg === 'race' ? ' on' : '') + '">' + (cr7.live ? '<i></i>' : '') + 'CR7</span>';
-  if (chaseOn(MESSI)) html += '<span class="tab' + (activeLg === 'messi' || activeLg === 'race' ? ' on' : '') + '">' + (messi.live ? '<i></i>' : '') + 'MESSI</span>';
-  if (hsShown().length) html += '<span class="tab' + (activeLg === 'hs' ? ' on' : '') + '">' + (hsLiveNow() ? '<i></i>' : '') + 'IHSA</span>';
+  if (gtab) rot.push({ k: 'golf', h: gtab.replace('<span class="tab', '<span data-k="golf" class="tab') });
+  if (cr7On()) rot.push({ k: 'cr7', h: '<span data-k="cr7" class="tab' + (activeLg === 'cr7' || activeLg === 'race' ? ' on' : '') + '">' + (cr7.live ? '<i></i>' : '') + 'CR7</span>' });
+  if (chaseOn(MESSI)) rot.push({ k: 'messi', h: '<span data-k="messi" class="tab' + (activeLg === 'messi' || activeLg === 'race' ? ' on' : '') + '">' + (messi.live ? '<i></i>' : '') + 'MESSI</span>' });
+  if (hsShown().length) rot.push({ k: 'hs', h: '<span data-k="hs" class="tab' + (activeLg === 'hs' ? ' on' : '') + '">' + (hsLiveNow() ? '<i></i>' : '') + 'IHSA</span>' });
+  var seq = CONFIG.tabQueue ? tabSequence() : [], placed = {}, out = [];
+  for (var q = 0; q < seq.length; q++) for (var r = 0; r < rot.length; r++) if (rot[r].k === seq[q] && !placed[r]) { placed[r] = 1; out.push(rot[r]); }
+  for (r = 0; r < rot.length; r++) if (!placed[r]) out.push(rot[r]);   // tabs with nothing in the loop right now: at the end
+  var first = out.length ? out[0].k : '', moved = CONFIG.tabQueue && tabFirst && first !== tabFirst ? tabFirst : '';
+  for (r = 0; r < out.length; r++) html += moved && out[r].k === moved ? out[r].h.replace('class="tab', 'class="tab tback') : out[r].h;
+  var el = $('tabs'), old = moved && el && el.querySelector ? el.querySelector('[data-k="' + moved + '"]') : null;
+  tabFirst = first;
+  if (old && CONFIG.motion) {                                     // that sport is done: its tab slips out of the front, then joins the back
+    var tok = ++tabTok;
+    old.className += ' tout';
+    setTimeout(function () { if (tok === tabTok) { el.innerHTML = html; fitTabs(); } }, 450);
+    return;
+  }
+  tabTok++;
   $('tabs').innerHTML = html;
   fitTabs();
+}
+/* the order the sports come up, starting with the one on now (or the next one, during a big game screen) */
+var tabFirst = '', tabTok = 0;
+function tabSequence() {
+  var P = state.pages || [], n = P.length, seq = [], seen = {}, at = state.pageIndex || 0;
+  for (var i = 0; i < n; i++) {
+    var pg = P[(at + i) % n];
+    if (!pg || pg.pt || pg.inact) continue;
+    var k = pg.lg === 'race' ? 'cr7' : pg.lg;
+    if (!k || seen[k]) continue;
+    seen[k] = 1; seq.push(k);
+  }
+  return seq;
 }
 /* keep the tabs between the name and the clock; shrink them if there are too many */
 function fitTabs() {
