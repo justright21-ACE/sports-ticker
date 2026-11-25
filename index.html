@@ -963,6 +963,8 @@
   .ptv.mu .spot { top: 52%; }                       /* matchup: the player pops up between the helmets and the field, clear of the score and the clock */
   .ptv.mu .bzbig { top: 22vh; }                     /* matchup: buzzer beater sits under the score, the player below it */
   .ptv.mu .bzbig + .spot { top: 60%; }
+  .ptv.mu-nfl .bzbig, .ptv.mu-ncaaf .bzbig { top: 52vh; }   /* football matchup: under FINAL, clear of the helmets and the score */
+  .ptv.mu-nfl .bzbig + .spot, .ptv.mu-ncaaf .bzbig + .spot { top: 80%; }
   .ptv .bigplay.onfield { -webkit-animation: ptGone 2.9s linear 1 both; animation: ptGone 2.9s linear 1 both; }
   .ptv .bigplay.onfield .lbl2, .ptv .bigplay.onfield .hands, .ptv .tov.onfield .arw { display: none; }
   .ptv .bigplay.onfield .flyx, .ptv .bigplay.onfield .flyy, .ptv .bigplay.onfield .flyy svg { width: 0.3em; height: 0.3em; }
@@ -7279,6 +7281,7 @@ var REVIEW_TV = '<svg class="rvx" viewBox="0 0 20 14"><rect x="1" y="1" width="1
    3 minutes after one ends, the ticker reads that game's play-by-play (every 15 s, only then). Found: the game's card,
    big screen and matchup screen show it for 90 seconds; a game-winner says so. ---- */
 var BZB_LG = { nba: 'basketball/nba', wnba: 'basketball/wnba', ncaab: 'basketball/mens-college-basketball', ncaaw: 'basketball/womens-college-basketball' };
+var BZB_FB = { nfl: 'football/nfl', ncaaf: 'football/college-football' };
 var bzb = {}, bzbPrev = {}, bzbUntil = {}, bzbAt = {}, bzbSeen = {};
 function bzbSecs(v) { var t = String(v || ''), m = t.match(/^(\d+):(\d+(?:\.\d+)?)/); if (m) return +m[1] * 60 + +m[2]; m = t.match(/^(\d+(?:\.\d+)?)/); return m ? +m[1] : -1; }
 function bzbWatch() {
@@ -7297,6 +7300,37 @@ function bzbWatch() {
       if ((near || (bzbUntil[id] && now < bzbUntil[id])) && now - (bzbAt[id] || 0) > 15000) { bzbAt[id] = now; bzbLook(e, lg, id); }
     }
   }
+  for (var fl in BZB_FB) {                                       // football: only game-winning field goals (4th quarter at the gun, or overtime)
+    var fd = state.data[fl];
+    if (!fd || !fd.games) continue;
+    for (var j = 0; j < fd.games.length; j++) {
+      var f = fd.games[j], fid = f.eid || f.id, fper = +(f.per || quarterOf(f) || 0), fsec = clockSecs(f), fpv = bzbPrev[fl + fid];
+      if (!fid) continue;
+      if (f.live && (fper >= 5 || fper === 4 && fsec >= 0 && fsec <= 120)) { loadKickers(fl, f.teams.away.tid); loadKickers(fl, f.teams.home.tid); }
+      if (fpv && fpv.live && isFinal(f) && (fpv.per >= 5 || fpv.per === 4 && fpv.sec >= 0 && fpv.sec <= 180)) bzbUntil[fl + fid] = now + 180000;
+      bzbPrev[fl + fid] = { live: f.live, per: fper, sec: fsec };
+      if (bzbUntil[fl + fid] && now < bzbUntil[fl + fid] && now - (bzbAt[fl + fid] || 0) > 15000) { bzbAt[fl + fid] = now; bzbLookFb(f, fl, fid); }
+    }
+  }
+}
+function bzbLookFb(e, lg, id) {
+  getJSON(ESPN_API + BZB_FB[lg] + '/summary?event=' + id + '&_=' + Math.floor(new Date().getTime() / 10000), function (err, data) {
+    var S = (!err && data && data.scoringPlays) || [], p = S[S.length - 1];
+    if (!p || !isFinal(e)) return;
+    var tx = String(p.text || ''), ty = String((p.type && (p.type.text || p.type.abbreviation)) || '') + ' ' + String((p.scoringType && p.scoringType.name) || '');
+    if (!/field.?goal|\bFG\b/i.test(ty + ' ' + tx) || /missed|no good|blocked/i.test(ty + ' ' + tx) || bzbSeen[p.id || tx]) return;
+    var per = +((p.period || {}).number || 0), sec = bzbSecs((p.clock || {}).displayValue), A = +p.awayScore, H = +p.homeScore;
+    if (!(per >= 5 || (per === 4 && sec >= 0 && sec <= 5))) return;   // the last kick of regulation (clock at or near 0:00), or a walk-off in OT
+    var tid = String((p.team || {}).id || ''), side = tid && String(e.teams.away.tid || '') === tid ? 'away' : (tid && String(e.teams.home.tid || '') === tid ? 'home' : '');
+    var mg = side === 'away' ? A - H : H - A;
+    if (!side || isNaN(mg) || mg < 1 || mg > 3) return;           // it has to be the kick that put them ahead
+    bzbSeen[p.id || tx] = 1;
+    var m = tx.match(/^(.+?)\s+(\d+)\s*(?:yd|yard)/i) || [], who = m[1] || '', yds = m[2] ? +m[2] : 0;
+    var kp = kickerFor(lg, tid, who) || (who ? null : kickerFor(lg, tid, ''));
+    bzb[e.id] = { at: new Date().getTime(), fb: true, side: side, who: who || (kp ? kp.name : ''), kp: kp, yds: yds, ot: per >= 5,
+                  label: per >= 5 ? 'IN OVERTIME' : 'AS TIME EXPIRES', win: true, text: tx };
+    try { renderPage(); } catch (x) {}
+  });
 }
 function bzbLook(e, lg, id) {
   getJSON(ESPN_API + BZB_LG[lg] + '/summary?event=' + id + '&_=' + Math.floor(new Date().getTime() / 10000), function (err, data) {
@@ -7324,21 +7358,30 @@ function bzbLook(e, lg, id) {
     }
   });
 }
+function bzbChip(col) { return 'background:#' + col + (lum(col) > 0.55 ? ';color:#0a1020' : ''); }
 function bzbOf(e) { var b = CONFIG.buzzer && e && bzb[e.id]; return b && new Date().getTime() - b.at < 90000 ? b : null; }
 function bzbCardHTML(e, lg) {
   var b = bzbOf(e);
   if (!b) return '';
   var t = b.side ? e.teams[b.side] : null, col = (t && homeColor(t, lg)) || 'ff3b30';
+  if (b.fb) return '<div class="bzx"><div class="bzl">' + (b.ot ? 'OT' : '0:00') + '</div><b>GAME-WINNING<br>FIELD GOAL</b>' +
+                   '<i style="' + bzbChip(col) + '">' + esc([b.who ? String(b.who).toUpperCase() : '', b.yds ? b.yds + ' YDS' : ''].join(b.who && b.yds ? ' · ' : '')) + '</i></div>';
   return '<div class="bzx"><div class="bzl">0.0</div><b>' + (b.win ? 'GAME-WINNING' : 'BUZZER') + '<br>' + (b.win ? 'BUZZER BEATER' : 'BEATER') + '</b>' +
-         '<i style="background:#' + col + '">' + esc([b.who ? String(b.who).toUpperCase() : '', b.win ? '' : b.label].join(b.who && !b.win ? ' · ' : '')) + '</i></div>';
+         '<i style="' + bzbChip(col) + '">' + esc([b.who ? String(b.who).toUpperCase() : '', b.win ? '' : b.label].join(b.who && !b.win ? ' · ' : '')) + '</i></div>';
 }
 function bzbBigHTML(g, lg) {
   var b = bzbOf(g);
   if (!b) return '';
   var t = b.side ? g.teams[b.side] : null, col = (t && homeColor(t, lg)) || 'ff3b30', rays = '';
   for (var i = 0; i < 12; i++) rays += '<span style="-webkit-transform:rotate(' + (i * 30) + 'deg);transform:rotate(' + (i * 30) + 'deg)"></span>';
+  if (b.fb) {
+    var kp = b.kp || (t ? kickerFor(lg, t.tid, b.who) : null);
+    return '<div class="bzbig"><div class="bzr">' + rays + '</div><div class="bzl">' + (b.ot ? 'OT' : '0:00') + '</div><div class="bzt"><b>GAME-WINNING FIELD GOAL!</b>' +
+           '<i style="' + bzbChip(col) + '">' + esc((b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.yds ? b.yds + ' YARDS · ' : '') + b.label) + '</i></div></div>' +
+           ((b.who || kp) && t ? spotlightHTML(kp, b.who, t, lg, (b.yds ? b.yds + '-yard ' : '') + 'game-winner', 1.2) : '');
+  }
   return '<div class="bzbig"><div class="bzr">' + rays + '</div><div class="bzl">0.0</div><div class="bzt"><b>' + (b.win ? 'GAME-WINNING BUZZER BEATER!' : 'BUZZER BEATER!') + '</b>' +
-         '<i style="background:#' + col + '">' + esc((b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.pts === 3 ? '3-POINTER ' : '') + (b.win ? 'AT THE HORN' : b.label)) + '</i></div></div>' +
+         '<i style="' + bzbChip(col) + '">' + esc((b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.pts === 3 ? '3-POINTER ' : '') + (b.win ? 'AT THE HORN' : b.label)) + '</i></div></div>' +
          (b.who && t ? spotlightHTML(b.aid ? { id: b.aid, name: b.who } : null, b.who, t, lg, b.pts === 3 ? 'Buzzer-beating 3' : 'At the buzzer', 1.2) : '');
 }
 /* football score cards: timeouts left, only when they matter (last 5 minutes of the 4th, and OT) */
