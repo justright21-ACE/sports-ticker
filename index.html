@@ -1982,7 +1982,7 @@ var CONFIG = {
   bowls: true,           // bowl season: every bowl game on the NCAAF scores screens, and a big screen for CFP games, New Year's Six bowls and bowls with a Top 25 team (?bowls=0 off)
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
-  bigEvery: 3,           // while a big game (primetime / CLOSE / UPSET) is live, the big screens come back after this many regular screens (?bigevery=)
+  bigEvery: 3,           // while a big game (primetime / CLOSE / UPSET) is live, the big screens come back after this many sports (every screen of a sport counts as one; CR7, the race and MESSI together count as one) (?bigevery=)
   tabQueue: true,        // the sport tabs line up in the order they come up: the one on now is first, and when it's done it moves to the back (the big-game, CLOSE and UPSET tabs stay put up front) (?tabq=0)
   rankHoldSec: 20,       // college Top 25 screen (in the NCAAF / NCAAB rotation)
   specialDays: true,     // NFL games on any day but Sunday (Tue / Wed / Thu afternoon / Fri / Sat, holidays) get their own tab and big screen like MNF (?specialdays=0: just SNF / MNF / TNF)
@@ -4096,7 +4096,11 @@ function buildPages() {
         var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = (ptPages[z].game ? 'pt:' + ptPages[z].game.id : 'golf') + ':' + (n++); mixed.push(c);
         if (ptPages[z].game && inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
     addPt();
-    for (var x = 0; x < pages.length; x++) { mixed.push(pages[x]); if (live && (x + 1) % CONFIG.bigEvery === 0 && x < pages.length - 1) addPt(true); }   // back after every bigEvery screens
+    var sportOf = function (pg) { return pg.lg === 'race' || pg.lg === 'messi' ? 'cr7' : pg.lg; }, done3 = 0;
+    for (var x = 0; x < pages.length; x++) {                     // back after every bigEvery SPORTS (all of a sport's screens count as one)
+      mixed.push(pages[x]);
+      if (x < pages.length - 1 && sportOf(pages[x + 1]) !== sportOf(pages[x]) && ++done3 % CONFIG.bigEvery === 0 && live) addPt(true);
+    }
     pages = mixed;
   }
   var curKey = state.pages[state.pageIndex] && state.pages[state.pageIndex].key;
