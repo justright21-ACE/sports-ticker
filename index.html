@@ -961,6 +961,8 @@
   .ptv .bigplay.onfield, .ptv .sack.onfield, .ptv .tov.onfield { right: auto; overflow: visible; line-height: 0; }
   .ptv .onfield svg { display: block; }              /* the field-sized font mustn't push the figures down a line */
   .ptv.mu .spot { top: 52%; }                       /* matchup: the player pops up between the helmets and the field, clear of the score and the clock */
+  .ptv.mu .bzbig { top: 22vh; }                     /* matchup: buzzer beater sits under the score, the player below it */
+  .ptv.mu .bzbig + .spot { top: 60%; }
   .ptv .bigplay.onfield { -webkit-animation: ptGone 2.9s linear 1 both; animation: ptGone 2.9s linear 1 both; }
   .ptv .bigplay.onfield .lbl2, .ptv .bigplay.onfield .hands, .ptv .tov.onfield .arw { display: none; }
   .ptv .bigplay.onfield .flyx, .ptv .bigplay.onfield .flyy, .ptv .bigplay.onfield .flyy svg { width: 0.3em; height: 0.3em; }
@@ -1043,6 +1045,31 @@
   .status .rzb { float: right; margin: 0.9vh 0 0 0.6vw; padding: 0 0.7vw; height: 3.4vh; line-height: 3.4vh; border-radius: 0.5vh; background: #ff2a2a; color: #ffffff;
     font-size: 2vh; font-weight: 800; letter-spacing: 0.12vw; -webkit-animation: rzSoft 1.6s ease-in-out infinite; animation: rzSoft 1.6s ease-in-out infinite; }
   .narrow .status .rzb { font-size: 1.6vh; padding: 0 0.5vw; }
+  /* buzzer beater: a red LED 0.0, horn rays, the words slamming in */
+  .card { position: relative; }
+  .card .bzx { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 5; background: rgba(8,10,18,0.86); border-radius: inherit; text-align: center; overflow: hidden; pointer-events: none;
+    -webkit-animation: bzIn 0.5s ease-out both, bzOut 0.6s ease-in 11s both; animation: bzIn 0.5s ease-out both, bzOut 0.6s ease-in 11s both; }
+  .card .bzx .bzl { font-family: 'Courier New', monospace; font-weight: 900; color: #ff2a2a; font-size: 4.2vh; line-height: 5vh; margin-top: 1.4vh; text-shadow: 0 0 1.2vh rgba(255,42,42,0.9);
+    -webkit-animation: bzBlink 0.5s steps(1) 6; animation: bzBlink 0.5s steps(1) 6; }
+  .card .bzx b { display: block; color: #ffffff; font-size: 3.4vh; line-height: 3.6vh; font-weight: 900; font-style: italic; letter-spacing: 0.1vw; -webkit-animation: bzSlam 0.45s 0.35s cubic-bezier(.2,1.6,.4,1) both; animation: bzSlam 0.45s 0.35s cubic-bezier(.2,1.6,.4,1) both; }
+  .card .bzx i { display: inline-block; margin-top: 1vh; padding: 0 0.6vw; font-style: normal; font-size: 1.7vh; line-height: 2.8vh; font-weight: 800; color: #fff; border-radius: 0.4vh; letter-spacing: 0.08vw; max-width: 92%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ptv .bzbig { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 8; text-align: center; pointer-events: none; overflow: hidden;
+    -webkit-animation: bzIn 0.4s ease-out both, bzOut 0.7s ease-in 9s both; animation: bzIn 0.4s ease-out both, bzOut 0.7s ease-in 9s both; background: rgba(8,10,18,0.78); }
+  .ptv .bzbig .bzr { position: absolute; left: 50%; top: 50%; width: 0; height: 0; -webkit-animation: bzSpin 9s linear both; animation: bzSpin 9s linear both; }
+  .ptv .bzbig .bzr span { position: absolute; left: -0.6vh; top: -60vh; width: 1.2vh; height: 60vh; -webkit-transform-origin: 50% 100%; transform-origin: 50% 100%;
+    background: -webkit-linear-gradient(top, rgba(255,210,63,0) 0%, rgba(255,210,63,0.35) 100%); background: linear-gradient(180deg, rgba(255,210,63,0) 0%, rgba(255,210,63,0.35) 100%); }
+  .ptv .bzbig .bzl { position: relative; font-family: 'Courier New', monospace; font-weight: 900; color: #ff2a2a; font-size: 9vh; line-height: 10vh; margin-top: 1vh; text-shadow: 0 0 2.4vh rgba(255,42,42,0.95);
+    -webkit-animation: bzBlink 0.5s steps(1) 6; animation: bzBlink 0.5s steps(1) 6; }
+  .ptv .bzbig .bzt b { position: relative; display: block; color: #ffffff; font-size: 7.4vh; line-height: 8vh; font-weight: 900; font-style: italic; letter-spacing: 0.2vw; text-shadow: 0.5vh 0.5vh 0 #000;
+    -webkit-animation: bzSlam 0.5s 0.4s cubic-bezier(.2,1.6,.4,1) both; animation: bzSlam 0.5s 0.4s cubic-bezier(.2,1.6,.4,1) both; }
+  .ptv .bzbig .bzt i { position: relative; display: inline-block; margin-top: 1vh; padding: 0 1.2vw; font-style: normal; font-size: 2.6vh; line-height: 4.2vh; font-weight: 800; color: #fff; border-radius: 0.6vh; letter-spacing: 0.15vw;
+    -webkit-animation: bzIn 0.4s 0.9s both; animation: bzIn 0.4s 0.9s both; }
+  @media (max-aspect-ratio: 3/2) { .ptv .bzbig .bzt b { font-size: 3.9vw; line-height: 4.6vw; white-space: nowrap; } .card .bzx b { font-size: 2.4vw; line-height: 2.7vw; } }
+  @-webkit-keyframes bzIn { from { opacity: 0; } to { opacity: 1; } } @keyframes bzIn { from { opacity: 0; } to { opacity: 1; } }
+  @-webkit-keyframes bzOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } } @keyframes bzOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+  @-webkit-keyframes bzBlink { 0% { opacity: 1; } 50% { opacity: 0.15; } } @keyframes bzBlink { 0% { opacity: 1; } 50% { opacity: 0.15; } }
+  @-webkit-keyframes bzSlam { from { opacity: 0; -webkit-transform: scale(2.6); } to { opacity: 1; -webkit-transform: scale(1); } } @keyframes bzSlam { from { opacity: 0; transform: scale(2.6); } to { opacity: 1; transform: scale(1); } }
+  @-webkit-keyframes bzSpin { from { -webkit-transform: rotate(0deg); } to { -webkit-transform: rotate(60deg); } } @keyframes bzSpin { from { transform: rotate(0deg); } to { transform: rotate(60deg); } }
   /* under video review: a yellow tag with a little screen, gently pulsing */
   .status .rvb, .ptv .rvc { display: inline-block; background: #ffd23f; color: #0d1117; font-weight: 800; border-radius: 0.5vh; white-space: nowrap; -webkit-animation: rzSoft 1.2s ease-in-out infinite; animation: rzSoft 1.2s ease-in-out infinite; }
   .status .rvb { margin-right: 0.6vw; padding: 0 0.6vw; height: 3.4vh; line-height: 3.4vh; font-size: 2vh; letter-spacing: 0.12vw; vertical-align: 0.4vh; }
@@ -1885,6 +1912,7 @@ var CONFIG = {
   favScoreJump: true,    // one of your teams (football, baseball, hockey) scores: straight to its big screen, if it has one up (?favjump=0 off)
   cr7Bg: 'img/cr7-celebration.jpg',   // the Ronaldo page: his goal celebration, faded in behind (no file: nothing shows; ?cr7bg=0 off)
   reviewNow: true,       // a play under video review right now: a VIDEO REVIEW tag on the game (score card, big screen, matchup screen) (?review=0 off)
+  buzzer: true,          // basketball: a shot made as time runs out in a quarter / half / the game: a BUZZER BEATER animation on its card, big screen and the matchup screen (?buzzer=0 off)
   cardTimeouts: true,    // football score cards: each team's timeouts left in the last 5 minutes of the 4th and in OT (?cardtos=0 off)
   tdFx: true,            // the touchdown package on the big screen (the team's animal leaps out, TOUCHDOWN builds between two helmets, the scorer's photo + name rise) in place of the flat banner (?tdfx=0 off)
   tourney: true,         // March: big-five conference championship games + every NCAA tournament game get a big screen and the winner's celebration (?tourney=0 off)
@@ -2148,6 +2176,7 @@ function readParams() {
     if (k === 'stale') CONFIG.staleMin = v === '0' ? 0 : Math.max(2, +v || 10);
     if (k === 'autoreload') CONFIG.autoReload = v !== '0';
     if (k === 'favjump') CONFIG.favScoreJump = v !== '0';
+    if (k === 'buzzer') CONFIG.buzzer = v !== '0';
     if (k === 'review') CONFIG.reviewNow = v !== '0';
     if (k === 'cr7bg') CONFIG.cr7Bg = v === '0' ? '' : CONFIG.cr7Bg;
     if (k === 'finalhold' && +v > 0) CONFIG.finalHoldSec = +v;
@@ -3816,7 +3845,7 @@ function cardHTML(e, lg) {
     '<div class="status">' + (e.tag ? '<span class="tag"><b class="tl">' + esc(e.tag.length <= 20 ? e.tag : shortRound(e.tag)) +
       '</b><b class="ts">' + esc(shortRound(e.tag)) + '</b></span>' : '') +
     (rzc && !inj && !rvn ? '<span class="rzb">' + esc(rzc.team.abbreviation) + ' RED ZONE</span>' : '') +
-    (rvn ? '<span class="rvb">' + REVIEW_TV + 'REVIEW</span>' : inj ? '<span class="injb">' + INJ_X + 'INJURY</span>' : (e.live ? '<span class="lvb">LIVE</span>' : '')) + esc(statusText(e, lg)) + '</div></div>';
+    (rvn ? '<span class="rvb">' + REVIEW_TV + 'REVIEW</span>' : inj ? '<span class="injb">' + INJ_X + 'INJURY</span>' : (e.live ? '<span class="lvb">LIVE</span>' : '')) + esc(statusText(e, lg)) + '</div>' + bzbCardHTML(e, lg) + '</div>';
 }
 
 /* The main screens only show what's happening now or soon: live games, games starting
@@ -5941,7 +5970,7 @@ function ptHTML(g, kind, lg) {
              esc((ln || rv ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
   var half = halfHTML(g, lg, det, ca, ch);
   return '<div class="ptv' + (g.live ? ' is-live' : '') + (twoMinute(g, lg) ? ' urgent' : '') + (fin ? ' done' : '') + '">' + head + band +
-    (half || '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div>') + '</div>';
+    (half || '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div>') + bzbBigHTML(g, lg) + '</div>';
 }
 /* ---- the box under the field takes turns: quarter scores / latest scores / head to head ---- */
 function flipHTML(faces) {
@@ -7245,6 +7274,73 @@ function reviewNowOf(g, lg) {
   return null;
 }
 var REVIEW_TV = '<svg class="rvx" viewBox="0 0 20 14"><rect x="1" y="1" width="18" height="10" rx="1.5" fill="none" stroke="#0d1117" stroke-width="2"/><path d="M8 4l4 2-4 2z" fill="#0d1117"/><path d="M6 13h8" stroke="#0d1117" stroke-width="2"/></svg>';
+/* ---- BUZZER BEATER (basketball): a made field goal with no time left (0.5 s or less) that ends a quarter, a half or
+   the game. The scoreboard doesn't carry the play clock, so near the end of every period (35 seconds or less), and for
+   3 minutes after one ends, the ticker reads that game's play-by-play (every 15 s, only then). Found: the game's card,
+   big screen and matchup screen show it for 90 seconds; a game-winner says so. ---- */
+var BZB_LG = { nba: 'basketball/nba', wnba: 'basketball/wnba', ncaab: 'basketball/mens-college-basketball', ncaaw: 'basketball/womens-college-basketball' };
+var bzb = {}, bzbPrev = {}, bzbUntil = {}, bzbAt = {}, bzbSeen = {};
+function bzbSecs(v) { var t = String(v || ''), m = t.match(/^(\d+):(\d+(?:\.\d+)?)/); if (m) return +m[1] * 60 + +m[2]; m = t.match(/^(\d+(?:\.\d+)?)/); return m ? +m[1] : -1; }
+function bzbWatch() {
+  if (!CONFIG.buzzer || DEMO) return;
+  var now = new Date().getTime();
+  for (var lg in BZB_LG) {
+    var d = state.data[lg];
+    if (!d || !d.games) continue;
+    for (var i = 0; i < d.games.length; i++) {
+      var e = d.games[i], id = e.eid || e.id, per = +(e.per || quarterOf(e) || 0), sec = clockSecs(e), pv = bzbPrev[id];
+      if (!id) continue;
+      var near = e.live && per > 0 && sec >= 0 && sec <= 35 && !isHalftime(e);
+      var ended = pv && pv.live && pv.sec >= 0 && pv.sec <= 120 && (isFinal(e) || isHalftime(e) || per > pv.per || (e.live && sec === 0));
+      if (ended || (near && sec === 0)) bzbUntil[id] = now + 180000;
+      bzbPrev[id] = { live: e.live, per: per, sec: sec };
+      if ((near || (bzbUntil[id] && now < bzbUntil[id])) && now - (bzbAt[id] || 0) > 15000) { bzbAt[id] = now; bzbLook(e, lg, id); }
+    }
+  }
+}
+function bzbLook(e, lg, id) {
+  getJSON(ESPN_API + BZB_LG[lg] + '/summary?event=' + id + '&_=' + Math.floor(new Date().getTime() / 10000), function (err, data) {
+    var P = (!err && data && data.plays) || [];
+    if (!P.length) return;
+    var lastPer = +((P[P.length - 1].period || {}).number || 0), done = {};
+    for (var i = 0; i < P.length; i++) { var pp = +((P[i].period || {}).number || 0); if (pp < lastPer || isFinal(e) || /end of|end period|end game|halftime/i.test(P[P.length - 1].text || '')) done[pp] = 1; }
+    for (var k = P.length - 1; k >= 0 && k >= P.length - 25; k--) {
+      var p = P[k], per = +((p.period || {}).number || 0), sec = bzbSecs((p.clock || {}).displayValue), tx = String(p.text || '');
+      if (!done[per] || !p.scoringPlay || sec < 0 || sec > 0.5 || /free throw/i.test(tx) || (p.type && /free throw/i.test(p.type.text || ''))) continue;
+      var later = false;                                           // the last basket of that period
+      for (var m = k + 1; m < P.length; m++) if (+((P[m].period || {}).number || 0) === per && P[m].scoringPlay) later = true;
+      if (later || bzbSeen[p.id || tx]) break;
+      bzbSeen[p.id || tx] = 1;
+      var tid = String((p.team || {}).id || ''), side = tid && String(e.teams.away.tid || '') === tid ? 'away' : (tid && String(e.teams.home.tid || '') === tid ? 'home' : '');
+      var who = (tx.match(/^(.+?) (?:makes|made|hits|banks|sinks|tips|dunks|lays)/i) || [])[1] || '';
+      var aid = p.participants && p.participants[0] && p.participants[0].athlete ? String(p.participants[0].athlete.id || '') : '';
+      var pts = +(p.scoreValue || 0) || (/three point|3-pt|3pt/i.test(tx) ? 3 : 2), A = +p.awayScore, H = +p.homeScore;
+      var maxPer = lg === 'ncaab' ? 2 : 4, gameEnd = per >= maxPer && (isFinal(e) || per > maxPer && isFinal(e));
+      var label = per > maxPer ? (isFinal(e) ? 'TO END THE GAME' : 'TO END OT') : (per === maxPer ? 'TO END THE GAME' : (lg === 'ncaab' || per === 2 ? 'TO END THE HALF' : 'TO END THE ' + ['1ST', '2ND', '3RD'][per - 1] + ' QUARTER'));
+      var winner = gameEnd && !isNaN(A) && !isNaN(H) && side && ((side === 'away' ? A - H : H - A) > 0) && ((side === 'away' ? A - H : H - A) <= pts);
+      bzb[e.id] = { at: new Date().getTime(), side: side, who: who, aid: aid, pts: pts, label: winner ? 'GAME-WINNER' : label, win: winner, text: tx };
+      try { renderPage(); } catch (x) {}
+      break;
+    }
+  });
+}
+function bzbOf(e) { var b = CONFIG.buzzer && e && bzb[e.id]; return b && new Date().getTime() - b.at < 90000 ? b : null; }
+function bzbCardHTML(e, lg) {
+  var b = bzbOf(e);
+  if (!b) return '';
+  var t = b.side ? e.teams[b.side] : null, col = (t && homeColor(t, lg)) || 'ff3b30';
+  return '<div class="bzx"><div class="bzl">0.0</div><b>' + (b.win ? 'GAME-WINNING' : 'BUZZER') + '<br>' + (b.win ? 'BUZZER BEATER' : 'BEATER') + '</b>' +
+         '<i style="background:#' + col + '">' + esc([b.who ? String(b.who).toUpperCase() : '', b.win ? '' : b.label].join(b.who && !b.win ? ' · ' : '')) + '</i></div>';
+}
+function bzbBigHTML(g, lg) {
+  var b = bzbOf(g);
+  if (!b) return '';
+  var t = b.side ? g.teams[b.side] : null, col = (t && homeColor(t, lg)) || 'ff3b30', rays = '';
+  for (var i = 0; i < 12; i++) rays += '<span style="-webkit-transform:rotate(' + (i * 30) + 'deg);transform:rotate(' + (i * 30) + 'deg)"></span>';
+  return '<div class="bzbig"><div class="bzr">' + rays + '</div><div class="bzl">0.0</div><div class="bzt"><b>' + (b.win ? 'GAME-WINNING BUZZER BEATER!' : 'BUZZER BEATER!') + '</b>' +
+         '<i style="background:#' + col + '">' + esc((b.who ? String(b.who).toUpperCase() + ' · ' : '') + (b.pts === 3 ? '3-POINTER ' : '') + (b.win ? 'AT THE HORN' : b.label)) + '</i></div></div>' +
+         (b.who && t ? spotlightHTML(b.aid ? { id: b.aid, name: b.who } : null, b.who, t, lg, b.pts === 3 ? 'Buzzer-beating 3' : 'At the buzzer', 1.2) : '');
+}
 /* football score cards: timeouts left, only when they matter (last 5 minutes of the 4th, and OT) */
 function cardTimeouts(e, lg) {
   if (!CONFIG.cardTimeouts || !e.live || (lg !== 'nfl' && lg !== 'ncaaf')) return null;
@@ -10554,6 +10650,7 @@ function refreshAll() {
     loadInjuries(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
       for (var swId in spotWait) lateSpot(swId);
+      try { bzbWatch(); } catch (e) {}              // basketball: a shot as time ran out?
       var hit = detectJump();                     // a big play, or a score in a CLOSE game: go straight to it
       buildPages(); tdPreload();
       var jumped = tdJump(hit) ? false : jumpTo(hit);   // a touchdown elsewhere: the team's animal runs across first
