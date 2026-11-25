@@ -1427,6 +1427,7 @@
   .ptv.mu:not(.is-live) .center .clk, body.mview .ptv.mu:not(.is-live) .center .clk { font-size: 3.4vh !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* before the game: the network, small, between the helmets */
   @media (max-aspect-ratio: 3/2) { .ptv.mu .muwx { top: 37.4vh; left: 28vw; right: 28vw; font-size: 2.6vh; } }
   .ptv .pthead .r { float: right; }
+  .ptv .pthead .pl { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-right: 1.2vw; }   /* the left part stops (with …) before the right side instead of running under it */
   .ptv .pthead .hl { text-transform: none; color: #c9d0e0; letter-spacing: 0.05vw; }
   .ptv .pthead .hl b { margin-right: 0.6vw; }
   /* rivalry games: gold RIVALRY tag with the trophy on cards, name in the big-screen heading, trophy box in the middle panel */
@@ -2093,6 +2094,7 @@ var CONFIG = {
   primetimeHoldLive: 90, // NFL primetime screen: seconds it stays up during the game (returns after every other screen)
   primetimeHoldPre: 30,  // ...and before kickoff (once per loop)
   finalHoldSec: 20,      // a big screen once its game is final (Bears too): this long, once per loop (?finalhold=)
+  idleBigHoldSec: 20,    // a big screen whose game isn't live (before it, halftime, final): at most this long, so the loop keeps moving; still longer than a page of score cards (rotateSec) (?idlehold=)
   hideEnded: true,       // drop a league from the top bar once its season is over (?ended=1 keeps them)
   closeGames: true,      // a game within one score (8 pts) in the 4th quarter / OT gets its own screen: any NFL game, college games with a Top 25 team
   closeMajorConf: true,  // ...and college games with an SEC / Big Ten / Big 12 / ACC team or Notre Dame (?closemajor=0 off: Top 25 only)
@@ -2188,6 +2190,7 @@ function readParams() {
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
+    if (k === 'idlehold' && +v > 2) CONFIG.idleBigHoldSec = +v;
     if (k === 'cfb' && v) CONFIG.cfb = v.toLowerCase();
     if (k === 'gameday') CONFIG.favPrimetime = v !== '0';
     if (k === 'closemajor') CONFIG.closeMajorConf = v !== '0';
@@ -6042,8 +6045,8 @@ function ptHTML(g, kind, lg) {
   }
   // right side first so it floats correctly on older browsers; during/after the game the line replaces the venue
   var head = '<div class="pthead">' + wxHTML(g, lg, 'r wxc') + (ln ? '<span class="r hl">' + ln + '</span>' : (wk ? '<span class="r">' + esc(wk) + '</span>' : '')) +
-             '<b>' + esc(kind[1] + (g.tag ? ' · ' + (kind[2] ? g.tag : shortRound(g.tag)) : '')) + '</b>' + (rv ? '<b class="rvh">' + trophyIcon(rv, 'tri') + esc(rv.name) + '</b>' : '') +
-             esc((ln || rv ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
+             '<span class="pl"><b>' + esc(kind[1] + (g.tag ? ' · ' + (kind[2] ? g.tag : shortRound(g.tag)) : '')) + '</b>' + (rv ? '<b class="rvh">' + trophyIcon(rv, 'tri') + esc(rv.name) + '</b>' : '') +
+             esc((ln || rv ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</span></div>';
   var half = halfHTML(g, lg, det, ca, ch);
   return '<div class="ptv' + (g.live ? ' is-live' : '') + (twoMinute(g, lg) ? ' urgent' : '') + (fin ? ' done' : '') + '">' + head + band +
     (half || '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div>') + bzbBigHTML(g, lg) + '</div>';
@@ -8417,7 +8420,7 @@ function wsHTML(g, kind) {
          (bt.cov ? ' &nbsp;<span class="ok">' + esc(bt.cov) + '</span>' : '') + (bt.ou && fin ? ' · ' + esc(bt.ou) : '') + (bt.wp ? ' · ' + esc(bt.wp) + ' win' : '');
   } else if (bt.wp) ln = '<b>WIN</b>' + esc(bt.wp);
   var head = '<div class="pthead">' + wxHTML(g, 'mlb', 'r wxc') + (ln ? '<span class="r hl">' + ln + '</span>' : '') +
-             '<b>' + esc(title) + '</b>' + esc((ln && !pre ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</div>';
+             '<span class="pl"><b>' + esc(title) + '</b>' + esc((ln && !pre ? [bc] : [bc, ven]).join(' · ').replace(/^ · | · $/g, '')) + '</span></div>';
   return '<div class="ptv ws' + (g.live ? ' is-live' : '') + '">' + head + band +
     '<div class="cols"><div class="panel p1">' + p1 + '</div><div class="panel p2">' + p2 + '</div><div class="panel p3">' + p3 + '</div></div></div>';
 }
@@ -11017,6 +11020,8 @@ function scheduleRotate() {                              // each screen can have
   if (state.rotTimer) clearTimeout(state.rotTimer);
   var pg = state.pages[state.pageIndex];
   var secs = state.holdOnce || (pg && pg.hold) || CONFIG.rotateSec;
+  if (!state.holdOnce && pg && pg.pt && pg.game && CONFIG.view !== 'matchup' && (!pg.game.live || isHalftime(pg.game)))
+    secs = Math.min(secs, CONFIG.idleBigHoldSec);             // not live right now (before it, halftime, after it): keep the loop moving
   state.holdOnce = 0; state.lastHold = secs;
   state.rotTimer = setTimeout(rotate, secs * 1000);
   pbarRun(secs * 1000);
@@ -11042,7 +11047,12 @@ function pbarRun(ms) {
     pbarTimer = null;
     var cb = $('crawlbar'), cs = cb && window.getComputedStyle ? window.getComputedStyle(cb) : null;
     bar.style.background = cs ? cs.backgroundColor : '#0b1020';
-    b.style.background = cs ? cs.borderTopColor : '#f5b800';
+    b.style.background = '';                                           // a theme that colors the line itself (sunset) keeps its color
+    var own = window.getComputedStyle ? window.getComputedStyle(b).backgroundColor : '';
+    if (!own || own === 'transparent' || /rgba\(0, 0, 0, 0\)/.test(own)) {
+      var bc = cs ? cs.borderTopColor : '';
+      b.style.background = !bc || /^rgba?\(0, 0, 0(, 1)?\)$/.test(bc) || bc === 'transparent' ? '#f5b800' : bc;   // a black or missing edge: the gold line
+    }
     bar.style.visibility = 'visible';
     void b.offsetWidth;                                                // start from full, then drain
     b.style.webkitTransition = '-webkit-transform ' + show + 'ms linear'; b.style.transition = 'transform ' + show + 'ms linear';
