@@ -513,6 +513,29 @@
   .race .rkg { margin-top: 0.4vh; font-size: 1.9vh; color: #9BA3B8; letter-spacing: 0.05vw; }
   .cr7.msi .c7pips span.on { background: #75aadb; border-color: #75aadb; } .cr7.msi .c7bar span { background: #75aadb; }
   .cr7.msi .c7pips span.k.on { background: #f5c400; border-color: #f5c400; }
+  /* career replay (bar race) */
+  .rrp { position: relative; height: 66vh; margin: 0 4vw 0 2vw; padding-top: 5vh; box-sizing: border-box; }
+  .rrp .rrax { position: absolute; left: 15vw; right: 6vw; top: 0; height: 45vh; }
+  .rrp .rrax span { position: absolute; top: 3.4vh; bottom: 0; width: 0; border-left: 0.2vh solid rgba(255,255,255,0.22); }
+  .rrp .rrax span.k { border-left: 0.35vh solid #f5c400; }
+  .rrp .rrax i { position: absolute; top: -3.4vh; left: 0; font-style: normal; font-size: 2.2vh; color: #9BA3B8; -webkit-transform: translateX(-50%); transform: translateX(-50%); white-space: nowrap; }
+  .rrp .rrax span.k i { color: #f5c400; font-weight: 800; }
+  .rrp .rrr { position: relative; display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 18vh; margin-top: 1.6vh; }
+  .rrp .rrax + .rrr { margin-top: 0; }
+  .rrp .rrn { width: 15vw; -webkit-flex: none; flex: none; text-align: right; padding-right: 1.4vw; font-size: 3.4vh; font-weight: 900; letter-spacing: 0.3vw; color: #fff; }
+  .rrp .rrt { position: relative; -webkit-flex: 1; flex: 1; height: 100%; margin-right: 6vw; }
+  .rrp .rrb { position: absolute; left: 0; top: 0; bottom: 0; width: 0.6%; overflow: hidden; border-radius: 0 0.8vh 0.8vh 0; }
+  .rrp .cr7 .rrb { background: #c0201b; } .rrp .messi .rrb { background: #3f8ab5; }
+  .rrp .rrph { position: absolute; right: 1vw; bottom: 0; height: 17vh; }
+  .rrp .rrv { position: absolute; top: 50%; margin-left: 1.2vw; font-size: 5vh; font-weight: 900; color: #fff; -webkit-transform: translateY(-50%); transform: translateY(-50%); white-space: nowrap; }
+  .rrp .rry { position: absolute; right: 0; top: 44.5vh; font-size: 9vh; font-weight: 900; color: rgba(255,255,255,0.85); font-variant-numeric: tabular-nums; }
+  .rrp .rrc { position: absolute; left: 15vw; top: 47.5vh; font-size: 2.6vh; letter-spacing: 0.4vw; color: #9BA3B8; font-weight: 800; } .rrp .rrc b { color: #f5c400; font-size: 3.4vh; }
+  .rrp .rrtl { position: absolute; left: 15vw; right: 6vw; top: 57vh; height: 6vh; }
+  .rrp .rrline { position: absolute; left: 0; right: 0; top: 1.6vh; border-top: 0.25vh solid rgba(255,255,255,0.45); }
+  .rrp .rrtl span { position: absolute; top: 1.6vh; height: 0.9vh; border-left: 0.2vh solid rgba(255,255,255,0.45); }
+  .rrp .rrtl span i { position: absolute; top: 1.3vh; left: 0; font-style: normal; font-size: 1.9vh; color: #9BA3B8; -webkit-transform: translateX(-50%); transform: translateX(-50%); }
+  .rrp .rrm { position: absolute; top: 0; width: 0; height: 0; margin-left: -1vh; border-left: 1vh solid transparent; border-right: 1vh solid transparent; border-top: 1.4vh solid #f5c400; }
+  .rrp.rrdone .rrc b { -webkit-animation: pulse 1.2s 3; animation: pulse 1.2s 3; }
   /* the race to 1,000: Ronaldo vs Messi */
   .race { position: relative; height: 66vh; padding: 0 2vw; }
   .race .rkh { text-align: center; font-size: 3.2vh; letter-spacing: 0.5vw; color: #9BA3B8; font-weight: 800; margin: 0.6vh 0 1.4vh; }
@@ -2007,6 +2030,7 @@ var CONFIG = {
   cr7: true,             // Cristiano Ronaldo's chase to 1,000 career goals: a screen, a crawl line, a jump to it when he scores (?cr7=0)
   messi: true,           // Lionel Messi's chase to 1,000 too, plus a race screen with both of them (?messi=0; ?cr7=0 turns all of it off)
   messiBg: '',           // a Messi celebration photo behind his screen, like cr7Bg (none yet)
+  careerReplay: true,    // a CAREER GOALS screen after the race: both careers replayed year by year as a bar race, 2002 to today (?replay=0)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
   eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
   nflPower: true,        // NFL power rankings screen (ESPN's Football Power Index, all 32 teams) in the NFL rotation (?power=0 off)
@@ -2244,6 +2268,7 @@ function readParams() {
     if (k === 'golf') CONFIG.golf = v !== '0';
     if (k === 'cr7') CONFIG.cr7 = v !== '0';
     if (k === 'messi') CONFIG.messi = v !== '0';
+    if (k === 'replay') CONFIG.careerReplay = v !== '0';
     if (k === 'cfpodds') CONFIG.cfpOdds = v !== '0';
     if (k === 'hs') CONFIG.hs = v !== '0';
     if (k === 'hockeylast') CONFIG.hockeyLast = v !== '0';
@@ -9361,6 +9386,7 @@ function cr7Pages() {
   var P = [];
   if (chaseOn(CR7)) P.push({ lg: 'cr7', cr7: true, chase: CR7, hold: 22, num: 'cr7', of: 1, games: [], key: 'cr7:board' });
   if (chaseOn(CR7) && chaseOn(MESSI)) P.push({ lg: 'race', cr7: true, race: true, hold: 22, num: 'race', of: 1, games: [], key: 'race:board' });
+  if (chaseOn(CR7) && chaseOn(MESSI) && CONFIG.careerReplay) P.push({ lg: 'race', cr7: true, race: true, replay: true, hold: 24, num: 'replay', of: 1, games: [], key: 'race:replay' });
   if (chaseOn(MESSI)) P.push({ lg: 'messi', cr7: true, chase: MESSI, hold: 22, num: 'messi', of: 1, games: [], key: 'messi:board' });
   return P;
 }
@@ -9511,6 +9537,56 @@ function raceHTML() {
   for (var t = lo; t <= 1000; t += 20) ticks += '<span style="left:' + ((t - lo) / (1000 - lo) * 100) + '%">' + (t === 1000 ? '1,000' : t) + '</span>';
   return '<div class="race"><div class="rkh">' + (lead ? esc(lead.short) + ' LEADS BY <b>' + Math.abs(n0 - n1) + '</b>' : 'DEAD EVEN') + '</div>' + rows +
          '<div class="rkk">' + ticks + '</div><div class="rkf"></div></div>';
+}
+/* =================== CAREER REPLAY (bar race) ===================
+   Both careers replayed year by year from 2002: the bars grow (0 to 1,000 scale), the year counts up, a marker
+   runs along the timeline, then it settles on today's totals. Goals by calendar year, club and country:
+   Ronaldo from cr7counter.com (adds up to 957 at the end of 2025); Messi from the commonly cited calendar-year
+   counts, 2025 set so the total matches his 896 at the end of 2025. This year = whatever the trackers count now. */
+var CAREER_YEARS = {
+  cr7: { 2002: 5, 2003: 1, 2004: 13, 2005: 15, 2006: 25, 2007: 34, 2008: 35, 2009: 30, 2010: 48, 2011: 60, 2012: 63, 2013: 69, 2014: 61, 2015: 57,
+         2016: 55, 2017: 53, 2018: 49, 2019: 39, 2020: 44, 2021: 47, 2022: 16, 2023: 54, 2024: 43, 2025: 41 },
+  messi: { 2005: 3, 2006: 12, 2007: 31, 2008: 22, 2009: 41, 2010: 60, 2011: 59, 2012: 91, 2013: 45, 2014: 58, 2015: 52, 2016: 59, 2017: 54,
+           2018: 51, 2019: 50, 2020: 26, 2021: 43, 2022: 35, 2023: 28, 2024: 29, 2025: 47 } };
+var RR_FROM = 2002, RR_SEC = 0.5, RR_WAIT = 1.2, rrRun = null, rrTimer = 0;
+function rrEnd() { var d = new Date(), y = d.getFullYear(); return y + Math.min(0.999, (d.getTime() - new Date(y, 0, 1).getTime()) / (365.25 * 86400000)); }
+function rrAt(C, yf) {                              // career goals at a moment (a fractional year)
+  var Y = CAREER_YEARS[C.key], last = 0, done = 0, k;
+  for (k in Y) if (+k > last) last = +k;
+  for (k in Y) done += Y[k];
+  var after = Math.max(0, chaseTotal(C) - done), end = rrEnd(), span = Math.max(0.01, end - (last + 1));
+  var n = 0, y = Math.floor(yf), f = yf - y;
+  for (k in Y) if (+k < y) n += Y[k];
+  if (y <= last) return n + (Y[y] || 0) * f;
+  return done + after * Math.min(1, Math.max(0, (yf - (last + 1)) / span));
+}
+function replayHTML() {
+  var C = [CR7, MESSI], rows = '', ax = '', tl = '', end = rrEnd();
+  for (var v = 0; v <= 1000; v += 250) ax += '<span class="' + (v === 1000 ? 'k' : '') + '" style="left:' + (v / 10) + '%"><i>' + (v === 1000 ? '1,000' : v) + '</i></span>';
+  for (var i = 0; i < 2; i++)
+    rows += '<div class="rrr ' + C[i].key + '"><div class="rrn">' + esc(C[i].short) + '</div><div class="rrt"><div class="rrb" data-k="' + C[i].key + '">' +
+            chasePhoto(C[i], 'rrph') + '</div><b class="rrv" data-k="' + C[i].key + '">0</b></div></div>';
+  for (var y = RR_FROM; y <= Math.floor(end); y++) tl += '<span style="left:' + ((y - RR_FROM) / (end - RR_FROM) * 100).toFixed(2) + '%">' + (y % 4 === 2 || y === Math.floor(end) ? '<i>' + y + '</i>' : '') + '</span>';
+  return '<div class="rrp"><div class="rrax">' + ax + '</div>' + rows + '<div class="rry">' + RR_FROM + '</div><div class="rrc"></div>' +
+         '<div class="rrtl"><div class="rrline"></div>' + tl + '<b class="rrm"></b></div></div>';
+}
+function rrTick() {
+  clearTimeout(rrTimer);
+  var root = document.querySelector ? document.querySelector('.rrp') : null;
+  if (!root || !rrRun) return;
+  var end = rrEnd(), el = (new Date().getTime() - rrRun.t) / 1000 - RR_WAIT, yf = Math.min(end, RR_FROM + Math.max(0, el) / RR_SEC), C = [CR7, MESSI], v = [0, 0];
+  for (var i = 0; i < 2; i++) {
+    v[i] = Math.round(rrAt(C[i], yf));
+    var b = root.querySelector('.rrb[data-k="' + C[i].key + '"]'), t = root.querySelector('.rrv[data-k="' + C[i].key + '"]');
+    if (b) b.style.width = Math.max(0.6, Math.min(100, v[i] / 10)) + '%';
+    if (t) { t.innerHTML = fmtThou(v[i]); t.style.left = Math.min(100, v[i] / 10) + '%'; }
+  }
+  var yy = root.querySelector('.rry'), m = root.querySelector('.rrm'), cap = root.querySelector('.rrc');
+  if (yy) yy.innerHTML = Math.floor(yf);
+  if (m) m.style.left = ((yf - RR_FROM) / (end - RR_FROM) * 100).toFixed(2) + '%';
+  if (cap) cap.innerHTML = v[0] === v[1] ? (v[0] ? 'DEAD EVEN' : '') : (v[0] > v[1] ? 'RONALDO' : 'MESSI') + ' LEADS BY <b>' + Math.abs(v[0] - v[1]) + '</b>';
+  if (yf < end) rrTimer = setTimeout(rrTick, 60);
+  else { root.className += ' rrdone'; }
 }
 function cr7CrawlSeg() { return chaseCrawl(CR7); }
 function messiCrawlSeg() { return chaseCrawl(MESSI); }
@@ -10388,7 +10464,8 @@ function renderPage() {
   }
   $('msg').style.display = 'none';
   $('heading').style.display = pg.pt ? 'none' : '';
-  if (!pg.pt) { ptLastKey = ''; bzbRun = {}; }         // next big screen gets its entrance (and a celebration plays again)
+  if (!pg.pt) { ptLastKey = ''; bzbRun = {}; }
+  if (!pg.replay) rrRun = null;                        // the career replay starts over on the next visit         // next big screen gets its entrance (and a celebration plays again)
   if (pg.lines) {
     renderTabs(pg.lg);
     $('heading').innerHTML = '<span class="lg">' + (LEAGUE_NAMES[pg.lg] || pg.lg.toUpperCase()) + '</span><span class="sub">Lines · ' + esc(linesDay(pg.games)) + '</span>' +
@@ -10419,6 +10496,13 @@ function renderPage() {
   }
   if (pg.cr7) {
     renderTabs(pg.lg);
+    if (pg.replay) {
+      $('heading').innerHTML = '<span class="lg">CAREER GOALS</span><span class="sub">Cristiano Ronaldo vs Lionel Messi &middot; year by year, club and country</span>';
+      var fresh = !rrRun;
+      if (fresh) rrRun = { t: new Date().getTime() };
+      try { $('cards').innerHTML = replayHTML(); rrTick(); } catch (err) { $('cards').innerHTML = ''; }
+      return;
+    }
     $('heading').innerHTML = pg.race ? '<span class="lg">THE RACE TO 1,000</span><span class="sub">Cristiano Ronaldo vs Lionel Messi &middot; career goals</span>' :
       '<span class="lg">' + (pg.chase === MESSI ? 'MESSI' : 'CR7') + '</span><span class="sub">' + esc(pg.chase.name) + ' &middot; the road to 1,000 career goals</span>';
     try { $('cards').innerHTML = pg.race ? raceHTML() : cr7HTML(pg.chase); } catch (err) { $('cards').innerHTML = ''; }
