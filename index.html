@@ -509,6 +509,9 @@
   .cr7 .c7rows b.lv { color: #ff4d5e; } .cr7 .c7rows em { font-style: normal; color: #f5c400; }
   .cr7 .c7rows .c7sm { font-size: 2vh; color: #8b95ab; white-space: normal; line-height: 1.4; }
   #crawl .c7g { color: #f5c400; }
+  img.own { border-radius: 50%; border: 0.5vh solid #f5c400; box-sizing: border-box; -webkit-mask-image: none !important; mask-image: none !important; background: #1b2236; }
+  .cr7 .c7ph.own { left: auto; right: 2vw; bottom: 3.4vh; height: 27vh; width: 27vh; opacity: 1; }   /* the round photo: in the open space, not behind the numbers */
+  .cr7 .c7cr, .race .rkcr, .rrp .rkcr { position: absolute; right: 1vw; bottom: 0.4vh; font-size: 1.3vh; color: rgba(255,255,255,0.35); }
   .cr7 .c7gp { margin-top: 1.6vh; font-size: 2.2vh; letter-spacing: 0.25vw; color: #9BA3B8; } .cr7 .c7gp b { color: #fff; font-size: 3vh; } .cr7 .c7gp span { margin: 0 0.4vw; }
   .race .rkg { margin-top: 0.4vh; font-size: 1.9vh; color: #9BA3B8; letter-spacing: 0.05vw; }
   .cr7.msi .c7pips span.on { background: #75aadb; border-color: #75aadb; } .cr7.msi .c7bar span { background: #75aadb; }
@@ -9341,7 +9344,8 @@ function golfHTML() {
    If ESPN can't be reached the screen still shows the checked total. */
 var CR7 = { key: 'cr7', name: 'Cristiano Ronaldo', short: 'RONALDO', base: 987, gp: 1345, day: '2026-11-24', last: { day: '2026-11-24', opp: 'Al Sadd', min: "13' (pen)" },   // checked 25 Nov 2026 (ESPN: 986 in 1,344 through 20 Nov, then 1 in 1 vs Al Sadd)
             leagues: ['ksa.1', 'ksa.kings.cup', 'afc.champions', 'afc.cup'], team: /nassr/i, me: /cristiano ronaldo/i, pid: '22774', store: 'fcw_cr7',
-            jan26: 957,                                   // career total on 1 Jan 2026 (for the pace on the race screen)
+            jan26: 957,
+            photo: 'img/cr7-head.jpg', credit: 'Photo: M. Reza Abbasi / Foad Ashtari (Mehr News), CC BY 4.0, cropped',   // ESPN has no Ronaldo headshot                                   // career total on 1 Jan 2026 (for the pace on the race screen)
             split: function (st, n) { return 'Sporting 5 &middot; Man United 145 &middot; Real Madrid 450 &middot; Juventus 101 &middot; Portugal 146 &middot; Al Nassr ' + (n - 847); } };
 /* Messi: same idea. Inter Miami (MLS, playoffs, Concacaf, Leagues Cup, US Open Cup) and Argentina (friendlies, qualifiers, Copa America). */
 var MESSI = { key: 'messi', name: 'Lionel Messi', short: 'MESSI', base: 937, gp: 1186, day: '2026-11-23', last: { day: '2026-11-01', opp: 'New England', min: "83'" },   // checked 25 Nov 2026
@@ -9546,6 +9550,7 @@ function hsCrawlSeg() {
   return { label: 'IHSA ' + (L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL'), lg: 'hs', html: h };
 }
 function chasePhoto(C, cls) {
+  if (C.photo) return '<img class="' + cls + ' own" src="' + C.photo + '" alt="">';   // ESPN has no headshot for him: our own (credited) photo
   var pid = chaseSt(C).pid || C.pid;
   return pid ? '<img class="' + cls + '" src="https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/' + esc(pid) + '.png&w=350&h=254" onerror="this.style.display=\'none\'" alt="">' : '';
 }
@@ -9569,7 +9574,7 @@ function cr7HTML(C) {
     '<div class="c7r"><div class="c7pips">' + pips + '</div>' +
       '<div class="c7bar"><span style="width:' + Math.min(100, n / 10).toFixed(1) + '%"></span></div><div class="c7pct">' + Math.min(100, n / 10).toFixed(1) + '% of the way to 1,000</div>' +
       '<div class="c7rows"><div><b>LAST</b>#' + L.n + ' &middot; ' + CR7_MON[L.when.getMonth()] + ' ' + L.when.getDate() + ' vs ' + esc(L.opp) + (L.min ? ' &middot; ' + esc(L.min) : '') + '</div>' +
-      (nx ? '<div>' + nx + '</div>' : '') + '<div class="c7sm">' + C.split(st, n) + '</div></div></div></div>';
+      (nx ? '<div>' + nx + '</div>' : '') + '<div class="c7sm">' + C.split(st, n) + '</div></div></div>' + (C.credit ? '<div class="c7cr">' + esc(C.credit) + '</div>' : '') + '</div>';
 }
 /* the race: both of them on one track, 900 to 1,000 */
 function chasePace(C) {                            // goals a day since 1 Jan 2026, and when that gets him to 1,000
@@ -9591,7 +9596,7 @@ function raceHTML() {
   }
   var ticks = '';
   for (var t = lo; t <= 1000; t += 20) ticks += '<span style="left:' + ((t - lo) / (1000 - lo) * 100) + '%">' + (t === 1000 ? '1,000' : t) + '</span>';
-  return '<div class="race"><div class="rkh">' + (lead ? esc(lead.short) + ' LEADS BY <b>' + Math.abs(n0 - n1) + '</b>' : 'DEAD EVEN') + '</div>' + rows +
+  return '<div class="race">' + (CR7.credit ? '<div class="rkcr">Ronaldo ' + esc(CR7.credit.charAt(0).toLowerCase() + CR7.credit.slice(1)) + '</div>' : '') + '<div class="rkh">' + (lead ? esc(lead.short) + ' LEADS BY <b>' + Math.abs(n0 - n1) + '</b>' : 'DEAD EVEN') + '</div>' + rows +
          '<div class="rkk">' + ticks + '</div><div class="rkf"></div></div>';
 }
 /* =================== CAREER REPLAY (bar race) ===================
@@ -9623,7 +9628,7 @@ function replayHTML() {
     rows += '<div class="rrr ' + C[i].key + '"><div class="rrn">' + esc(C[i].short) + '</div><div class="rrt"><div class="rrb" data-k="' + C[i].key + '">' +
             chasePhoto(C[i], 'rrph') + '</div><b class="rrv" data-k="' + C[i].key + '">0</b></div></div>';
   for (var y = RR_FROM; y <= Math.floor(end); y++) tl += '<span style="left:' + ((y - RR_FROM) / (end - RR_FROM) * 100).toFixed(2) + '%">' + (y % 4 === 2 || y === Math.floor(end) ? '<i>' + y + '</i>' : '') + '</span>';
-  return '<div class="rrp"><div class="rrax">' + ax + '</div>' + rows + '<div class="rry">' + RR_FROM + '</div><div class="rrc"></div>' +
+  return '<div class="rrp">' + (CR7.credit ? '<div class="rkcr">Ronaldo ' + esc(CR7.credit.charAt(0).toLowerCase() + CR7.credit.slice(1)) + '</div>' : '') + '<div class="rrax">' + ax + '</div>' + rows + '<div class="rry">' + RR_FROM + '</div><div class="rrc"></div>' +
          '<div class="rrtl"><div class="rrline"></div>' + tl + '<b class="rrm"></b></div></div>';
 }
 function rrTick() {
