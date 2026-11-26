@@ -1862,7 +1862,7 @@
             -webkit-animation: tfName 0.4s ease-out 1.55s 1 both; animation: tfName 0.4s ease-out 1.55s 1 both; }
   .tfname i { display: block; font-size: 4vh; letter-spacing: 0.2vw; } .tfname b { display: block; font-size: 7.4vh; letter-spacing: 0.2vw; }
   .tfleap { left: 50%; bottom: 0; width: 60vh; height: 36vh; margin-left: -30vh; opacity: 0; -webkit-transform-origin: 50% 100%; transform-origin: 50% 100%;
-            -webkit-animation: tfLeap 1.05s ease-out 0s 1 both; animation: tfLeap 1.05s ease-out 0s 1 both; }
+            -webkit-animation: tfLeap 1.1s ease-out 0s 1 both, tfBob 1.4s ease-in-out 1.1s infinite alternate; animation: tfLeap 1.1s ease-out 0s 1 both, tfBob 1.4s ease-in-out 1.1s infinite alternate; }
   .tfleap svg { width: 100%; height: 100%; overflow: visible; } .tfleap .tdhelm { width: 70%; height: 90%; margin: 0 auto; }
   @-webkit-keyframes tfOut { from { opacity: 1; } to { opacity: 0; } } @keyframes tfOut { from { opacity: 1; } to { opacity: 0; } }
   @-webkit-keyframes tfFade { from { opacity: 0; } to { opacity: 0.85; } } @keyframes tfFade { from { opacity: 0; } to { opacity: 0.85; } }
@@ -1879,8 +1879,22 @@
   @keyframes tfTile { from { opacity: 0; transform: translateX(-12vw) skewX(-8deg); } to { opacity: 1; transform: translateX(0) skewX(-8deg); } }
   @-webkit-keyframes tfName { from { opacity: 0; -webkit-transform: translateX(12vw); } to { opacity: 1; -webkit-transform: translateX(0); } }
   @keyframes tfName { from { opacity: 0; transform: translateX(12vw); } to { opacity: 1; transform: translateX(0); } }
-  @-webkit-keyframes tfLeap { 0% { opacity: 0; -webkit-transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 65% { opacity: 1; -webkit-transform: translateY(-30vh) scale(1.35); } 100% { opacity: 0; -webkit-transform: translateY(-62vh) scale(2.1); } }
-  @keyframes tfLeap { 0% { opacity: 0; transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 65% { opacity: 1; transform: translateY(-30vh) scale(1.35); } 100% { opacity: 0; transform: translateY(-62vh) scale(2.1); } }
+  /* it jumps out, then stays up there (bobbing a little) over TOUCHDOWN / FIELD GOAL until the whole package fades */
+  @-webkit-keyframes tfLeap { 0% { opacity: 0; -webkit-transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 60% { opacity: 1; -webkit-transform: translateY(-50vh) scale(1.1); } 82% { -webkit-transform: translateY(-35vh) scale(0.76); } 100% { opacity: 1; -webkit-transform: translateY(-37vh) scale(0.8); } }
+  @keyframes tfLeap { 0% { opacity: 0; transform: translateY(18vh) scale(0.3); } 18% { opacity: 1; } 60% { opacity: 1; transform: translateY(-50vh) scale(1.1); } 82% { transform: translateY(-35vh) scale(0.76); } 100% { opacity: 1; transform: translateY(-37vh) scale(0.8); } }
+  @-webkit-keyframes tfBob { from { opacity: 1; -webkit-transform: translateY(-37vh) scale(0.8); } to { opacity: 1; -webkit-transform: translateY(-39.5vh) scale(0.8); } }
+  @keyframes tfBob { from { opacity: 1; transform: translateY(-37vh) scale(0.8); } to { opacity: 1; transform: translateY(-39.5vh) scale(0.8); } }
+  /* main big screen: the score box sits higher, so the jumper settles over the scoring team's helmet instead of over the score */
+  @-webkit-keyframes tfLeapSL { 0% { opacity: 0; -webkit-transform: translate(0, 18vh) scale(0.3); } 18% { opacity: 1; } 55% { opacity: 1; -webkit-transform: translate(-20vh, -44vh) scale(1.05); } 100% { opacity: 1; -webkit-transform: translate(-31vw, -21vh) scale(0.72); } }
+  @-webkit-keyframes tfBobSL { from { opacity: 1; -webkit-transform: translate(-31vw, -21vh) scale(0.72); } to { opacity: 1; -webkit-transform: translate(-31vw, -23.5vh) scale(0.72); } }
+  @keyframes tfLeapSL { 0% { opacity: 0; transform: translate(0, 18vh) scale(0.3); } 18% { opacity: 1; } 55% { opacity: 1; transform: translate(-20vh, -44vh) scale(1.05); } 100% { opacity: 1; transform: translate(-31vw, -21vh) scale(0.72); } }
+  @keyframes tfBobSL { from { opacity: 1; transform: translate(-31vw, -21vh) scale(0.72); } to { opacity: 1; transform: translate(-31vw, -23.5vh) scale(0.72); } }
+  .ptv:not(.mu) .tdfx.sl .tfleap { -webkit-animation-name: tfLeapSL, tfBobSL; animation-name: tfLeapSL, tfBobSL; }
+  @-webkit-keyframes tfLeapSR { 0% { opacity: 0; -webkit-transform: translate(0, 18vh) scale(0.3); } 18% { opacity: 1; } 55% { opacity: 1; -webkit-transform: translate(20vh, -44vh) scale(1.05); } 100% { opacity: 1; -webkit-transform: translate(31vw, -21vh) scale(0.72); } }
+  @-webkit-keyframes tfBobSR { from { opacity: 1; -webkit-transform: translate(31vw, -21vh) scale(0.72); } to { opacity: 1; -webkit-transform: translate(31vw, -23.5vh) scale(0.72); } }
+  @keyframes tfLeapSR { 0% { opacity: 0; transform: translate(0, 18vh) scale(0.3); } 18% { opacity: 1; } 55% { opacity: 1; transform: translate(20vh, -44vh) scale(1.05); } 100% { opacity: 1; transform: translate(31vw, -21vh) scale(0.72); } }
+  @keyframes tfBobSR { from { opacity: 1; transform: translate(31vw, -21vh) scale(0.72); } to { opacity: 1; transform: translate(31vw, -23.5vh) scale(0.72); } }
+  .ptv:not(.mu) .tdfx.sr .tfleap { -webkit-animation-name: tfLeapSR, tfBobSR; animation-name: tfLeapSR, tfBobSR; }
   .nomotion .tdfx, .nomotion .tdfx > div, .nomotion .tfword span { -webkit-animation: none !important; animation: none !important; opacity: 1; } .nomotion .tfleap { display: none; }
   /* touchdown run: a curtain in the team's colors, pulled across by the team's animal (or its helmet) */
   /* holidays */
@@ -7210,7 +7224,7 @@ function tdFxHTML(g, side, lg, ts, dt, delay, lab, pk) {
   var st = delay ? ' style="-webkit-animation-delay:' + (delay + 6.4) + 's;animation-delay:' + (delay + 6.4) + 's"' : '';
   var d = function (x) { return '-webkit-animation-delay:' + (x + (delay || 0)) + 's;animation-delay:' + (x + (delay || 0)) + 's;'; };
   var ah = acc.replace('#', '');
-  return '<div class="tdfx"' + st + '>' +
+  return '<div class="tdfx ' + (side === 'home' ? 'sr' : 'sl') + '"' + st + '>' +
     '<div class="tfshade" style="' + d(0.3) + '"></div>' +
     '<div class="tfglow" style="' + d(0.5) + 'background:-webkit-radial-gradient(50% 100%, ellipse, ' + rgba(ah, 0.85) + ' 0%, ' + rgba(ah, 0.35) + ' 40%, transparent 70%);background:radial-gradient(ellipse at 50% 100%, ' + rgba(ah, 0.85) + ' 0%, ' + rgba(ah, 0.35) + ' 40%, transparent 70%)"></div>' +
     (url || full ? '<div class="tfpic" style="' + d(1.35) + '">' + (url ? '<img src="' + esc(url) + '" alt="" onerror="this.style.display=\'none\'">' : '') + '</div>' : '') +
@@ -7220,7 +7234,7 @@ function tdFxHTML(g, side, lg, ts, dt, delay, lab, pk) {
     '<div class="tfhel l" style="' + d(0.65) + '">' + tdHelmetHTML(t, lg, col, acc, true) + '</div>' +
     '<div class="tfhel r" style="' + d(0.65) + '">' + tdHelmetHTML(t, lg, col, acc, true) + '</div>' +
     '<div class="tfword" style="color:#ffffff;' + 'font-size:' + fxSize + 'vh;' + (W.length > 9 ? 'letter-spacing:0.3vw;' : '') + 'text-shadow:' + sh + '">' + word.replace(/animation-delay:([\d.]+)s/g, function (m, x) { return 'animation-delay:' + (+x + (delay || 0)).toFixed(3) + 's'; }) + '</div>' +
-    '<div class="tfleap' + (kind && TD_BIRDS[kind] ? ' bird' : '') + '" style="' + d(0) + '">' + leap + '</div>' +
+    '<div class="tfleap' + (kind && TD_BIRDS[kind] ? ' bird' : '') + '" style="-webkit-animation-delay:' + (delay || 0) + 's,' + ((delay || 0) + 1.1) + 's;animation-delay:' + (delay || 0) + 's,' + ((delay || 0) + 1.1) + 's">' + leap + '</div>' +
     '</div>';
 }
 /* =================== INJURIES ===================
