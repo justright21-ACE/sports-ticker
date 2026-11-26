@@ -1,0 +1,18 @@
+name: probe
+on: { push: { branches: [probe-espn] } }
+permissions: { contents: write }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: probe-espn }
+      - run: |
+          mkdir -p fetched
+          for f in "Cristiano_Ronaldo,_Al-Nassr_19_Sep_2023_(cropped).jpg" "RonaldoAl-Nassr23.jpg"; do
+            curl -sSL -A "FanCaveWire/1.0 (personal sports ticker)" -o "fetched/$f" "https://commons.wikimedia.org/wiki/Special:FilePath/$f" -w "%{http_code} %{content_type} %{size_download} $f\n"
+            curl -sSL -A "FanCaveWire/1.0" "https://commons.wikimedia.org/w/api.php?action=query&titles=File:$f&prop=imageinfo&iiprop=extmetadata|size&format=json" | python3 -c "import json,sys; d=json.load(sys.stdin); p=list(d['query']['pages'].values())[0]; ii=(p.get('imageinfo') or [{}])[0]; m=ii.get('extmetadata',{}); print('META', ii.get('width'), ii.get('height'), {k: (m.get(k) or {}).get('value','')[:120] for k in ['LicenseShortName','Artist','Credit','ImageDescription']})"
+          done
+          rm -f .github/workflows/probe.yml
+          git config user.name probe; git config user.email probe@users.noreply.github.com
+          git add -A; git commit -m "temp: fetched photo"; git push
