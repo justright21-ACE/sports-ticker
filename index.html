@@ -820,7 +820,7 @@
   /* big play (15+ yard run or pass): a runner sprints across, or a ball flies into a pair of hands */
   .ptv { position: relative; }
   /* matchup view: the big screen with only the helmets, score, clock and field */
-  .mview #top, .mview #crawlbar, .mview #foot, .mview #pbar, .mview #heading, .mview #stale, .mview #breaking, .mview #holcard, .mview #holfx { display: none !important; }
+  .mview #top, .mview #crawlbar, .mview #foot, .mview #pbar, .mview #heading, .mview #stale, .mview #breaking { display: none !important; }
   .mview #board { top: 0 !important; bottom: 0 !important; left: 0 !important; right: 0 !important; }
   .mview #cards { height: 100%; }
   .ptv.mu { position: absolute; left: 0; top: 0; right: 0; bottom: 0; height: auto; margin: 0; background: radial-gradient(ellipse at 50% 40%, #121a30, #05070d 75%); }
@@ -1918,6 +1918,10 @@
   .hfw b { display: block; height: 100%; border-radius: 0.3vh; -webkit-transform-origin: 0 50%; transform-origin: 0 50%; -webkit-animation: holRay 1.6s ease-out both; animation: holRay 1.6s ease-out both; }
   @-webkit-keyframes holRay { 0% { -webkit-transform: translateX(0) scaleX(0.1); opacity: 1; } 40% { -webkit-transform: translateX(1.5vh) scaleX(1); opacity: 0.95; } 100% { -webkit-transform: translateX(5vh) scaleX(0.3); opacity: 0; } }
   @keyframes holRay { 0% { transform: translateX(0) scaleX(0.1); opacity: 1; } 40% { transform: translateX(1.5vh) scaleX(1); opacity: 0.95; } 100% { transform: translateX(5vh) scaleX(0.3); opacity: 0; } }
+  #muhol { display: none; }
+  .mview.hol #muhol { display: block; position: absolute; left: 0; right: 0; top: 0; height: 0; z-index: 31; pointer-events: none; }
+  #muhol i { position: absolute; left: 0; right: 0; top: 0; height: 0.7vh; }                    /* the holiday's colors along the top edge */
+  #muhol b { position: absolute; left: 1.6vw; top: 1.8vh; font-size: 2.4vh; font-weight: 800; letter-spacing: 0.35vw; white-space: nowrap; text-shadow: 0 0.3vh 1vh rgba(0,0,0,0.7); }
   #holcard { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 85; text-align: center; pointer-events: none; }
   #holcard.on { display: block; -webkit-animation: hcIn 7.2s ease both; animation: hcIn 7.2s ease both; }
   #holcard .hca { width: 46vh; height: 31vh; margin: 13vh auto 0; -webkit-animation: hcPop 0.9s cubic-bezier(.2,.9,.3,1.3) 0.2s both; animation: hcPop 0.9s cubic-bezier(.2,.9,.3,1.3) 0.2s both; }
@@ -1994,6 +1998,7 @@
   <div id="tdrun"></div>
   <div id="holfx"></div>
   <div id="holcard"></div>
+  <div id="muhol"><i></i><b></b></div>
   <div id="foot"><span id="updated">Connecting&hellip;</span><span class="r">Data: SportsBlaze &middot; ESPN &middot; Lines: DraftKings</span></div>
 </div>
 
@@ -11071,6 +11076,11 @@ function applyTheme(d) {
   if (CONFIG.view === 'matchup') cls += (cls ? ' ' : '') + 'mview';
   var hk = holidayApply(d || new Date());
   if (hk) cls += (cls ? ' ' : '') + 'hol hol-' + hk;
+  if (hk && CONFIG.view === 'matchup') {                          // matchup screen: no header there, so its own strip and greeting tag
+    var mh = $('muhol'), hh0 = HOLIDAYS[hk], sc0 = hh0.strip || hh0.c, mt = String(hh0.tag), tag = mh && mh.getElementsByTagName('b')[0], bar = mh && mh.getElementsByTagName('i')[0];
+    if (bar && bar.getAttribute('data-k') !== hk) { bar.setAttribute('data-k', hk); bar.style.background = '-webkit-linear-gradient(left, ' + sc0.join(', ') + ')'; bar.style.background = 'linear-gradient(to right, ' + sc0.join(', ') + ')'; }
+    if (tag && tag.innerHTML !== esc(mt)) { tag.innerHTML = esc(mt); tag.style.color = hk === 'bhm' || hk === 'juneteenth' ? '#f5c542' : holBright(hh0); }
+  }
   if (document.body.className !== cls) document.body.className = cls;
 }
 
