@@ -1046,6 +1046,37 @@
   .ptv .tov.onfield .by { -webkit-animation-name: ptLooseY2; animation-name: ptLooseY2; }
   @-webkit-keyframes ptLooseY2 { 0%, 100% { -webkit-transform: translateY(0); } 50% { -webkit-transform: translateY(-0.4em); } } @keyframes ptLooseY2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.4em); } }
   .ptv .tov.onfield .bx { top: 54%; margin: -0.13em 0 0 -0.13em; -webkit-animation: none; animation: none; -webkit-transition: left 2.4s linear; transition: left 2.4s linear; }
+  /* turnover figures on the field: a dive on the fumble, a leaping pick and the runback */
+  .ptv .tov.onfield.figs { overflow: visible; -webkit-animation-duration: 4.4s; animation-duration: 4.4s; }
+  .ptv .tov.onfield.figs .tb { -webkit-animation-duration: 4.2s; animation-duration: 4.2s; }
+  .ptv .tov.onfield.figs .tbw { left: auto; right: 2%; -webkit-transform: none; transform: none; } .ptv .tov.onfield.figs.bl .tbw { right: auto; left: 2%; }
+  .ptv .tov.onfield.figs .bx { -webkit-transition-duration: 2s; transition-duration: 2s; }
+  .ptv .tov .tdv, .ptv .tov .ilp, .ptv .tov .irn, .ptv .tov .tpop { position: absolute; bottom: 34%; width: 0.5em; height: 0.5em; margin-left: -0.25em; }
+  .ptv .tov .tdv.fl, .ptv .tov .ilp.fl, .ptv .tov .iri.fl { -webkit-transform: scaleX(-1); transform: scaleX(-1); }
+  .ptv .tov .tdi, .ptv .tov .ili, .ptv .tov .iri, .ptv .tov .tdi svg, .ptv .tov .ili svg, .ptv .tov .iri svg, .ptv .tov .tpop svg { display: block; width: 0.5em; height: 0.5em; }
+  .ptv .tov .tdv { bottom: 30%; } .ptv .tov .ilp { bottom: 26%; } .ptv .tov .irn { bottom: 28%; }
+  .ptv .tov .tdi { -webkit-transform-origin: 70% 50%; transform-origin: 70% 50%; -webkit-animation: tovDive 1.1s 0.95s cubic-bezier(.3,.6,.5,1) both; animation: tovDive 1.1s 0.95s cubic-bezier(.3,.6,.5,1) both; }
+  @-webkit-keyframes tovDive { 0% { opacity: 0; -webkit-transform: translate(-0.85em, -0.05em) rotate(-60deg); } 15% { opacity: 1; } 55% { -webkit-transform: translate(-0.4em, -0.3em) rotate(-25deg); } 100% { opacity: 1; -webkit-transform: translate(0, 0.04em) rotate(4deg); } }
+  @keyframes tovDive { 0% { opacity: 0; transform: translate(-0.85em, -0.05em) rotate(-60deg); } 15% { opacity: 1; } 55% { transform: translate(-0.4em, -0.3em) rotate(-25deg); } 100% { opacity: 1; transform: translate(0, 0.04em) rotate(4deg); } }
+  .ptv .tov .tpop { bottom: 30%; width: 0.36em; height: 0.36em; margin-left: -0.18em; -webkit-animation: tovPop 0.7s 2s ease-out both; animation: tovPop 0.7s 2s ease-out both; }
+  .ptv .tov .tpop svg { width: 0.36em; height: 0.36em; }
+  @-webkit-keyframes tovPop { 0% { opacity: 0; -webkit-transform: scale(0); } 40% { opacity: 1; -webkit-transform: scale(1.25); } 100% { opacity: 0; -webkit-transform: scale(0.9); } }
+  @keyframes tovPop { 0% { opacity: 0; transform: scale(0); } 40% { opacity: 1; transform: scale(1.25); } 100% { opacity: 0; transform: scale(0.9); } }
+  .ptv .tov .ipx { position: absolute; bottom: 74%; width: 0.2em; height: 0.2em; margin-left: -0.1em; -webkit-transition: left 1s linear 0.3s; transition: left 1s linear 0.3s;
+    -webkit-animation: tovGone 0.05s 1.32s both; animation: tovGone 0.05s 1.32s both; }
+  .ptv .tov .ipy, .ptv .tov .ipy svg { display: block; width: 0.2em; height: 0.2em; }
+  .ptv .tov .ipy { -webkit-animation: tovArc 1s 0.3s ease-in-out both; animation: tovArc 1s 0.3s ease-in-out both; }
+  @-webkit-keyframes tovArc { 0% { -webkit-transform: translateY(0.25em) rotate(-25deg); } 50% { -webkit-transform: translateY(-0.28em) rotate(0); } 100% { -webkit-transform: translateY(0) rotate(25deg); } }
+  @keyframes tovArc { 0% { transform: translateY(0.25em) rotate(-25deg); } 50% { transform: translateY(-0.28em) rotate(0); } 100% { transform: translateY(0) rotate(25deg); } }
+  .ptv .tov .ili { position: relative; -webkit-animation: tovJump 0.75s 0.8s ease-out both; animation: tovJump 0.75s 0.8s ease-out both; }
+  .ptv .tov .ilp { -webkit-animation: tovGone 0.05s 1.75s both; animation: tovGone 0.05s 1.75s both; }
+  @-webkit-keyframes tovJump { 0% { -webkit-transform: translateY(0); } 65% { -webkit-transform: translateY(-0.12em); } 100% { -webkit-transform: translateY(0); } }
+  @keyframes tovJump { 0% { transform: translateY(0); } 65% { transform: translateY(-0.12em); } 100% { transform: translateY(0); } }
+  .ptv .tov .ilb { position: absolute; left: 50%; top: -0.06em; width: 0.17em; height: 0.17em; margin-left: -0.085em; -webkit-animation: tovShow 0.05s 1.3s both; animation: tovShow 0.05s 1.3s both; }
+  .ptv .tov .ilb svg { display: block; width: 0.17em; height: 0.17em; }
+  .ptv .tov .irn { -webkit-transition: left 1.5s linear 1.8s; transition: left 1.5s linear 1.8s; -webkit-animation: tovShow 0.05s 1.75s both; animation: tovShow 0.05s 1.75s both; }
+  @-webkit-keyframes tovGone { from { opacity: 1; } to { opacity: 0; } } @keyframes tovGone { from { opacity: 1; } to { opacity: 0; } }
+  @-webkit-keyframes tovShow { from { opacity: 0; } to { opacity: 1; } } @keyframes tovShow { from { opacity: 0; } to { opacity: 1; } }
   /* turnover: banner in the defense's color that shakes in, possession arrows swap, a loose ball bounces across */
   .ptv .tov { position: absolute; left: 0; right: 0; top: 0; height: 30vh; z-index: 8; overflow: hidden; pointer-events: none;
     -webkit-animation: ptGone 3.2s linear 1 both; animation: ptGone 3.2s linear 1 both; }
@@ -7329,12 +7360,37 @@ function turnoverFromPlay(lp, c, prevPoss) {
 }
 var ARROWS = '<svg viewBox="0 0 40 40"><g fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">' +
   '<path d="M8 15 A12 12 0 0 1 31 12"/><path d="M31 5 L31 12 L24 12"/><path d="M32 25 A12 12 0 0 1 9 28"/><path d="M9 35 L9 28 L16 28"/></g></svg>';
-function turnoverHTML(to, t, lg, box, rtl) {         // box: on the matchup field; the loose ball heads the new offense's way (rtl: to the left)
-  var col = homeColor(t, lg) || 'e23d3d', nick = String(t.short || nickname(t.name) || t.abbreviation).toUpperCase(), mv = '';
-  if (box) { var at = box.los !== null ? box.los : 50; mv = ' style="left:' + fieldX(at - (rtl ? -6 : 6)) + '%" data-to="' + fieldX(at + (rtl ? -18 : 18)) + '%"'; }
-  return '<div class="tov' + (box ? ' onfield"' + boxStyle(box) : '"') + '><div class="arw l">' + ARROWS + '</div><div class="arw r">' + ARROWS + '</div>' +
+/* the defender on a turnover: diving on a loose ball, or leaping for the pick (drawn facing right; flipped for plays going left) */
+var DIVER = function (c) {
+  var b = '<path d="M38 52 L66 47"/><path d="M66 47 L90 54"/><path d="M64 50 L86 63"/><path d="M38 52 L22 40 L8 44"/><path d="M38 54 L20 60 L6 55"/>';
+  return '<svg viewBox="0 0 100 100"><g stroke-linecap="round" stroke-linejoin="round" fill="none"><g stroke="#ffffff" stroke-width="13">' + b + '</g><g stroke="#' + c + '" stroke-width="9">' + b + '</g>' +
+    '<circle cx="76" cy="40" r="10" fill="#' + c + '" stroke="#ffffff" stroke-width="2.5"/><path d="M82 42 L88 44" stroke="#ffffff" stroke-width="2.5"/></g></svg>';
+};
+var LEAPER = function (c) {
+  var b = '<path d="M50 36 L50 62"/><path d="M50 39 L39 20 L41 8"/><path d="M50 39 L61 20 L59 8"/><path d="M50 62 L39 75 L44 92"/><path d="M50 62 L62 73 L57 90"/>';
+  return '<svg viewBox="0 0 100 100"><g stroke-linecap="round" stroke-linejoin="round" fill="none"><g stroke="#ffffff" stroke-width="13">' + b + '</g><g stroke="#' + c + '" stroke-width="9">' + b + '</g>' +
+    '<circle cx="50" cy="26" r="9.5" fill="#' + c + '" stroke="#ffffff" stroke-width="2.5"/></g></svg>';
+};
+function turnoverHTML(to, t, lg, box, rtl) {         // box: on the field; the defender makes the play and his team heads its way (rtl: to the left)
+  var col = homeColor(t, lg) || 'e23d3d', nick = String(t.short || nickname(t.name) || t.abbreviation).toUpperCase(), mv = '', figs = '';
+  var clampY = function (y) { return Math.max(3, Math.min(97, y)); };
+  if (box) {
+    var at = box.los !== null ? box.los : 50, d = rtl ? -1 : 1, fl = rtl ? ' fl' : '';
+    if (to.kind === 'INTERCEPTION!') {                             // the throw comes from the other team's side, he goes up and gets it, then takes off the other way
+      var ct = clampY(at), qb = clampY(at + d * 16), run = clampY(at + d * 14);
+      figs = '<div class="ipx" style="left:' + fieldX(qb) + '%" data-to="' + fieldX(ct) + '%"><div class="ipy">' + FOOTBALL + '</div></div>' +
+             '<div class="ilp' + fl + '" style="left:' + fieldX(ct) + '%"><div class="ili">' + LEAPER(col) + '<div class="ilb">' + FOOTBALL + '</div></div></div>' +
+             '<div class="irn" style="left:' + fieldX(ct) + '%" data-to="' + fieldX(run) + '%"><div class="iri' + fl + '">' + RUNNER(col) + '</div></div>';
+    } else if (to.kind === 'FUMBLE!') {                            // the ball squirts loose, he dives on it
+      var st = clampY(at - d * 6), en = clampY(at + d * 10);
+      mv = ' style="left:' + fieldX(st) + '%" data-to="' + fieldX(en) + '%"';
+      figs = '<div class="tdv' + fl + '" style="left:' + fieldX(en) + '%"><div class="tdi">' + DIVER(col) + '</div></div><div class="tpop" style="left:' + fieldX(en) + '%">' + BOOM + '</div>';
+    } else mv = ' style="left:' + fieldX(at - d * 6) + '%" data-to="' + fieldX(at + d * 18) + '%"';
+  }
+  var side = box && figs && +fieldX((box.los !== null ? box.los : 50) + (rtl ? -7 : 7)) > 50 ? ' bl' : '';   // the banner goes to the end away from the play
+  return '<div class="tov' + (box ? ' onfield' + (figs ? ' figs' : '') + side + (to.kind === 'INTERCEPTION!' ? ' int' : '') + '"' + boxStyle(box) : '"') + '><div class="arw l">' + ARROWS + '</div><div class="arw r">' + ARROWS + '</div>' +
     (box ? '<div class="tbw">' : '') + '<div class="tb" style="background:#' + col + '"><b>' + esc(to.kind) + '</b><i>' + esc(nick + ' BALL' + (to.who ? ' · ' + String(to.who).toUpperCase() : '')) + '</i></div>' + (box ? '</div>' : '') +
-    '<div class="bx"' + mv + '><div class="by">' + FOOTBALL + '</div></div></div>';
+    (box && to.kind === 'INTERCEPTION!' ? '' : '<div class="bx"' + mv + '><div class="by">' + FOOTBALL + '</div></div>') + figs + '</div>';
 }
 function prev_a(p) { return p ? p.a : 0; } function prev_h(p) { return p ? p.h : 0; }
 /* ---- sacks ---- */
@@ -8284,7 +8340,7 @@ function ptAnimate(pg) {
     }
     if (w0) setTimeout(function () { if (root.parentNode) { root.insertAdjacentHTML('beforeend', toHtml); fieldGo(root); } }, w0 * 1000);
     else { root.insertAdjacentHTML('beforeend', toHtml); fieldGo(root); }
-    delay = 3.0 + w0;
+    delay = (/class="tov onfield figs/.test(toHtml) ? 4.2 : 3.0) + w0;
     bp = null;
   }
   var pz = !to && CONFIG.bigPenalties && (pg.lg === 'nfl' || pg.lg === 'ncaaf') ? penaltyOf(g) : null;
