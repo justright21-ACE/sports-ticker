@@ -4345,7 +4345,7 @@ try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
    then: 'best' = once that game is final, the best game on at the time (muBest), one after another;
    { use: 'best', lg: 'ncaaf' } = that day the best-rated game in that league (rankings and records, no favorites head start), one after another;
    { use: 'redzone', lg: 'ncaaf', lgs: ['ncaaf', 'nfl'] } = like the RedZone channel: any game in lgs with a team inside the 20, else the 'best' pick */
-var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['ariz'], lg: 'ncaaf', then: 'close', hold: 90 }, '2026-11-25': { use: 'team', team: 'sa', lg: 'nba', then: 'best' }, '2026-11-27': { use: 'redzone', lg: 'ncaaf', lgs: ['ncaaf', 'nfl'] } };
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['ariz'], lg: 'ncaaf', then: 'close', hold: 90 }, '2026-11-25': { use: 'team', team: 'sa', lg: 'nba', then: 'best' }, '2026-11-27': { use: 'redzone', lg: 'ncaaf', lgs: ['ncaaf'] } };
 function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
 function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
