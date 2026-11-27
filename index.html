@@ -3762,16 +3762,21 @@ function favLocked(e, lg) {
 function rank(e) { return e.live ? 0 : (isFinal(e) ? 2 : 1); }
 function sortGames(list, lg) {
   if (lg === 'ufc') return list.sort(function (a, b) { return ((a.evIdx || 0) - (b.evIdx || 0)) || (a.order - b.order); });
+  var today = ymd(new Date(new Date().getTime() - 4 * 3600000));   // a game day runs to 4 AM (a late tip still counts as tonight)
+  var day = function (e) { return ymd(new Date(parseDate(e.date).getTime() - 4 * 3600000)); };
+  var grp = function (e) { if (isFinal(e)) return 3; var d = day(e); return d <= today ? 1 : 2; };   // 1 today (on now + later today), 2 tomorrow and on, 3 finals
   return list.sort(function (a, b) {
     var fa = favLocked(a, lg) ? 0 : 1, fb = favLocked(b, lg) ? 0 : 1;
     if (fa !== fb) return fa - fb;
-    if (RANK_PATHS[lg]) {                              // college: ranked games first, best-ranked team first
-      var ra = bestRank(a, lg), rb = bestRank(b, lg);
-      if (ra !== rb) return ra - rb;
-    }
-    if (rank(a) !== rank(b)) return rank(a) - rank(b);
+    var ga = grp(a), gb = grp(b);
+    if (ga !== gb) return ga - gb;                    // all of today first, then tomorrow, then the finals
     var ta = parseDate(a.date).getTime(), tb = parseDate(b.date).getTime();
-    return rank(a) === 2 ? tb - ta : ta - tb;      // newest finals first, soonest upcoming first
+    if (ga === 3) return tb - ta;                     // newest finals first
+    if (ga === 2 && day(a) !== day(b)) return ta - tb;
+    if (ga === 1 && a.live !== b.live) return a.live ? -1 : 1;   // what's on now, then the rest of today by start time
+    if (ta !== tb) return ta - tb;                    // by start time
+    if (RANK_PATHS[lg]) { var ra = bestRank(a, lg), rb = bestRank(b, lg); if (ra !== rb) return ra - rb; }   // same kickoff: the ranked game first
+    return 0;
   });
 }
 
