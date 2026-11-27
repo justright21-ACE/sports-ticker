@@ -4298,9 +4298,9 @@ function muPick(qq) {
   if (fin.length && now - parseDate(fin[0].g.date).getTime() < 5 * 3600000) return fin[0];
   return up[0] || fin[0] || null;
 }
-function muFetch() {                            // the whole college slate (a pinned school / the ABC night game may not be in the ticker's list)
+function muFetch(every) {                       // the whole college slate (a pinned school / the ABC night game may not be in the ticker's list)
   var t = new Date().getTime();
-  if (t - muExtra.at < 60000) return;
+  if (t - muExtra.at < (every || 60000)) return;
   muExtra.at = t;
   getJSON(ESPN_API + 'football/college-football/scoreboard?dates=' + ymd(new Date(t - 4 * 3600000)).replace(/-/g, '') + '&groups=80&limit=300', function (err, data) {
     if (err || !data) return;
@@ -4336,15 +4336,16 @@ function muFeatured(x) {
      5. the best matchup (ranked vs ranked, the best records, national TV)
    Ties go to the sport ranked higher (CONFIG.sportRank, ?sportrank=nba,mlb,...), then the better matchup.
    When it's over (45 min after the final) the next one on the day's list takes over. */
-var GOTD_KEY = 'fcw_gotd', gotd = null, gotdBoot = new Date().getTime();
+var GOTD_KEY = 'fcw_gotd', gotd = null, gotdBoot = new Date().getTime(), muRz = {};
 try { gotd = JSON.parse(window.localStorage.getItem(GOTD_KEY)); } catch (e) {}
 /* one-night switches for the matchup screen, by game day (a day runs to 4 AM): 'gotd' = the game of the day beats
    prime-time football that night only; skip = teams whose games are passed over that night ("the next game");
    { use: 'team', team: 'ucf' } = that team's game that night, like ?team= (the whole college slate is looked up);
    team can be a queue (['byu', 'neb']): each team's game until it's final, then the next one still going;
    then: 'best' = once that game is final, the best game on at the time (muBest), one after another;
-   { use: 'best', lg: 'ncaaf' } = that day the best-rated game in that league (rankings and records, no favorites head start), one after another */
-var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['ariz'], lg: 'ncaaf', then: 'close', hold: 90 }, '2026-11-25': { use: 'team', team: 'sa', lg: 'nba', then: 'best' }, '2026-11-27': { use: 'best', lg: 'ncaaf' } };
+   { use: 'best', lg: 'ncaaf' } = that day the best-rated game in that league (rankings and records, no favorites head start), one after another;
+   { use: 'redzone', lg: 'ncaaf', lgs: ['ncaaf', 'nfl'] } = like the RedZone channel: any game in lgs with a team inside the 20, else the 'best' pick */
+var MU_ONCE = { '2026-11-19': { use: 'gotd', skip: ['SA'] }, '2026-11-20': { use: 'team', team: 'wyo' }, '2026-11-21': { use: 'team', team: ['ariz'], lg: 'ncaaf', then: 'close', hold: 90 }, '2026-11-25': { use: 'team', team: 'sa', lg: 'nba', then: 'best' }, '2026-11-27': { use: 'redzone', lg: 'ncaaf', lgs: ['ncaaf', 'nfl'] } };
 function muOnce() { var o = MU_ONCE[gotdDay()]; return !o ? null : (typeof o === 'string' ? { use: o, skip: [] } : o); }
 function muSkipped(g) { var o = muOnce(), sk = (o && o.skip) || []; for (var i = 0; i < sk.length; i++) if (muIs(g.teams.away, String(sk[i]).toLowerCase()) || muIs(g.teams.home, String(sk[i]).toLowerCase())) return true; return false; }
 var GOTD_FAVS = { ncaab: ['USC', 'WIS'] };                              // + the favorites list (Bulls, Spurs, Hawks, Sox...)
@@ -4501,6 +4502,32 @@ function muPages() {
     if ((done1 || (!x && once.then === 'best' && muBestId)) && once.then === 'best') { var bx = muBest(x && x.g.id); if (bx) return [muPage(bx, 60)]; }
     if (x && !done1) { if (x.g.live) muPin = x.g.id; return [muPage(x, 60)]; }   // a one-day switch lets go 45 min after its game ends
     if (CONFIG.muTeam) return [];                                      // tonight's switch: the usual pick until its game turns up
+  }
+  if (once && once.use === 'redzone' && !CONFIG.muTeam) {              // a one-day switch, like the RedZone channel: whoever's inside the 20 (the closest to the goal line first);
+    muFetch(20000);                                                    // it stays on that drive till it ends (and ~25 s more for the score), then the next; nobody there: the best-rated game
+    var rzL = once.lgs || ['ncaaf', 'nfl'], rzA = muAll(), rzIn = [], cur = null, rzi;
+    for (rzi = 0; rzi < rzA.length; rzi++) {
+      var rx = rzA[rzi];
+      if (rzL.indexOf(rx.lg) < 0 || !rx.g.live) continue;
+      var rr = redZoneOf(rx.g, rx.lg);
+      if (rx.g.id === muRz.id) cur = rx;
+      if (rr) { var ym = String(rr.spot).match(/(\d+)\s*$/); rzIn.push({ x: rx, yd: ym ? +ym[1] : 20, q: gotdQuality(rx.g, rx.lg) }); }
+    }
+    if (cur) {
+      var stillIn = false;
+      for (rzi = 0; rzi < rzIn.length; rzi++) if (rzIn[rzi].x.g.id === cur.g.id) stillIn = true;
+      if (stillIn) { muRz.left = 0; return [muPage(cur, 60)]; }
+      if (!muRz.left) muRz.left = now;
+      if (now - muRz.left < 25000) return [muPage(cur, 60)];           // the drive just ended: stay for the touchdown / field goal (or the stop)
+    }
+    if (rzIn.length) {
+      rzIn.sort(function (a, b) { return a.yd - b.yd || b.q - a.q; });
+      muRz = { id: rzIn[0].x.g.id, left: 0 };
+      return [muPage(rzIn[0].x, 60)];
+    }
+    muRz = {};
+    var rb = muBest(null, once.lg || 'ncaaf', true);
+    if (rb) return [muPage(rb, 60)];
   }
   if (once && once.use === 'best' && !CONFIG.muTeam) {                 // a one-day switch: the best-rated game in one league (college football...), one after another; when that league is done for the day, the usual picks
     muFetch();
