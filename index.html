@@ -2237,6 +2237,7 @@ var CONFIG = {
   breakingSec: 20,       // ...seconds it stays up
   breakingMaxHrs: 3,     // ...only stories posted within this many hours
   bowls: true,           // bowl season: every bowl game on the NCAAF scores screens, and a big screen for CFP games, New Year's Six bowls and bowls with a Top 25 team (?bowls=0 off)
+  allBowls: true,        // every bowl and CFP game gets a big screen on its game day (?allbowls=0: only the Playoff, New Year's Six and ranked teams)
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   bigEvery: 3,           // while a big game (primetime / CLOSE / UPSET) is live, the big screens come back after this many sports (every screen of a sport counts as one; CR7, the race and MESSI together count as one) (?bigevery=)
@@ -2457,6 +2458,7 @@ function readParams() {
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
+    if (k === 'allbowls') CONFIG.allBowls = v !== '0';
     if (k === 'bbmain') CONFIG.bbMain = v !== '0';
     if (k === 'nbaleaders') CONFIG.nbaLeaders = v !== '0';
     if (k === 'bigevery' && +v >= 1) CONFIG.bigEvery = Math.round(+v);
@@ -3655,8 +3657,9 @@ function loadLeagueOnce(lg, cb) {
     }
   ], function () {
     if (terr) return cb(terr);
-    var got = todays.slice(0);
-    for (var yi = 0; yi < yday.length; yi++) if (yday[yi].live || isFinal(yday[yi])) got.push(yday[yi]);
+    var got = todays.slice(0), tid0 = {};
+    for (var ti = 0; ti < todays.length; ti++) tid0[todays[ti].id] = 1;
+    for (var yi = 0; yi < yday.length; yi++) if ((yday[yi].live || isFinal(yday[yi])) && !tid0[yday[yi].id]) got.push(yday[yi]);   // never the same game twice
     upcomingGames(lg, now, function (up) {
       var ids = {}, i, games = got.slice(0);
       for (i = 0; i < got.length; i++) ids[got[i].id] = true;
@@ -4241,8 +4244,8 @@ function bowlKind(g) {
   if (/CFP|PLAYOFF|NATL CHAMP/.test(t)) return ['CFP', 'NCAAF', 1];
   return ['BOWLS', 'NCAAF', 1];                                    // the heading adds the bowl's full name
 }
-/* the bowls that get a big screen: the Playoff, the New Year's Six, any bowl with a Top 25 team
-   (USC / Wisconsin bowls already have their game-day screen) */
+/* the bowls that get a big screen: every bowl and Playoff game (CONFIG.allBowls); with ?allbowls=0 only the Playoff,
+   the New Year's Six and bowls with a Top 25 team (USC / Wisconsin bowls already have their game-day screen) */
 function bowlGames() {
   var out = [], d = state.data.ncaaf, now = new Date().getTime(), today = ymd(new Date()), own = {}, i;
   if (!CONFIG.bowls || !d || !inList(CONFIG.leagues, 'ncaaf')) return out;
@@ -4253,7 +4256,7 @@ function bowlGames() {
     var g = all[i];
     if (!isBowl(g) || own[g.id] || /postpon|cancel/i.test((g.status || '') + ' ' + (g.detail || ''))) continue;
     var ra = apRank(g.teams.away, 'ncaaf'), rh = apRank(g.teams.home, 'ncaaf');
-    if (!(/CFP|PLAYOFF|NATL CHAMP/.test(g.tag) || NY6_RE.test(g.tag) || (ra && ra <= 25) || (rh && rh <= 25))) continue;
+    if (!CONFIG.allBowls && !(/CFP|PLAYOFF|NATL CHAMP/.test(g.tag) || NY6_RE.test(g.tag) || (ra && ra <= 25) || (rh && rh <= 25))) continue;   // every bowl unless ?allbowls=0
     if (isFinal(g)) {
       if (now - seenFinal(g.id, now) > 60 * 60000 || now - parseDate(g.date).getTime() > 6 * 3600000) continue;
     } else if (!g.live && ymd(parseDate(g.date)) !== today) continue;
