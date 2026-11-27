@@ -922,6 +922,62 @@
     .ptv.mu .bbpn b { font-size: 2.3vh; } .ptv.mu .bbpn i { font-size: 1.4vh; }
     .ptv.mu .bbph.sm { width: 7vw; } .ptv.mu .bbcn { left: 7.8vw; right: 7vw; } .ptv.mu .bbcn b { font-size: 2.3vh; } .ptv.mu .bbcn i { font-size: 1.5vh; } .ptv.mu .bbres { font-size: 2.1vh; padding: 0 0.8vh; }
     .ptv.mu .bbsl b { font-size: 3vh; } .ptv.mu .bbsl span { font-size: 1.5vh; } .ptv.mu .bbsl span i { font-size: 1.3vh; } .ptv.mu .bbtl { font-size: 1.6vh; } .ptv.mu .bbtl .tod b { width: 1vh; height: 1vh; } }
+  /* main ticker big screens (close / upset basketball): the matchup screen's scorers, shot court and team stats, in the space under the score (same rules, heights x0.72) */
+  .ptv.bbmain .cols { display: none; }
+  /* the main big screen is narrower than the TV (margins), so the three columns go by its width, not the screen's */
+  .ptv.bbmain.bbon .bbl { left: 1.5%; width: 27%; } .ptv.bbmain.bbon .bbc { left: 30.5%; width: 39%; } .ptv.bbmain.bbon .bbr { right: 1.5%; width: 27%; }
+  @media (max-aspect-ratio: 3/2) { .ptv.bbmain.bbon .bbl { left: 1.2%; width: 31%; } .ptv.bbmain.bbon .bbc { left: 33.6%; width: 32.8%; } .ptv.bbmain.bbon .bbr { right: 1.2%; width: 31%; }
+    .ptv.bbmain.bbon .bbct { height: 16vw; max-height: 30vh; } }
+  .ptv.bbmain .bbq { margin: 1.01vh auto 0; border-collapse: collapse; font-size: 1.66vh; color: rgba(255,255,255,0.8); }
+  .ptv.bbmain .bbq th { font-weight: 600; color: rgba(255,255,255,0.45); padding: 0 1vw 0.22vh; font-size: 1.3vh; }
+  .ptv.bbmain .bbq td { padding: 0.07vh 1vw; text-align: center; } .ptv.bbmain .bbq td.ab { text-align: left; font-weight: 700; color: #fff; padding-left: 0; }
+  .ptv.bbmain .bbq .t { color: #fff; font-weight: 800; border-left: 1px solid rgba(255,255,255,0.2); }
+  .ptv.bbmain .bbtl { margin-top: 0.72vh; font-size: 1.44vh; color: rgba(255,255,255,0.75); white-space: nowrap; letter-spacing: 0.1vw; }
+  .ptv.bbmain .bbtl .pos { display: inline-block; background: #f08a24; color: #1a0b00; font-weight: 800; font-size: 1.22vh; padding: 0.07vh 0.6vw; border-radius: 0.36vh; margin-right: 0.8vw; vertical-align: middle; }
+  .ptv.bbmain .bbtl .tod b { display: inline-block; width: 0.94vh; height: 0.94vh; border-radius: 50%; margin: 0 0.18vh; border: 0.14vh solid rgba(255,255,255,0.45); vertical-align: middle; }
+  .ptv.bbmain .bbtl .tod b.on { background: #f5b800; border-color: #f5b800; }
+  .ptv.bbmain .bbtl .fl { margin-left: 1.2vw; } .ptv.bbmain .bbtl .fl em { font-style: normal; font-weight: 800; color: #fff; }
+  .ptv.bbmain .bbtl .bn { margin-left: 0.8vw; background: #f5b800; color: #111; font-weight: 800; padding: 0.07vh 0.6vw; border-radius: 0.36vh; font-size: 1.22vh; }
+  .ptv.bbmain .bbp { position: absolute; left: 0; right: 0; top: 28.6vh; bottom: 0.4vh; z-index: 2; }
+  .ptv.bbmain .bbl, .ptv.bbmain .bbc, .ptv.bbmain .bbr { position: absolute; top: 0; bottom: 0; }
+  .ptv.bbmain .bbl { left: 1.5vw; width: 26vw; } .ptv.bbmain .bbr { right: 1.5vw; width: 26vw; } .ptv.bbmain .bbc { left: 29vw; width: 42vw; }
+  .ptv.bbmain .bbh { font-size: 1.44vh; font-weight: 800; letter-spacing: 0.35vw; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 0.86vh; }
+  .ptv.bbmain .bbpl { position: relative; height: 8.35vh; margin-bottom: 1.01vh; background: rgba(255,255,255,0.05); border-left: 0.43vh solid #888; border-radius: 0.58vh; overflow: hidden; }
+  .ptv.bbmain .bbph { position: absolute; left: 0; top: 0; width: 9vh; height: 100%; overflow: hidden; }
+  .ptv.bbmain .bbph img { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; }
+  .ptv.bbmain .bbpn { position: absolute; left: 9.79vh; right: 11.52vh; top: 1.44vh; white-space: nowrap; overflow: hidden; }
+  .ptv.bbmain .bbpn b { display: block; font-size: 2.09vh; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.bbmain .bbpn i { display: block; font-style: normal; font-size: 1.3vh; color: rgba(255,255,255,0.55); margin-top: 0.43vh; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.bbmain .bbps { position: absolute; right: 6.62vh; top: 1.15vh; width: 5.04vh; text-align: center; }
+  .ptv.bbmain .bbps.sm { right: 3.31vh; width: 3.31vh; } .ptv.bbmain .bbps.sm + .bbps.sm { right: 0; }
+  .ptv.bbmain .bbps b { display: block; font-size: 3.6vh; line-height: 1; color: #fff; } .ptv.bbmain .bbps.sm b { font-size: 2.02vh; margin-top: 1.01vh; color: rgba(255,255,255,0.85); }
+  .ptv.bbmain .bbps i { display: block; font-style: normal; font-size: 1.08vh; color: rgba(255,255,255,0.5); margin-top: 0.36vh; letter-spacing: 0.1vw; }
+  .ptv.bbmain .bbct { display: block; width: 100%; height: 22.4vw; max-height: 33.12vh; }
+  .ptv.bbmain .bbpulse { -webkit-animation: pulse 1.6s infinite; animation: pulse 1.6s infinite; }
+  .ptv.bbmain .bbcap { position: relative; height: 6.48vh; margin-top: 0.86vh; background: rgba(255,255,255,0.06); border-radius: 0.58vh; overflow: hidden; }
+  .ptv.bbmain .bbcap.none { line-height: 6.48vh; text-align: center; font-size: 1.58vh; color: rgba(255,255,255,0.45); }
+  .ptv.bbmain .bbph.sm { width: 8.93vh; }
+  .ptv.bbmain .bbcn { position: absolute; left: 9.79vh; right: 8.64vh; top: 1.01vh; white-space: nowrap; overflow: hidden; }
+  .ptv.bbmain .bbcn b { display: block; font-size: 2.02vh; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.bbmain .bbcn i { display: block; font-style: normal; font-size: 1.37vh; color: rgba(255,255,255,0.6); margin-top: 0.43vh; overflow: hidden; text-overflow: ellipsis; }
+  .ptv.bbmain .bbres { position: absolute; right: 1.01vh; top: 1.58vh; height: 3.31vh; line-height: 3.31vh; padding: 0 0.86vh; border-radius: 0.5vh; font-weight: 800; font-size: 1.87vh; }
+  .ptv.bbmain .bbres.ok { background: #3ddc84; color: #06240f; } .ptv.bbmain .bbres.no { background: #ff4d5e; color: #2a0006; font-size: 1.51vh; }
+  .ptv.bbmain .bbst { margin-bottom: 1.66vh; }
+  .ptv.bbmain .bbsl { position: relative; height: 3.31vh; }
+  .ptv.bbmain .bbsl b { position: absolute; top: 0; font-size: 2.59vh; line-height: 3.31vh; color: rgba(255,255,255,0.7); } .ptv.bbmain .bbsl b:first-child { left: 0; } .ptv.bbmain .bbsl b:last-child { right: 0; }
+  .ptv.bbmain .bbsl b.up { color: #fff; }
+  .ptv.bbmain .bbsl span { position: absolute; left: 22%; right: 22%; top: 0.22vh; text-align: center; font-size: 1.37vh; font-weight: 700; letter-spacing: 0.15vw; color: rgba(255,255,255,0.6); white-space: nowrap; }
+  .ptv.bbmain .bbsl span i { display: block; font-style: normal; font-weight: 400; font-size: 1.15vh; color: rgba(255,255,255,0.4); margin-top: 0.22vh; letter-spacing: 0; }
+  .ptv.bbmain .bbbar { height: 0.94vh; margin-top: 0.5vh; background: rgba(255,255,255,0.08); border-radius: 0.47vh; overflow: hidden; white-space: nowrap; font-size: 0; }
+  .ptv.bbmain .bbbar span { display: inline-block; height: 100%; }
+  .ptv.bbmain .bbbar span + span { border-left: 0.22vh solid #05070d; -webkit-box-sizing: border-box; box-sizing: border-box; }
+  @media (max-aspect-ratio: 3/2) { .ptv.bbmain .bbl { left: 1.5vw; width: 30vw; } .ptv.bbmain .bbr { right: 1.5vw; width: 30vw; } .ptv.bbmain .bbc { left: 32.5vw; width: 35vw; }
+    .ptv.bbmain .bbct { height: 18.6vw; }
+    .ptv.bbmain .bbph { width: 8.4vw; } .ptv.bbmain .bbpn { left: 9.2vw; right: 11.6vw; } .ptv.bbmain .bbps { right: 6.4vw; width: 5vw; } .ptv.bbmain .bbps b { font-size: 3.02vh; }
+    .ptv.bbmain .bbps.sm { right: 3.1vw; width: 3.2vw; } .ptv.bbmain .bbps.sm + .bbps.sm { right: 0; } .ptv.bbmain .bbps.sm b { font-size: 1.73vh; } .ptv.bbmain .bbps i { font-size: 0.94vh; }
+    .ptv.bbmain .bbpn b { font-size: 1.66vh; } .ptv.bbmain .bbpn i { font-size: 1.01vh; }
+    .ptv.bbmain .bbph.sm { width: 7vw; } .ptv.bbmain .bbcn { left: 7.8vw; right: 7vw; } .ptv.bbmain .bbcn b { font-size: 1.66vh; } .ptv.bbmain .bbcn i { font-size: 1.08vh; } .ptv.bbmain .bbres { font-size: 1.51vh; padding: 0 0.58vh; }
+    .ptv.bbmain .bbsl b { font-size: 2.16vh; } .ptv.bbmain .bbsl span { font-size: 1.08vh; } .ptv.bbmain .bbsl span i { font-size: 0.94vh; } .ptv.bbmain .bbtl { font-size: 1.15vh; } .ptv.bbmain .bbtl .tod b { width: 0.72vh; height: 0.72vh; } }
   .ptv.mu .mhit { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
   .ptv.mu .mhfield { position: absolute; left: 1.5vw; top: 0; width: 62vw; height: 100%; }
   .ptv.mu .mhfly { -webkit-animation: mhfly 1.8s ease-out 0.3s forwards; animation: mhfly 1.8s ease-out 0.3s forwards; }
@@ -2155,6 +2211,7 @@ var CONFIG = {
   weather: true,         // game-time weather (outdoor games, not domes) on the big screens and the matchup view, from Open-Meteo (?weather=0)
   quickStart: true,      // a reload comes up straight away with the last scores while fresh ones load (?quickstart=0)
   bbPanel: true,         // matchup view, basketball: top scorers, the last shot on a court, team stats, quarters, timeouts / fouls (?bbpanel=0)
+  bbMain: true,          // main ticker: CLOSE / UPSET basketball big screens get the full basketball screen (scorers, shot court, team stats) (?bbmain=0)
   mlbHit: true,          // matchup view, baseball: after a ball in play, its flight on a 3D ballpark, exit velo / angle / distance (?mlbhit=0)
   mlbZone: true,         // matchup view, baseball: the at-bat from MLB's live feed (batter, strike zone, hot / cold zones, pitches) (?mlbzone=0)         // a line over the bottom bar drains to show how long until the next screen (?pbar=0 off)
   bgBadge: 's1',         // the broadcast badge faint across the NFL primetime screen (?bgbadge=0 off, =2 stronger, =side off to the side)        // NFL primetime / holiday / international tabs show the broadcast badge instead of SNF / MNF / TNF (?badges=0)
@@ -2274,6 +2331,7 @@ function readParams() {
     if (k === 'fav') CONFIG.favorites = v ? v.toUpperCase().split(',') : [];
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
+    if (k === 'bbmain') CONFIG.bbMain = v !== '0';
     if (k === 'nbaleaders') CONFIG.nbaLeaders = v !== '0';
     if (k === 'bigevery' && +v >= 1) CONFIG.bigEvery = Math.round(+v);
     if (k === 'tabq') CONFIG.tabQueue = v !== '0';
@@ -4682,6 +4740,19 @@ function mlbDraw(g) {
 }
 function mlbBatting(g) {                               // the batting team: top of the inning, the visitors
   return /^(top|mid)/i.test(String(g.detail || g.status || '')) ? 'away' : 'home';
+}
+/* main ticker: a CLOSE or UPSET basketball game gets the full basketball screen (top scorers, the last shot on a
+   court, team stats, fouls / bonus / timeouts under the names) in place of the leaders panels */
+function bbMainDecorate(pg) {
+  if (!pg || !pg.game || !CONFIG.bbPanel || !CONFIG.bbMain || !(pg.lg === 'nba' || pg.lg === 'ncaab' || pg.lg === 'wnba' || pg.lg === 'ncaaw')) return;
+  var why = (pg.kind && pg.kind[0]) || '';
+  if (why !== 'CLOSE' && why !== 'UPSET') return;
+  var bbd = ptDetail[pg.game.eid] && ptDetail[pg.game.eid].bb, pv = $('cards').querySelector('.ptv');
+  if (!pv || !bbd || !(pg.game.live || isFinal(pg.game))) return;
+  pv.className += ' bbon bbmain';
+  var sides = ['away', 'home'], bper = +(((compOf(pg.game) || {}).status || pg.game.raw && pg.game.raw.status || {}).period) || bbd.per;
+  for (var bs = 0; bs < 2; bs++) { var btx = pv.querySelector('.band .side.' + sides[bs] + ' .txt'); if (btx) btx.insertAdjacentHTML('beforeend', bbTeamLine(bbd, sides[bs], bper, pg.game.live)); }
+  pv.insertAdjacentHTML('beforeend', bbPanelHTML(pg.game, pg.lg, bbd));
 }
 function muDecorate(pg) {                       // the real helmets on the big screen's two sides, facing each other
   var pv = $('cards').querySelector('.ptv');
@@ -10670,6 +10741,7 @@ function renderPage() {
     try {
       $('cards').innerHTML = pg.lg === 'mlb' ? wsHTML(pg.game, pg.kind) : ptHTML(pg.game, pg.kind, pg.lg);
       if (CONFIG.view === 'matchup') muDecorate(pg);
+      else bbMainDecorate(pg);
       var bgb = CONFIG.bgBadge && pg.lg === 'nfl' ? ptBadge(pg.kind) : '', pv0 = bgb && $('cards').querySelector('.ptv');
       if (pv0) pv0.insertAdjacentHTML('beforeend', '<div class="ptbg ' + CONFIG.bgBadge + '"><img src="img/badge/' + bgb + '.png" alt=""></div>');   // the broadcast badge, faint, over the screen
       try { fitInjuries(); } catch (e3) {}
