@@ -11270,7 +11270,7 @@ function holidayCard() {                         // every few minutes: the greet
   el.className = ''; void el.offsetWidth; el.className = 'on';
   setTimeout(function () { el.className = ''; }, 7200);
 }
-var THEME_DAYS = { '2026-11-25': 'sunset' };                               // one-day looks, by date: { '2026-11-25': 'sunset' } (?theme=sunset to preview)
+var THEME_DAYS = { '2026-11-25': 'sunset', '2026-11-27': 'bfdoor' };                               // one-day looks, by date: { '2026-11-25': 'sunset' } (?theme=sunset to preview)
 function applyTheme(d) {
   var t = CONFIG.theme;
   if (t === 'auto') t = THEME_DAYS[ymd(d || new Date())] || gameDayTheme() || 'house';
