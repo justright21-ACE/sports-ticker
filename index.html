@@ -1681,6 +1681,10 @@
   .t-bfdoor .card.done .row.lose .score, .t-bfdoor .card.done .row.lose .name { color: #8a857a !important; }
   .t-bfdoor .card.done .status { background: #f3efe4; border-top: 0.25vh dashed #111; } .t-bfdoor .card.done .status, .t-bfdoor .card.done .status .tag { color: #111; }
   .t-bfdoor .card.done .lines { display: none; }
+  /* receipts: the typewriter letters are wider, so the event name prints on its own line above FINAL instead of over it */
+  .t-bfdoor .card.done .status { height: auto; line-height: 3.3vh; padding-top: 0.5vh; padding-bottom: 0.4vh; font-size: 2.7vh; overflow: hidden; text-overflow: ellipsis; }
+  .t-bfdoor .card.done .status .tag { float: none; display: block; max-width: 100%; font-size: 1.9vh; line-height: 2.4vh; letter-spacing: 0.05vw; color: #5c574c; }
+  .t-bfdoor .card.done .status .tag .tl { display: none; } .t-bfdoor .card.done .status .tag .ts { display: inline; }
   .t-bfdoor .ptv .band, .t-bfdoor .ptv .panel { background: #161616; border-color: #ffd400; }
   .t-bfdoor .ptv .ph, .t-bfdoor .ptv .note b, .t-bfdoor .ptv .ln b, .t-bfdoor .ptv .pthead b { color: #ffd400; }
   .t-bfdoor .ptv .bar i { background: #e4002b; }
