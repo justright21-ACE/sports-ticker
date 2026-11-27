@@ -4366,7 +4366,9 @@ function buildPages() {
     var inxIds = {}, ig = inactivesGames();
     for (var ii = 0; ii < ig.length; ii++) inxIds[ig[ii].id] = 1;
     for (var gz = 0; gz < gmaj.length; gz++) ptPages.push(gmaj[gz]);
+    var minorBowl = function (pg) { var g = pg.game; return !!(g && pg.lg === 'ncaaf' && isBowl(g) && !/CFP|PLAYOFF|NATL CHAMP/.test(g.tag) && !NY6_RE.test(g.tag)); };
     var addPt = function (again) { for (var z = 0; z < ptPages.length; z++) { if (again && ptPages[z].game && isFinal(ptPages[z].game)) continue;   // a game that's over: once a loop, not after every other screen
+        if (again && minorBowl(ptPages[z])) continue;            // the other bowls: once a loop; the Playoff and the New Year's Six come back
         var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = (ptPages[z].game ? 'pt:' + ptPages[z].game.id : 'golf') + ':' + (n++); mixed.push(c);
         if (ptPages[z].game && inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
     addPt();
