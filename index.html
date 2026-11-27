@@ -512,6 +512,18 @@
   img.own { border-radius: 50%; border: 0.5vh solid #f5c400; box-sizing: border-box; -webkit-mask-image: none !important; mask-image: none !important; background: #1b2236; }
   .cr7 .c7ph.own { left: auto; right: 2vw; bottom: 3.4vh; height: 27vh; width: 27vh; opacity: 1; }   /* the round photo: in the open space, not behind the numbers */
   .cr7 .c7cr, .race .rkcr, .rrp .rkcr { position: absolute; right: 1vw; bottom: 0.4vh; font-size: 1.3vh; color: rgba(255,255,255,0.35); }
+  .cr7 .c7rows div.c7tm { margin: 1.4vh 0 0; width: 100%; white-space: normal; overflow: visible; font-size: 2vh; }
+  .cr7 .c7rows div.c7tm.ph { width: 68%; }                          /* clear of his round photo */
+  .cr7 .c7rows div.c7th { font-size: 1.7vh; font-weight: 800; letter-spacing: 0.35vw; color: #6b7590; margin: 0 0 0.5vh; }
+  .cr7 .c7rows div.c7t { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 3.4vh; margin: 0; overflow: visible; }
+  .cr7 .c7rows div.c7t.ct { margin-top: 0.7vh; padding-top: 0.7vh; border-top: 0.15vh solid rgba(255,255,255,0.12); height: 4vh; }
+  .cr7 .c7rows .c7t b { min-width: 0; width: 15vw; -webkit-flex: none; flex: none; font-size: 2.3vh; font-weight: 600; letter-spacing: 0; color: #e8ecf4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cr7 .c7rows .c7t b i { font-style: normal; font-weight: 400; font-size: 1.7vh; color: #8b95ab; margin-left: 0.5vw; }
+  .cr7 .c7rows .c7t b i.cty { color: #f5c400; font-weight: 800; letter-spacing: 0.15vw; }
+  .cr7 .c7rows .c7t span { -webkit-flex: 1; flex: 1; height: 1.3vh; margin: 0 1vw; background: rgba(255,255,255,0.06); border-radius: 0.65vh; overflow: hidden; }
+  .cr7 .c7rows .c7t span em { display: block; height: 100%; border-radius: 0.65vh; -webkit-animation: rkGrow 1.4s ease-out both; animation: rkGrow 1.4s ease-out both; }
+  .cr7 .c7rows .c7t strong { width: 5vh; -webkit-flex: none; flex: none; text-align: right; font-size: 2.7vh; font-weight: 900; color: #fff; }
+  @media (max-aspect-ratio: 3/2) { .cr7 .c7rows .c7t b { width: 18vw; font-size: 1.7vh; } .cr7 .c7rows .c7t b i { display: none; } .cr7 .c7rows .c7t b i.cty { display: inline; } .cr7 .c7rows div.c7tm.ph { width: 62%; } }
   .cr7 .c7gp { margin-top: 1.6vh; font-size: 2.2vh; letter-spacing: 0.25vw; color: #9BA3B8; } .cr7 .c7gp b { color: #fff; font-size: 3vh; } .cr7 .c7gp span { margin: 0 0.4vw; }
   .race .rkg { margin-top: 0.4vh; font-size: 1.9vh; color: #9BA3B8; letter-spacing: 0.05vw; }
   .cr7.msi .c7pips span.on { background: #75aadb; border-color: #75aadb; } .cr7.msi .c7bar span { background: #75aadb; }
@@ -9436,13 +9448,15 @@ var CR7 = { key: 'cr7', name: 'Cristiano Ronaldo', short: 'RONALDO', base: 987, 
             leagues: ['ksa.1', 'ksa.kings.cup', 'afc.champions', 'afc.cup'], team: /nassr/i, me: /cristiano ronaldo/i, pid: '22774', store: 'fcw_cr7',
             jan26: 957,
             photo: 'img/cr7-head.jpg', credit: 'Photo: M. Reza Abbasi / Foad Ashtari (Mehr News), CC BY 4.0, cropped',   // ESPN has no Ronaldo headshot                                   // career total on 1 Jan 2026 (for the pace on the race screen)
-            split: function (st, n) { return 'Sporting 5 &middot; Man United 145 &middot; Real Madrid 450 &middot; Juventus 101 &middot; Portugal 146 &middot; Al Nassr ' + (n - 847); } };
+            teams: function (st, n) { return [['Sporting CP', '2002–03', 5, '#00a160'], ['Manchester United', '2003–09, 2021–22', 145, '#da291c'], ['Real Madrid', '2009–18', 450, '#febe10'],
+                                               ['Juventus', '2018–21', 101, '#e8e8e8'], ['Al Nassr', '2023–', n - 847, '#fcd116'], ['Portugal', '2003–', 146, '#c8102e', 1]]; } };
 /* Messi: same idea. Inter Miami (MLS, playoffs, Concacaf, Leagues Cup, US Open Cup) and Argentina (friendlies, qualifiers, Copa America). */
 var MESSI = { key: 'messi', name: 'Lionel Messi', short: 'MESSI', base: 937, gp: 1186, day: '2026-11-23', last: { day: '2026-11-01', opp: 'New England', min: "83'" },   // checked 25 Nov 2026
               leagues: ['usa.1', 'concacaf.champions', 'concacaf.leagues.cup', 'usa.open', 'fifa.friendly', 'fifa.worldq.conmebol', 'conmebol.america'],
               team: /inter miami|argentina/i, me: /lionel messi/i, pid: '45843', store: 'fcw_messi', jan26: 896,
-              split: function (st, n) { var a = 0; for (var i = 0; i < st.goals.length; i++) if (/argentina/i.test(st.goals[i].us || '')) a++;
-                                        return 'Barcelona 672 &middot; PSG 32 &middot; Inter Miami ' + (n - 937 + 107 - a) + ' &middot; Argentina ' + (126 + a); } };
+              teams: function (st, n) { var a = 0; for (var i = 0; i < st.goals.length; i++) if (/argentina/i.test(st.goals[i].us || '')) a++;
+                                        return [['Barcelona', '2004–21', 672, '#a50044'], ['Paris Saint-Germain', '2021–23', 32, '#2a63b8'], ['Inter Miami', '2023–', n - 937 + 107 - a, '#f7b5cd'],
+                                                ['Argentina', '2005–', 126 + a, '#75aadb', 1]]; } };
 var cr7 = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '', apps: {} };
 var messi = { at: 0, goals: [], live: null, next: null, newAt: 0, jumped: true, pid: '', apps: {} };
 try { cr7.pid = window.localStorage.getItem('fcw_cr7pid') || ''; messi.pid = window.localStorage.getItem('fcw_messipid') || ''; } catch (e) {}
@@ -9639,6 +9653,16 @@ function hsCrawlSeg() {
   }
   return { label: 'IHSA ' + (L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL'), lg: 'hs', html: h };
 }
+/* where the goals came from: a bar for each club (and the country, set apart), in the team's color, with the years */
+function chaseTeamsHTML(C, st, n) {
+  var T = C.teams(st, n), mx = 1, i, h = '<div class="c7tm' + (C.photo ? ' ph' : '') + '"><div class="c7th">GOALS BY TEAM</div>';
+  for (i = 0; i < T.length; i++) if (T[i][2] > mx) mx = T[i][2];
+  for (i = 0; i < T.length; i++) {
+    var t = T[i];
+    h += '<div class="c7t' + (t[4] ? ' ct' : '') + '"><b>' + esc(t[0]) + '<i' + (t[4] ? ' class="cty">COUNTRY' : '>' + esc(t[1])) + '</i></b><span><em style="width:' + Math.max(0.8, t[2] / mx * 100).toFixed(1) + '%;background:' + t[3] + '"></em></span><strong>' + t[2] + '</strong></div>';
+  }
+  return h + '</div>';
+}
 function chasePhoto(C, cls) {
   if (C.photo) return '<img class="' + cls + ' own" src="' + C.photo + '" alt="">';   // ESPN has no headshot for him: our own (credited) photo
   var pid = chaseSt(C).pid || C.pid;
@@ -9664,7 +9688,7 @@ function cr7HTML(C) {
     '<div class="c7r"><div class="c7pips">' + pips + '</div>' +
       '<div class="c7bar"><span style="width:' + Math.min(100, n / 10).toFixed(1) + '%"></span></div><div class="c7pct">' + Math.min(100, n / 10).toFixed(1) + '% of the way to 1,000</div>' +
       '<div class="c7rows"><div><b>LAST</b>#' + L.n + ' &middot; ' + CR7_MON[L.when.getMonth()] + ' ' + L.when.getDate() + ' vs ' + esc(L.opp) + (L.min ? ' &middot; ' + esc(L.min) : '') + '</div>' +
-      (nx ? '<div>' + nx + '</div>' : '') + '<div class="c7sm">' + C.split(st, n) + '</div></div></div>' + (C.credit ? '<div class="c7cr">' + esc(C.credit) + '</div>' : '') + '</div>';
+      (nx ? '<div>' + nx + '</div>' : '') + chaseTeamsHTML(C, st, n) + '</div></div>' + (C.credit ? '<div class="c7cr">' + esc(C.credit) + '</div>' : '') + '</div>';
 }
 /* the race: both of them on one track, 900 to 1,000 */
 function chasePace(C) {                            // goals a day since 1 Jan 2026, and when that gets him to 1,000
