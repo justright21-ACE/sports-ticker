@@ -528,6 +528,37 @@
   .race .rkg { margin-top: 0.4vh; font-size: 1.9vh; color: #9BA3B8; letter-spacing: 0.05vw; }
   .cr7.msi .c7pips span.on { background: #75aadb; border-color: #75aadb; } .cr7.msi .c7bar span { background: #75aadb; }
   .cr7.msi .c7pips span.k.on { background: #f5c400; border-color: #f5c400; }
+  /* GOAT RACE trophy case: Ronaldo left in gold (the favorite), Messi right in sky blue, butterfly bars */
+  .gcase { position: relative; height: 68vh; padding: 0 2vw; }
+  .gcase .gch { position: absolute; top: 0; width: 46%; height: 11vh; display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; }
+  .gcase .gch.l { left: 2vw; } .gcase .gch.r { right: 2vw; -webkit-justify-content: flex-end; justify-content: flex-end; text-align: right; }
+  .gcase .gcp { height: 10.5vh; width: 10.5vh; object-fit: cover; margin: 0 1.2vw; }
+  .gcase .gch.r .gcp { -webkit-mask-image: -webkit-linear-gradient(top, #000 75%, transparent); }
+  .gcase .gcn { font-size: 4.2vh; font-weight: 900; letter-spacing: 0.3vw; color: #fff; white-space: nowrap; }
+  .gcase .gch.l .gcn { color: #f5c400; }
+  .gcase .gfav { font-size: 1.7vh; letter-spacing: 0.2vw; color: #000; background: #f5c400; padding: 0.3vh 0.6vw; border-radius: 0.4vh; vertical-align: 0.8vh; margin-left: 0.4vw; }
+  .gcase .gct { font-size: 2.1vh; letter-spacing: 0.3vw; color: #9BA3B8; } .gcase .gct b { font-size: 3.4vh; color: #fff; letter-spacing: 0; margin-right: 0.3vw; }
+  .gcase .gcb { position: absolute; left: 2vw; right: 2vw; top: 11.6vh; }
+  .gcase .gcs { text-align: center; font-size: 1.6vh; font-weight: 800; letter-spacing: 0.45vw; color: #6b7590; margin: 0.6vh 0 0.3vh; }
+  .gcase .gcr { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 2.95vh; }
+  .gcase .gcr.ctry { margin-top: 0.4vh; padding-top: 0.4vh; border-top: 0.15vh solid rgba(255,255,255,0.1); height: 3.4vh; }
+  .gcase .gcr i { width: 19vw; -webkit-flex: none; flex: none; text-align: center; font-style: normal; font-size: 1.9vh; font-weight: 700; letter-spacing: 0.15vw; color: #c9d0de; white-space: nowrap; }
+  .gcase .gv { width: 5vh; -webkit-flex: none; flex: none; font-size: 2.8vh; font-weight: 900; color: #8b95ab; }
+  .gcase .gv.l { text-align: left; } .gcase .gv.r { text-align: right; } .gcase .gv.w { color: #fff; }
+  .gcase .gv.l.w { color: #f5c400; }
+  .gcase .gb { -webkit-flex: 1; flex: 1; height: 1.5vh; background: rgba(255,255,255,0.05); border-radius: 0.75vh; overflow: hidden; display: -webkit-box; display: -webkit-flex; display: flex; }
+  .gcase .gb.l { -webkit-justify-content: flex-end; justify-content: flex-end; margin: 0 0.8vw 0 0.4vw; } .gcase .gb.r { margin: 0 0.4vw 0 0.8vw; }
+  .gcase .gb em { display: block; height: 100%; border-radius: 0.75vh; -webkit-animation: rkGrow 1.3s ease-out both; animation: rkGrow 1.3s ease-out both; }
+  .gcase .gb.l em { background: -webkit-linear-gradient(left, #8a6d00, #f5c400); background: linear-gradient(90deg, #8a6d00, #f5c400); }
+  .gcase .gb.r em { background: -webkit-linear-gradient(left, #75aadb, #2b4d73); background: linear-gradient(90deg, #75aadb, #2b4d73); }
+  .gcase .gci, .gcase .gcrec { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; margin: 0.6vh 0 0.2vh; }
+  .gcase .gci > div, .gcase .gcrec > div { width: 46%; } .gcase .gci .r, .gcase .gcrec .r { text-align: right; }
+  .gcase .gchip { display: inline-block; font-size: 1.5vh; font-weight: 700; letter-spacing: 0.1vw; padding: 0.25vh 0.5vw; margin: 0.2vh 0.2vw; border-radius: 0.4vh; background: rgba(255,255,255,0.07); color: #c9d0de; white-space: nowrap; }
+  .gcase .gci .l .gchip { background: rgba(245,196,0,0.14); color: #f5c400; }
+  .gcase .gcrec { margin-top: 1vh; }
+  .gcase .grec { display: inline-block; font-size: 1.55vh; font-weight: 800; letter-spacing: 0.12vw; padding: 0.35vh 0.6vw; margin: 0.25vh 0.2vw; border-radius: 0.4vh; border: 0.15vh solid rgba(117,170,219,0.6); color: #a9c9ea; white-space: nowrap; }
+  .gcase .grec.gold { border-color: #f5c400; color: #000; background: #f5c400; }
+  .narrow .gcase .gcr i { width: 22vw; font-size: 1.6vh; } .narrow .gcase .gchip, .narrow .gcase .grec { font-size: 1.3vh; }
   /* career replay (bar race) */
   .rrp { position: relative; height: 66vh; margin: 0 4vw 0 2vw; padding-top: 5vh; box-sizing: border-box; }
   .rrp .rrax { position: absolute; left: 15vw; right: 6vw; top: 0; height: 45vh; }
@@ -2234,6 +2265,7 @@ var CONFIG = {
   messi: true,           // Lionel Messi's chase to 1,000 too, plus a race screen with both of them (?messi=0; ?cr7=0 turns all of it off)
   messiBg: '',           // a Messi celebration photo behind his screen, like cr7Bg (none yet)
   careerReplay: true,    // a CAREER GOALS screen after the race: both careers replayed year by year as a bar race, 2002 to today (?replay=0)
+  trophyCase: true,      // a TROPHY CASE screen in CHASE TO 1K: team trophies, country, individual awards, records (?trophies=0)
   golf: true,            // PGA Tour leaderboard screen while a tournament is on; majors (Masters, PGA Championship, U.S. Open, The Open, Ryder Cup) get their own tab and come back every other screen while play is on (?golf=0 off)
   eplTable: true,        // Premier League table screen in the EPL rotation (?epltable=0 off)
   nflPower: true,        // NFL power rankings screen (ESPN's Football Power Index, all 32 teams) in the NFL rotation (?power=0 off)
@@ -2474,6 +2506,7 @@ function readParams() {
     if (k === 'cr7') CONFIG.cr7 = v !== '0';
     if (k === 'messi') CONFIG.messi = v !== '0';
     if (k === 'replay') CONFIG.careerReplay = v !== '0';
+    if (k === 'trophies') CONFIG.trophyCase = v !== '0';
     if (k === 'cfpodds') CONFIG.cfpOdds = v !== '0';
     if (k === 'hs') CONFIG.hs = v !== '0';
     if (k === 'hockeylast') CONFIG.hockeyLast = v !== '0';
@@ -9671,6 +9704,7 @@ function cr7Pages() {
   if (chaseOn(CR7)) P.push({ lg: 'cr7', cr7: true, chase: CR7, hold: 22, num: 'cr7', of: 1, games: [], key: 'cr7:board' });
   if (chaseOn(CR7) && chaseOn(MESSI)) P.push({ lg: 'race', cr7: true, race: true, hold: 22, num: 'race', of: 1, games: [], key: 'race:board' });
   if (chaseOn(CR7) && chaseOn(MESSI) && CONFIG.careerReplay) P.push({ lg: 'race', cr7: true, race: true, replay: true, hold: 24, num: 'replay', of: 1, games: [], key: 'race:replay' });
+  if (chaseOn(CR7) && chaseOn(MESSI) && CONFIG.trophyCase) P.push({ lg: 'race', cr7: true, race: true, tcase: true, hold: 24, num: 'case', of: 1, games: [], key: 'race:case' });
   if (chaseOn(MESSI)) P.push({ lg: 'messi', cr7: true, chase: MESSI, hold: 22, num: 'messi', of: 1, games: [], key: 'messi:board' });
   return P;
 }
@@ -9883,16 +9917,48 @@ function rrTick() {
   if (yf < end) rrTimer = setTimeout(rrTick, 60);
   else { root.className += ' rrdone'; }
 }
+/* =================== GOAT RACE: TROPHY CASE ===================
+   Ronaldo (the favorite: left, gold) vs Messi, team trophies by kind, country, individual awards and a few
+   records. Checked 27 Nov 2026: Ronaldo 35 team trophies (32 club + 3 Portugal; latest the 2025-26 Saudi Pro
+   League and the 2025 Nations League); Messi 48 (MLS's count: 42 club + 6 Argentina; latest the 2026 Campeones
+   Cup). Update here when either wins something. */
+var GOAT_CASE = {
+  rows: [['LEAGUE TITLES', 8, 12], ['CHAMPIONS LEAGUE', 5, 4], ['CLUB WORLD CUP', 4, 3], ['DOMESTIC CUPS', 6, 8], ['SUPER CUPS', 8, 13], ['OTHER CLUB', 1, 2],
+         ['INTERNATIONAL', 3, 6]],
+  intl: ['EURO 2016', 'NATIONS LEAGUE 2019, 2025'],
+  intlM: ['WORLD CUP 2022', 'COPA AMÉRICA 2021, 2024', 'FINALISSIMA', 'OLYMPIC GOLD', 'U-20 WORLD CUP'],
+  awards: [["BALLON D'OR", 5, 8], ['THE BEST FIFA', 2, 3], ['GOLDEN SHOE', 4, 6], ['UCL TOP SCORER', 7, 6]],
+  recs: ['MOST GOALS EVER', 'RECORD 146 INTL GOALS', 'RECORD 140 UCL GOALS', 'RECORD 234 INTL CAPS'],
+  recsM: ['RECORD 8 BALLONS D’OR', 'MOST TROPHIES EVER · 48', '2 WORLD CUP GOLDEN BALLS'] };
+function goatCaseHTML() {
+  var G = GOAT_CASE, i, tc = 0, tm = 0, rows = '';
+  var row = function (lab, a, b, mx, cls) {
+    return '<div class="gcr' + (cls || '') + '"><b class="gv l' + (a > b ? ' w' : '') + '">' + a + '</b><span class="gb l"><em style="width:' + (a / mx * 100).toFixed(1) + '%"></em></span>' +
+           '<i>' + esc(lab) + '</i><span class="gb r"><em style="width:' + (b / mx * 100).toFixed(1) + '%"></em></span><b class="gv r' + (b > a ? ' w' : '') + '">' + b + '</b></div>';
+  };
+  var mx = 1; for (i = 0; i < G.rows.length; i++) { tc += G.rows[i][1]; tm += G.rows[i][2]; mx = Math.max(mx, G.rows[i][1], G.rows[i][2]); }
+  for (i = 0; i < G.rows.length; i++) rows += row(G.rows[i][0], G.rows[i][1], G.rows[i][2], mx, i === G.rows.length - 1 ? ' ctry' : '');
+  var am = 1; for (i = 0; i < G.awards.length; i++) am = Math.max(am, G.awards[i][1], G.awards[i][2]);
+  var aw = ''; for (i = 0; i < G.awards.length; i++) aw += row(G.awards[i][0], G.awards[i][1], G.awards[i][2], am);
+  var chips = function (L, c) { for (var h = '', k = 0; k < L.length; k++) h += '<span class="' + c + '">' + esc(L[k]) + '</span>'; return h; };
+  return '<div class="gcase">' +
+    '<div class="gch l">' + chasePhoto(CR7, 'gcp') + '<div><div class="gcn">RONALDO <span class="gfav">★ FAVORITE</span></div><div class="gct"><b>' + tc + '</b> TEAM TROPHIES</div></div></div>' +
+    '<div class="gch r"><div><div class="gcn">MESSI</div><div class="gct"><b>' + tm + '</b> TEAM TROPHIES</div></div>' + chasePhoto(MESSI, 'gcp') + '</div>' +
+    '<div class="gcb"><div class="gcs">TEAM TROPHIES</div>' + rows +
+      '<div class="gci"><div class="l">' + chips(G.intl, 'gchip') + '</div><div class="r">' + chips(G.intlM, 'gchip') + '</div></div>' +
+      '<div class="gcs">INDIVIDUAL AWARDS</div>' + aw +
+      '<div class="gcrec"><div class="l">' + chips(G.recs, 'grec gold') + '</div><div class="r">' + chips(G.recsM, 'grec') + '</div></div></div></div>';
+}
 function cr7CrawlSeg() { return chaseCrawl(CR7); }
 function messiCrawlSeg() { return chaseCrawl(MESSI); }
-var GOAT_NAME = 'GOAT RACE';                       // Ronaldo + Messi, the chase to 1,000: one tab, one crawl stretch
+var GOAT_NAME = 'CHASE TO 1K';                       // Ronaldo + Messi, the chase to 1,000: one tab, one crawl stretch
 function goatCrawlSeg() {
   var a = chaseCrawl(CR7), b = chaseCrawl(MESSI), h = '';
   if (!a && !b) return null;
   if (a && b) { var d = chaseTotal(CR7) - chaseTotal(MESSI); h += '<span class="g c7g">' + (d ? (d > 0 ? 'RONALDO' : 'MESSI') + ' LEADS BY ' + Math.abs(d) : 'DEAD EVEN') + '</span>'; }
   if (a) h += '<span class="g c7n">RONALDO</span>' + a.html;
   if (b) h += '<span class="g c7n">MESSI</span>' + b.html;
-  return { label: GOAT_NAME + ' \u2192 1,000', lg: 'cr7', html: h };
+  return { label: GOAT_NAME, lg: 'cr7', html: h };
 }
 function chaseCrawl(C) {
   if (!chaseOn(C)) return null;
@@ -10800,6 +10866,11 @@ function renderPage() {
   }
   if (pg.cr7) {
     renderTabs(pg.lg);
+    if (pg.tcase) {
+      $('heading').innerHTML = '<span class="lg">' + esc(GOAT_NAME) + '</span><span class="sub">Trophy case &middot; club, country and individual awards</span>';
+      try { $('cards').innerHTML = goatCaseHTML(); } catch (err) { $('cards').innerHTML = ''; }
+      return;
+    }
     if (pg.replay) {
       $('heading').innerHTML = '<span class="lg">' + esc(GOAT_NAME) + '</span><span class="sub">Career goals, year by year &middot; Cristiano Ronaldo vs Lionel Messi, club and country</span>';
       var fresh = !rrRun;
