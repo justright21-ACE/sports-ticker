@@ -791,18 +791,21 @@
   {
    "a": {
     "name": "Heyworth",
-    "rec": "13-0"
+    "rec": "13-0",
+    "score": 19
    },
    "b": {
     "name": "Mt. Sterling (Brown County)",
-    "rec": "13-0"
+    "rec": "13-0",
+    "score": 16
    },
    "cls": "1A",
    "date": "2026-11-27T10:00:00-06:00",
-   "final": false,
-   "finalAt": null,
+   "final": true,
+   "finalAt": "2026-11-27T15:42:10-06:00",
    "id": "fb-2026-27-1A-47",
    "neutral": true,
+   "ot": "",
    "round": "Championship",
    "site": "Normal (Hancock Stadium)",
    "sport": "fb"
@@ -1592,18 +1595,21 @@
   {
    "a": {
     "name": "Wilmington",
-    "rec": "12-1"
+    "rec": "12-1",
+    "score": 49
    },
    "b": {
     "name": "West Frankfort (Frankfort)",
-    "rec": "12-1"
+    "rec": "12-1",
+    "score": 14
    },
    "cls": "2A",
    "date": "2026-11-27T13:00:00-06:00",
-   "final": false,
-   "finalAt": null,
+   "final": true,
+   "finalAt": "2026-11-27T15:42:10-06:00",
    "id": "fb-2026-27-2A-47",
    "neutral": true,
+   "ot": "",
    "round": "Championship",
    "site": "Normal (Hancock Stadium)",
    "sport": "fb"
@@ -6416,5 +6422,5 @@
   }
  ],
  "source": "IHSA",
- "updated": "2026-11-22T19:51:55-06:00"
+ "updated": "2026-11-27T15:42:10-06:00"
 }
