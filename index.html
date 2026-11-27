@@ -1650,6 +1650,82 @@
   /* =========== THEMES (picked automatically by day, see CONFIG.theme) =========== */
   /* =========== SUNSET (a one-day look in the spirit of a Miami crime-game poster: sunset sky, neon, palms,
      tilted comic panels with black outlines and a pink offset shadow; all original, no game logos or art) =========== */
+  /* ===== Black Friday, two looks (one day, all original art): DOORBUSTER (red / yellow sale signs, price-tag cards,
+     sticker bursts, finals as receipts) and MIDNIGHT (black and gold) ===== */
+  body.t-bfdoor { background: #0b0b0b; background-image: repeating-linear-gradient(-45deg, rgba(228,0,43,0.06) 0, rgba(228,0,43,0.06) 2vh, transparent 2vh, transparent 4vh); }
+  .t-bfdoor #shift::before { content: ''; position: absolute; right: 2vw; bottom: 15vh; width: 26vh; height: 26vh; opacity: 0.16; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg transform='rotate%28-12 100 100%29'%3E%3Cpolygon points='100.0,4.0 113.5,23.2 132.8,9.8 139.0,32.5 161.7,26.5 159.8,49.9 183.1,52.0 173.3,73.3 194.5,83.3 178.0,100.0 194.5,116.7 173.3,126.7 183.1,148.0 159.8,150.1 161.7,173.5 139.0,167.5 132.8,190.2 113.5,176.8 100.0,196.0 86.5,176.8 67.2,190.2 61.0,167.5 38.3,173.5 40.2,150.1 16.9,148.0 26.7,126.7 5.5,116.7 22.0,100.0 5.5,83.3 26.7,73.3 16.9,52.0 40.2,49.9 38.3,26.5 61.0,32.5 67.2,9.8 86.5,23.2' fill='%23ffd400' stroke='%23000' stroke-width='5'/%3E%3Ctext x='100' y='95.7' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='%23e4002b'%3EDOORBUSTER%3C/text%3E%3Ctext x='100' y='123.0' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='%23e4002b'%3EDEALS%3C/text%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain; }
+  .t-bfdoor #board, .t-bfdoor #top, .t-bfdoor #crawlbar, .t-bfdoor #foot { z-index: 1; }
+  .t-bfdoor #top { background: #e4002b; border-bottom: 0.5vh solid #ffd400; }
+  .t-bfdoor #brand { color: #ffffff; font-style: italic; text-shadow: 0.3vh 0.3vh 0 #000; } .t-bfdoor #brand span { color: #ffd400; } .t-bfdoor #brand small { color: #ffd400; }
+  .t-bfdoor .tab { color: #ffe9a8; font-style: italic; } .t-bfdoor .tab.empty { color: rgba(255,233,168,0.45); }
+  .t-bfdoor .tab.on { background: #ffd400; color: #000; box-shadow: 0.4vh 0.4vh 0 #000; }
+  .t-bfdoor #clock { color: #ffffff; text-shadow: 0.3vh 0.3vh 0 #000; } .t-bfdoor #clock small { color: #ffd400; }
+  .t-bfdoor #clock::before { content: 'BLACK FRIDAY'; display: inline-block; margin-right: 1.2vw; padding: 0.3vh 0.8vw; background: #000; color: #ffd400; font-size: 1.9vh; font-weight: 900; letter-spacing: 0.25vw; vertical-align: middle; -webkit-transform: rotate(-3deg); transform: rotate(-3deg); }
+  .t-bfdoor #heading .lg { color: #ffd400; font-style: italic; text-shadow: 0.35vh 0.35vh 0 #e4002b; }
+  .t-bfdoor #heading .sub { color: #ffb3b3; }
+  .t-bfdoor .card { background: #161616; background-image: radial-gradient(circle at 1.5vh 50%, #0b0b0b 0.6vh, rgba(0,0,0,0) 0.7vh); border: 0.3vh solid #ffd400; border-radius: 0.6vh 1.6vh 1.6vh 0.6vh; box-shadow: 0.7vh 0.7vh 0 #e4002b; }   /* a price tag, string hole and all */
+  .t-bfdoor .card.live { box-shadow: 0.7vh 0.7vh 0 #e4002b, 0 0 2.2vh rgba(255,212,0,0.45); }
+  .t-bfdoor .card.fav { border-color: #ffffff; }
+  .t-bfdoor .row + .row { border-color: rgba(255,212,0,0.15); }
+  .t-bfdoor .abbr { background: #ffd400; color: #000; font-style: italic; }
+  .t-bfdoor .score { color: #ffffff; text-shadow: 0.25vh 0.25vh 0 #e4002b; }
+  .t-bfdoor .status { background: #000; } .t-bfdoor .status .tag { color: #ffd400; }
+  .t-bfdoor .lines { border-color: rgba(255,212,0,0.15); } .t-bfdoor .lines .lbl { color: #ff5a6e; }
+  /* finals print out like a receipt */
+  .t-bfdoor .card.done { background: #f3efe4; background-image: repeating-linear-gradient(90deg, #111 0, #111 0.25vh, transparent 0.25vh, transparent 0.5vh, #111 0.5vh, #111 0.6vh, transparent 0.6vh, transparent 1.1vh); background-size: 40% 1.4vh; background-position: 50% calc(100% - 0.9vh); background-repeat: no-repeat;
+    border: none; border-radius: 0; box-shadow: 0.6vh 0.6vh 0 rgba(0,0,0,0.6); font-family: 'Courier New', Courier, monospace; padding-bottom: 2.8vh; }
+  .t-bfdoor .card.done .row { background: transparent !important; }
+  .t-bfdoor .card.done .score, .t-bfdoor .card.done .name, .t-bfdoor .card.done .nn, .t-bfdoor .card.done .rec { color: #111 !important; text-shadow: none; }
+  .t-bfdoor .card.done .abbr { background: #111; color: #f3efe4; font-style: normal; }
+  .t-bfdoor .card.done .row.lose .score, .t-bfdoor .card.done .row.lose .name { color: #8a857a !important; }
+  .t-bfdoor .card.done .status { background: #f3efe4; border-top: 0.25vh dashed #111; } .t-bfdoor .card.done .status, .t-bfdoor .card.done .status .tag { color: #111; }
+  .t-bfdoor .card.done .lines { display: none; }
+  .t-bfdoor .ptv .band, .t-bfdoor .ptv .panel { background: #161616; border-color: #ffd400; }
+  .t-bfdoor .ptv .ph, .t-bfdoor .ptv .note b, .t-bfdoor .ptv .ln b, .t-bfdoor .ptv .pthead b { color: #ffd400; }
+  .t-bfdoor .ptv .bar i { background: #e4002b; }
+  .t-bfdoor #crawlbar { background: #000; border-top: 0.45vh solid #ffd400; }
+  .t-bfdoor #crawllabel { background: #e4002b; color: #ffd400; font-style: italic; }
+  .t-bfdoor #crawl .lg, .t-bfdoor #crawl .nl { color: #ffd400; } .t-bfdoor #crawl .hl { background: #ffd400; color: #000; }
+  .t-bfdoor #foot { color: #c9a227; } .t-bfdoor #pbar b { background: #ffd400 !important; }
+  /* stickers: a SCORE! burst on touchdowns and field goals, LIMITED TIME! on a red-zone trip */
+  .t-bfdoor .tdfx .tfslab { overflow: visible; }
+  .t-bfdoor .tdfx .tfslab::after { content: ''; position: absolute; left: 6%; top: -12vh; width: 15vh; height: 15vh; z-index: 3; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg transform='rotate%2810 100 100%29'%3E%3Cpolygon points='100.0,4.0 115.6,21.5 136.7,11.3 144.4,33.5 167.9,32.1 166.5,55.6 188.7,63.3 178.5,84.4 196.0,100.0 178.5,115.6 188.7,136.7 166.5,144.4 167.9,167.9 144.4,166.5 136.7,188.7 115.6,178.5 100.0,196.0 84.4,178.5 63.3,188.7 55.6,166.5 32.1,167.9 33.5,144.4 11.3,136.7 21.5,115.6 4.0,100.0 21.5,84.4 11.3,63.3 33.5,55.6 32.1,32.1 55.6,33.5 63.3,11.3 84.4,21.5' fill='%23e4002b' stroke='%23000' stroke-width='5'/%3E%3Ctext x='100' y='113.0' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='36' fill='%23ffd400'%3ESCORE%21%3C/text%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain; -webkit-animation: bfStick 0.45s 1s cubic-bezier(.2,1.6,.4,1) both; animation: bfStick 0.45s 1s cubic-bezier(.2,1.6,.4,1) both; }
+  .t-bfdoor .ptv .rzp { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg transform='rotate%28-8 100 100%29'%3E%3Cpolygon points='100.0,4.0 117.8,22.0 141.7,13.5 149.9,37.5 175.1,40.1 172.1,65.3 193.6,78.6 180.0,100.0 193.6,121.4 172.1,134.7 175.1,159.9 149.9,162.5 141.7,186.5 117.8,178.0 100.0,196.0 82.2,178.0 58.3,186.5 50.1,162.5 24.9,159.9 27.9,134.7 6.4,121.4 20.0,100.0 6.4,78.6 27.9,65.3 24.9,40.1 50.1,37.5 58.3,13.5 82.2,22.0' fill='%23ffd400' stroke='%23000' stroke-width='5'/%3E%3Ctext x='100' y='95.0' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='30' fill='%23000'%3ELIMITED%3C/text%3E%3Ctext x='100' y='126.5' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='30' fill='%23000'%3ETIME%21%3C/text%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain; color: transparent; width: 14vh; height: 14vh; padding: 0; border: none; box-shadow: none; }
+  @-webkit-keyframes bfStick { from { opacity: 0; -webkit-transform: scale(2.4) rotate(-30deg); } to { opacity: 1; -webkit-transform: none; } }
+  @keyframes bfStick { from { opacity: 0; transform: scale(2.4) rotate(-30deg); } to { opacity: 1; transform: none; } }
+  .t-bfdoor .ptv.mu { background: transparent; }
+  body.t-bfdoor.mview .ptv.mu .bigsc { color: #ffffff; font-style: italic; text-shadow: 0.6vh 0.6vh 0 #e4002b; } body.t-bfdoor.mview .ptv.mu .bigsc .dash { color: #ffd400; }
+  body.t-bfdoor.mview .ptv.mu .side .nm { color: #ffd400; font-style: italic; text-shadow: 0.35vh 0.35vh 0 #e4002b; }
+  body.t-bfdoor.mview .ptv.mu .clk { color: #ffd400; }
+  .t-bfdoor.mview #shift::before { right: 1.5vw; top: 1.5vh; bottom: auto; width: 18vh; height: 18vh; opacity: 0.9; }
+
+  body.t-bfmid { background: #050505; background-image: radial-gradient(ellipse at 50% -10%, rgba(212,175,55,0.18), rgba(0,0,0,0) 60%); }
+  .t-bfmid #shift::before { content: ''; position: absolute; right: 2vw; bottom: 15vh; width: 24vh; height: 24vh; opacity: 0.22; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg transform='rotate%28-6 100 100%29'%3E%3Cpolygon points='100.0,4.0 111.2,14.7 124.8,7.3 132.9,20.5 148.0,16.9 152.4,31.8 167.9,32.1 168.2,47.6 183.1,52.0 179.5,67.1 192.7,75.2 185.3,88.8 196.0,100.0 185.3,111.2 192.7,124.8 179.5,132.9 183.1,148.0 168.2,152.4 167.9,167.9 152.4,168.2 148.0,183.1 132.9,179.5 124.8,192.7 111.2,185.3 100.0,196.0 88.8,185.3 75.2,192.7 67.1,179.5 52.0,183.1 47.6,168.2 32.1,167.9 31.8,152.4 16.9,148.0 20.5,132.9 7.3,124.8 14.7,111.2 4.0,100.0 14.7,88.8 7.3,75.2 20.5,67.1 16.9,52.0 31.8,47.6 32.1,32.1 47.6,31.8 52.0,16.9 67.1,20.5 75.2,7.3 88.8,14.7' fill='%230a0a0a' stroke='%23d4af37' stroke-width='5'/%3E%3Ctext x='100' y='96.0' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='24' fill='%23d4af37'%3EMIDNIGHT%3C/text%3E%3Ctext x='100' y='121.2' text-anchor='middle' font-family='Arial Black,Arial,Helvetica,sans-serif' font-weight='900' font-size='24' fill='%23d4af37'%3EDEALS%3C/text%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain; }
+  .t-bfmid #board, .t-bfmid #top, .t-bfmid #crawlbar, .t-bfmid #foot { z-index: 1; }
+  .t-bfmid #top { background: #000; border-bottom: 0.3vh solid #d4af37; box-shadow: 0 0.4vh 1.6vh rgba(212,175,55,0.25); }
+  .t-bfmid #brand { color: #f3e2a9; } .t-bfmid #brand span { color: #d4af37; } .t-bfmid #brand small { color: #8c7a3c; }
+  .t-bfmid .tab { color: #b59a4a; } .t-bfmid .tab.on { background: -webkit-linear-gradient(top, #f6e27a, #b8902c); background: linear-gradient(180deg, #f6e27a, #b8902c); color: #000; }
+  .t-bfmid #clock { color: #f3e2a9; } .t-bfmid #clock small { color: #8c7a3c; }
+  .t-bfmid #clock::before { content: 'BLACK FRIDAY'; display: inline-block; margin-right: 1.2vw; padding: 0.25vh 0.8vw; border: 0.2vh solid #d4af37; color: #d4af37; font-size: 1.8vh; font-weight: 800; letter-spacing: 0.35vw; vertical-align: middle; }
+  .t-bfmid #heading .lg { color: #d4af37; letter-spacing: 0.3vw; } .t-bfmid #heading .sub { color: #a89870; }
+  .t-bfmid .card { background: #0d0d0d; border: 0.2vh solid rgba(212,175,55,0.55); box-shadow: 0 0 1.6vh rgba(212,175,55,0.12) inset; }
+  .t-bfmid .card.live { border-color: #f6e27a; box-shadow: 0 0 2vh rgba(246,226,122,0.35); }
+  .t-bfmid .card.fav { border-color: #ffffff; }
+  .t-bfmid .row + .row { border-color: rgba(212,175,55,0.15); }
+  .t-bfmid .abbr { background: #d4af37; color: #000; }
+  .t-bfmid .score { color: #f6e27a; }
+  .t-bfmid .status { background: #000; } .t-bfmid .status .tag { color: #d4af37; }
+  .t-bfmid .lines .lbl { color: #b59a4a; }
+  .t-bfmid .ptv .band, .t-bfmid .ptv .panel { background: #0d0d0d; border-color: rgba(212,175,55,0.55); }
+  .t-bfmid .ptv .ph, .t-bfmid .ptv .note b, .t-bfmid .ptv .ln b, .t-bfmid .ptv .pthead b { color: #d4af37; }
+  .t-bfmid .ptv .bar i { background: #d4af37; }
+  .t-bfmid #crawlbar { background: #000; border-top: 0.3vh solid #d4af37; }
+  .t-bfmid #crawllabel { background: -webkit-linear-gradient(top, #f6e27a, #b8902c); background: linear-gradient(180deg, #f6e27a, #b8902c); color: #000; }
+  .t-bfmid #crawl .lg, .t-bfmid #crawl .nl { color: #d4af37; } .t-bfmid #crawl .hl { background: #d4af37; color: #000; }
+  .t-bfmid #foot { color: #8c7a3c; } .t-bfmid #pbar b { background: #d4af37 !important; }
+  .t-bfmid .ptv.mu { background: transparent; }
+  body.t-bfmid.mview .ptv.mu .bigsc { color: #f6e27a; text-shadow: 0 0 3vh rgba(212,175,55,0.45); } body.t-bfmid.mview .ptv.mu .side .nm { color: #d4af37; }
+  .t-bfmid.mview #shift::before { right: 1.5vw; top: 1.5vh; bottom: auto; width: 16vh; height: 16vh; opacity: 0.85; }
   body.t-sunset { background: #12052a; background-image: -webkit-linear-gradient(top, #2b0a52 0%, #4a0f5e 30%, #1a0838 62%, #0b0620 100%); background-image: linear-gradient(180deg, #2b0a52 0%, #4a0f5e 30%, #1a0838 62%, #0b0620 100%); }
   .t-sunset #shift::before { content: ''; position: absolute; right: 6vw; top: 14vh; width: 34vh; height: 34vh; border-radius: 50%; opacity: 0.22; pointer-events: none;
     background: -webkit-linear-gradient(top, #ffd23f 0%, #ff7a2f 55%, #ff2e88 100%); background: linear-gradient(180deg, #ffd23f 0%, #ff7a2f 55%, #ff2e88 100%);
