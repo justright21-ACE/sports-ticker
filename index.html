@@ -508,7 +508,7 @@
   .cr7 .c7rows b { display: inline-block; min-width: 7.5vw; font-size: 2.2vh; letter-spacing: 0.3vw; color: #9BA3B8; }
   .cr7 .c7rows b.lv { color: #ff4d5e; } .cr7 .c7rows em { font-style: normal; color: #f5c400; }
   .cr7 .c7rows .c7sm { font-size: 2vh; color: #8b95ab; white-space: normal; line-height: 1.4; }
-  #crawl .c7g { color: #f5c400; }
+  #crawl .c7g { color: #f5c400; } #crawl .c7n { color: #ffffff; font-weight: 900; letter-spacing: 0.15vw; }
   img.own { border-radius: 50%; border: 0.5vh solid #f5c400; box-sizing: border-box; -webkit-mask-image: none !important; mask-image: none !important; background: #1b2236; }
   .cr7 .c7ph.own { left: auto; right: 2vw; bottom: 3.4vh; height: 27vh; width: 27vh; opacity: 1; }   /* the round photo: in the open space, not behind the numbers */
   .cr7 .c7cr, .race .rkcr, .rrp .rkcr { position: absolute; right: 1vw; bottom: 0.4vh; font-size: 1.3vh; color: rgba(255,255,255,0.35); }
@@ -4983,8 +4983,8 @@ function renderTabs(activeLg) {
     rot.push({ k: lg, h: '<span class="' + cls + (CONFIG.leagueLogos ? ' lgo' : '') + '" data-k="' + lg + '">' + (CONFIG.leagueLogos ? leagueMarkHTML(lg, tnm, 'tl', true) : tnm) + '</span>' });
   }
   if (gtab) rot.push({ k: 'golf', h: gtab.replace('<span class="tab', '<span data-k="golf" class="tab') });
-  if (cr7On()) rot.push({ k: 'cr7', h: '<span data-k="cr7" class="tab' + (activeLg === 'cr7' || activeLg === 'race' ? ' on' : '') + '">' + (cr7.live ? '<i></i>' : '') + 'CR7</span>' });
-  if (chaseOn(MESSI)) rot.push({ k: 'messi', h: '<span data-k="messi" class="tab' + (activeLg === 'messi' || activeLg === 'race' ? ' on' : '') + '">' + (messi.live ? '<i></i>' : '') + 'MESSI</span>' });
+  if (cr7On() || chaseOn(MESSI)) rot.push({ k: 'cr7', h: '<span data-k="cr7" class="tab' + (activeLg === 'cr7' || activeLg === 'messi' || activeLg === 'race' ? ' on' : '') + '">' +
+    ((cr7.live && cr7On()) || (messi.live && chaseOn(MESSI)) ? '<i></i>' : '') + esc(GOAT_NAME) + '</span>' });   // Ronaldo, the race and Messi: one tab
   if (hsShown().length) rot.push({ k: 'hs', h: '<span data-k="hs" class="tab' + (activeLg === 'hs' ? ' on' : '') + '">' + (hsLiveNow() ? '<i></i>' : '') + 'IHSA</span>' });
   var seq = CONFIG.tabQueue ? tabSequence() : [], placed = {}, out = [];
   for (var q = 0; q < seq.length; q++) for (var r = 0; r < rot.length; r++) if (rot[r].k === seq[q] && !placed[r]) { placed[r] = 1; out.push(rot[r]); }
@@ -5010,7 +5010,7 @@ function tabSequence() {
   for (var i = 0; i < n; i++) {
     var pg = P[(at + i) % n];
     if (!pg || pg.pt || pg.inact) continue;
-    var k = pg.lg === 'race' ? 'cr7' : pg.lg;
+    var k = pg.lg === 'race' || pg.lg === 'messi' ? 'cr7' : pg.lg;
     if (!k || seen[k]) continue;
     seen[k] = 1; seq.push(k);
   }
@@ -9885,6 +9885,15 @@ function rrTick() {
 }
 function cr7CrawlSeg() { return chaseCrawl(CR7); }
 function messiCrawlSeg() { return chaseCrawl(MESSI); }
+var GOAT_NAME = 'GOAT RACE';                       // Ronaldo + Messi, the chase to 1,000: one tab, one crawl stretch
+function goatCrawlSeg() {
+  var a = chaseCrawl(CR7), b = chaseCrawl(MESSI), h = '';
+  if (!a && !b) return null;
+  if (a && b) { var d = chaseTotal(CR7) - chaseTotal(MESSI); h += '<span class="g c7g">' + (d ? (d > 0 ? 'RONALDO' : 'MESSI') + ' LEADS BY ' + Math.abs(d) : 'DEAD EVEN') + '</span>'; }
+  if (a) h += '<span class="g c7n">RONALDO</span>' + a.html;
+  if (b) h += '<span class="g c7n">MESSI</span>' + b.html;
+  return { label: GOAT_NAME + ' \u2192 1,000', lg: 'cr7', html: h };
+}
 function chaseCrawl(C) {
   if (!chaseOn(C)) return null;
   var st = chaseSt(C), n = chaseTotal(C), L = chaseLast(C), fresh = st.newAt && new Date().getTime() - st.newAt < 30 * 60000, h = '';
@@ -10792,14 +10801,14 @@ function renderPage() {
   if (pg.cr7) {
     renderTabs(pg.lg);
     if (pg.replay) {
-      $('heading').innerHTML = '<span class="lg">CAREER GOALS</span><span class="sub">Cristiano Ronaldo vs Lionel Messi &middot; year by year, club and country</span>';
+      $('heading').innerHTML = '<span class="lg">' + esc(GOAT_NAME) + '</span><span class="sub">Career goals, year by year &middot; Cristiano Ronaldo vs Lionel Messi, club and country</span>';
       var fresh = !rrRun;
       if (fresh) rrRun = { t: new Date().getTime() };
       try { $('cards').innerHTML = replayHTML(); rrTick(); } catch (err) { $('cards').innerHTML = ''; }
       return;
     }
-    $('heading').innerHTML = pg.race ? '<span class="lg">THE RACE TO 1,000</span><span class="sub">Cristiano Ronaldo vs Lionel Messi &middot; career goals</span>' :
-      '<span class="lg">' + (pg.chase === MESSI ? 'MESSI' : 'CR7') + '</span><span class="sub">' + esc(pg.chase.name) + ' &middot; the road to 1,000 career goals</span>';
+    $('heading').innerHTML = pg.race ? '<span class="lg">' + esc(GOAT_NAME) + '</span><span class="sub">The race to 1,000 career goals &middot; Cristiano Ronaldo vs Lionel Messi</span>' :
+      '<span class="lg">' + esc(GOAT_NAME) + '</span><span class="sub">' + esc(pg.chase.name) + ' &middot; the road to 1,000 career goals</span>';
     try { $('cards').innerHTML = pg.race ? raceHTML() : cr7HTML(pg.chase); } catch (err) { $('cards').innerHTML = ''; }
     return;
   }
@@ -11019,9 +11028,8 @@ function renderCrawl() {
   }
   var gseg = golfCrawlSeg();
   if (gseg) groups.push([gseg]);
-  var c7seg = cr7CrawlSeg(), m10seg = messiCrawlSeg();
-  if (c7seg) groups.push([c7seg]);
-  if (m10seg) groups.push([m10seg]);
+  var gtseg = goatCrawlSeg();
+  if (gtseg) groups.push([gtseg]);
   var hsseg = hsCrawlSeg();
   if (hsseg) groups.push([hsseg]);
   if (CONFIG.crawlNews && news.items.length) {
