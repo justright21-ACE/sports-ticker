@@ -2399,18 +2399,21 @@
   {
    "a": {
     "name": "Elmhurst (IC Catholic)",
-    "rec": "12-1"
+    "rec": "12-1",
+    "score": 61
    },
    "b": {
     "name": "St. Joseph (Ogden)",
-    "rec": "13-0"
+    "rec": "13-0",
+    "score": 26
    },
    "cls": "3A",
    "date": "2026-11-27T16:00:00-06:00",
-   "final": false,
-   "finalAt": null,
+   "final": true,
+   "finalAt": "2026-11-27T21:35:30-06:00",
    "id": "fb-2026-27-3A-47",
    "neutral": true,
+   "ot": "",
    "round": "Championship",
    "site": "Normal (Hancock Stadium)",
    "sport": "fb"
@@ -6422,5 +6425,5 @@
   }
  ],
  "source": "IHSA",
- "updated": "2026-11-27T15:42:10-06:00"
+ "updated": "2026-11-27T21:35:30-06:00"
 }
