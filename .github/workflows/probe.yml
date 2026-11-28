@@ -1,0 +1,17 @@
+name: probe
+on: { push: { branches: [probe-espn] } }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          def get(u): return json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})))
+          A='https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard'
+          for g,d in [('81','20261128'),('57','20261128'),('57','20261121'),('81','20261205'),('57','20261205')]:
+              x=get(A+'?groups=%s&dates=%s&limit=300' % (g,d))
+              for e in x.get('events',[]):
+                  c=e['competitions'][0]
+                  print('G',g,d, e['shortName'], '| season', json.dumps(e.get('season')), '| week', json.dumps(e.get('week')), '| notes', json.dumps([n.get('headline') for n in c.get('notes') or []]), '| type', json.dumps(c.get('type')), '|', e['status']['type']['shortDetail'], '| ranks', [x2.get('curatedRank',{}).get('current') for x2 in c['competitors']], '| logo', c['competitors'][0]['team'].get('logo','')[-50:])
+          PY
