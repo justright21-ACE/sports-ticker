@@ -3202,19 +3202,22 @@
   },
   {
    "a": {
-    "name": "Morris",
-    "rec": "13-0"
+    "name": "Springfield (Sacred Heart-Griffin)",
+    "rec": "12-1",
+    "score": 20
    },
    "b": {
-    "name": "Springfield (Sacred Heart-Griffin)",
-    "rec": "12-1"
+    "name": "Morris",
+    "rec": "13-0",
+    "score": 14
    },
    "cls": "4A",
    "date": "2026-11-27T19:00:00-06:00",
-   "final": false,
-   "finalAt": null,
+   "final": true,
+   "finalAt": "2026-11-28T06:21:28-06:00",
    "id": "fb-2026-27-4A-47",
    "neutral": true,
+   "ot": "OT",
    "round": "Championship",
    "site": "Normal (Hancock Stadium)",
    "sport": "fb"
@@ -6425,5 +6428,5 @@
   }
  ],
  "source": "IHSA",
- "updated": "2026-11-27T21:35:30-06:00"
+ "updated": "2026-11-28T06:21:28-06:00"
 }
