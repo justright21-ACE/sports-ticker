@@ -2238,6 +2238,7 @@ var CONFIG = {
   breakingMaxHrs: 3,     // ...only stories posted within this many hours
   bowls: true,           // bowl season: every bowl game on the NCAAF scores screens, and a big screen for CFP games, New Year's Six bowls and bowls with a Top 25 team (?bowls=0 off)
   allBowls: true,        // every bowl and CFP game gets a big screen on its game day (?allbowls=0: only the Playoff, New Year's Six and ranked teams)
+  smallPo: true,         // FCS and Division II playoffs: their own tab, score pages and crawl stretch while games are on (?smallpo=0)
   linesEveryMin: 15,     // how often to check for opening lines not captured yet
   rotateSec: 12,         // seconds each screen of cards stays up
   bigEvery: 3,           // while a big game (primetime / CLOSE / UPSET) is live, the big screens come back after this many sports (every screen of a sport counts as one; CR7, the race and MESSI together count as one) (?bigevery=)
@@ -2459,6 +2460,7 @@ function readParams() {
     if (k === 'upcoming') CONFIG.upcoming = v ? v.toLowerCase().split(',') : [];
     if (k === 'rotate' && +v > 2) CONFIG.rotateSec = +v;
     if (k === 'allbowls') CONFIG.allBowls = v !== '0';
+    if (k === 'smallpo') CONFIG.smallPo = v !== '0';
     if (k === 'bbmain') CONFIG.bbMain = v !== '0';
     if (k === 'nbaleaders') CONFIG.nbaLeaders = v !== '0';
     if (k === 'bigevery' && +v >= 1) CONFIG.bigEvery = Math.round(+v);
@@ -4349,6 +4351,7 @@ function buildPages() {
   var gmaj = golfFeatured() ? golfPages() : [];                  // golf: a major while play is on comes back like a primetime game
   if (!gmaj.length) pages = pages.concat(golfPages());
   pages = pages.concat(cr7Pages());
+  pages = pages.concat(smallPages());
   pages = pages.concat(hsPages());
   for (var q = 0; q < pages.length; q++) if (!pages[q].key) pages[q].key = pages[q].lg + ':' + pages[q].num;
   // featured games (NFL primetime, World Series): during the game they come back after every other
@@ -4372,7 +4375,7 @@ function buildPages() {
         var c = {}; for (var k in ptPages[z]) c[k] = ptPages[z][k]; c.key = (ptPages[z].game ? 'pt:' + ptPages[z].game.id : 'golf') + ':' + (n++); mixed.push(c);
         if (ptPages[z].game && inxIds[ptPages[z].game.id]) mixed.push({ inact: true, lg: 'nfl', game: ptPages[z].game, kind: ptPages[z].kind, hold: 30, key: 'inx:' + ptPages[z].game.id + ':' + (n++) }); } };
     addPt();
-    var sportOf = function (pg) { return pg.lg === 'race' || pg.lg === 'messi' ? 'cr7' : pg.lg; }, done3 = 0;
+    var sportOf = function (pg) { return pg.sm ? 'sm' : (pg.lg === 'race' || pg.lg === 'messi' ? 'cr7' : pg.lg); }, done3 = 0;
     for (var x = 0; x < pages.length; x++) {                     // back after every bigEvery SPORTS (all of a sport's screens count as one)
       mixed.push(pages[x]);
       if (x < pages.length - 1 && sportOf(pages[x + 1]) !== sportOf(pages[x]) && ++done3 % CONFIG.bigEvery === 0 && live) addPt(true);
@@ -5023,6 +5026,7 @@ function renderTabs(activeLg) {
   if (gtab) rot.push({ k: 'golf', h: gtab.replace('<span class="tab', '<span data-k="golf" class="tab') });
   if (cr7On() || chaseOn(MESSI)) rot.push({ k: 'cr7', h: '<span data-k="cr7" class="tab' + (activeLg === 'cr7' || activeLg === 'messi' || activeLg === 'race' ? ' on' : '') + '">' +
     ((cr7.live && cr7On()) || (messi.live && chaseOn(MESSI)) ? '<i></i>' : '') + esc(GOAT_NAME) + '</span>' });   // Ronaldo, the race and Messi: one tab
+  if (smallPages().length) rot.push({ k: 'sm', h: '<span data-k="sm" class="tab' + (activeLg === 'sm' ? ' on' : '') + '">' + (smallLiveNow() ? '<i></i>' : '') + 'FCS \u00b7 D-II</span>' });
   if (hsShown().length) rot.push({ k: 'hs', h: '<span data-k="hs" class="tab' + (activeLg === 'hs' ? ' on' : '') + '">' + (hsLiveNow() ? '<i></i>' : '') + 'IHSA</span>' });
   var seq = CONFIG.tabQueue ? tabSequence() : [], placed = {}, out = [];
   for (var q = 0; q < seq.length; q++) for (var r = 0; r < rot.length; r++) if (rot[r].k === seq[q] && !placed[r]) { placed[r] = 1; out.push(rot[r]); }
@@ -5048,7 +5052,7 @@ function tabSequence() {
   for (var i = 0; i < n; i++) {
     var pg = P[(at + i) % n];
     if (!pg || pg.pt || pg.inact) continue;
-    var k = pg.lg === 'race' || pg.lg === 'messi' ? 'cr7' : pg.lg;
+    var k = pg.sm ? 'sm' : (pg.lg === 'race' || pg.lg === 'messi' ? 'cr7' : pg.lg);
     if (!k || seen[k]) continue;
     seen[k] = 1; seq.push(k);
   }
@@ -9812,6 +9816,74 @@ function hsCrawlSeg() {
   }
   return { label: 'IHSA ' + (L[0].g.sport === 'bkb' ? 'BASKETBALL' : 'FOOTBALL'), lg: 'hs', html: h };
 }
+/* =================== FCS AND DIVISION II PLAYOFFS ===================
+   ESPN's FCS (groups=81) and Division II (groups=57) scoreboards, playoff games only (the note says "FCS
+   Championship - ..." / "Division II Championship - ..."). Shown only while there are playoff games: the last
+   3 days' finals, today, and the next round within a week. Its own tab, score pages per division, a crawl stretch.
+   The whole window every 30 min; today's games every minute. ?smallpo=0 off. */
+var SMALL_DIVS = [['81', 'FCS', /FCS Championship/i, 'FCS PLAYOFFS'], ['57', 'D-II', /Division II Championship/i, 'D-II PLAYOFFS']];
+var smallPo = { at: 0, todayAt: 0, byId: {} };
+function smallRound(g) { var m = String(g.note || '').match(/-\s*(.+)$/); return m ? m[1].replace(/National Championship/i, 'Championship') : 'Playoffs'; }
+function loadSmall(cb) {
+  if (DEMO || !CONFIG.smallPo) return cb();
+  var now = new Date().getTime(), full = now - smallPo.at > 30 * 60000, any = false, k;
+  for (k in smallPo.byId) { any = true; break; }
+  if (!full && (!any || now - smallPo.todayAt < 60000)) return cb();
+  var days = [], i, Q = [];
+  for (i = full ? -3 : 0; i <= (full ? 7 : 0); i++) days.push(ymd(addDays(new Date(now - 4 * 3600000), i)).replace(/-/g, ''));
+  for (i = 0; i < days.length; i++) for (var j = 0; j < SMALL_DIVS.length; j++) Q.push([days[i], j]);
+  if (full) smallPo.at = now; smallPo.todayAt = now;
+  var got = {};
+  runEach(Q.length, function (ix, done) {
+    getJSON(ESPN_API + 'football/college-football/scoreboard?groups=' + SMALL_DIVS[Q[ix][1]][0] + '&dates=' + Q[ix][0] + '&limit=200', function (err, data) {
+      var evs = (!err && data && data.events) || [];
+      for (var e = 0; e < evs.length; e++) {
+        var c = (evs[e].competitions || [])[0] || {}, note = ((c.notes || [])[0] || {}).headline || '';
+        if (!SMALL_DIVS[Q[ix][1]][2].test(note)) continue;
+        var g = fromEspn(evs[e], 'ncaaf');
+        if (!g || !g.teams || !g.teams.away || !g.teams.home) continue;
+        g.teams.away.rank = 0; g.teams.home.rank = 0;          // ESPN's number here is the regional seed, not a national ranking
+        g.div = Q[ix][1]; g.note = note; g.tag = '';            // the page heading names the round
+        got[g.id] = g;
+      }
+      done();
+    });
+  }, function () {
+    if (full) smallPo.byId = got;
+    else for (var id in got) smallPo.byId[id] = got[id];
+    cb();
+  });
+}
+function smallShown(div) {                         // the window for one division: last 3 days' finals, today, the next round
+  var out = [], now = new Date().getTime(), today = ymd(new Date(now - 4 * 3600000)), next = null, id, g, d;
+  for (id in smallPo.byId) {
+    g = smallPo.byId[id]; if (g.div !== div) continue;
+    d = ymd(new Date(parseDate(g.date).getTime() - 4 * 3600000));
+    if (g.live || d === today || (isFinal(g) && now - parseDate(g.date).getTime() < 3 * 86400000)) out.push(g);
+    else if (d > today && (!next || d < next)) next = d;
+  }
+  if (next && !out.some(function (x) { return !isFinal(x); })) for (id in smallPo.byId) { g = smallPo.byId[id]; if (g.div === div && !isFinal(g) && ymd(new Date(parseDate(g.date).getTime() - 4 * 3600000)) === next) out.push(g); }   // the next round only once today's are done
+  return out;
+}
+function smallPages() {
+  var P = [];
+  if (!CONFIG.smallPo || !inList(CONFIG.leagues, 'ncaaf')) return P;
+  for (var dv = 0; dv < SMALL_DIVS.length; dv++) {
+    var L = sortGames(smallShown(dv), 'ncaaf'), per = CONFIG.cardsPerPage, np = Math.ceil(L.length / per);
+    for (var p = 0; p < np; p++) P.push({ lg: 'ncaaf', sm: true, big: SMALL_DIVS[dv][3], label: smallRound(L[p * per]), games: L.slice(p * per, (p + 1) * per), num: p + 1, of: np, key: 'sm:' + dv + ':' + p });
+  }
+  return P;
+}
+function smallLiveNow() { for (var id in smallPo.byId) if (smallPo.byId[id].live) return true; return false; }
+function smallCrawlSegs() {
+  var out = [];
+  for (var dv = 0; dv < SMALL_DIVS.length; dv++) {
+    var L = sortGames(smallShown(dv), 'ncaaf'), h = '';
+    for (var i = 0; i < L.length; i++) h += crawlGameHTML(L[i], 'ncaaf');
+    if (h) out.push({ label: SMALL_DIVS[dv][3], lg: 'ncaaf', html: h });
+  }
+  return out;
+}
 /* where the goals came from: a bar for each club (and the country, set apart), in the team's color, with the years */
 function chaseTeamsHTML(C, st, n) {
   var T = C.teams(st, n), mx = 1, i, h = '<div class="c7tm' + (C.photo ? ' ph' : '') + '"><div class="c7th">GOALS BY TEAM</div>';
@@ -10863,6 +10935,14 @@ function renderPage() {
     $('cards').innerHTML = rankHTML(pg.lg, rk);
     return;
   }
+  if (pg.sm) {
+    renderTabs('sm');
+    var slive = 0; for (var si = 0; si < pg.games.length; si++) if (pg.games[si].live) slive++;
+    $('heading').innerHTML = '<span class="lg">' + esc(pg.big) + '</span><span class="sub">' + esc(pg.label + (slive ? ' · ' + slive + ' live' : '')) + '</span>' + (pg.of > 1 ? '<span class="page">' + pg.num + ' / ' + pg.of + '</span>' : '');
+    for (var sh = '', sj = 0; sj < pg.games.length; sj++) sh += cardHTML(pg.games[sj], 'ncaaf');
+    $('cards').innerHTML = sh;
+    return;
+  }
   if (pg.hs) {
     renderTabs('hs');
     $('heading').innerHTML = hsHeading();
@@ -11106,6 +11186,8 @@ function renderCrawl() {
   if (gseg) groups.push([gseg]);
   var gtseg = goatCrawlSeg();
   if (gtseg) groups.push([gtseg]);
+  var smsegs = smallCrawlSegs();
+  for (var smi = 0; smi < smsegs.length; smi++) groups.push([smsegs[smi]]);
   var hsseg = hsCrawlSeg();
   if (hsseg) groups.push([hsseg]);
   if (CONFIG.crawlNews && news.items.length) {
@@ -11506,7 +11588,7 @@ function refreshAll() {
     // the extras in three waves, everything in a wave at once: the second needs the first (rankings, the season calendar,
     // the close-game lists, the missing odds), injuries need the game details
     runAll([loadTeams, loadNews, loadBreaking, loadNflPower, loadCfpOdds, loadPerf, loadH2h, loadGolf, loadEplTable, loadFighters, loadMajorCfb, loadMajorCbb,
-            loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadNbaLeaders, loadIdle, loadCup, loadCr7, loadHs], function () {
+            loadMissingLines, loadRankings, loadSeasonCal, loadChiNext, loadBracket, loadNflLeaders, loadNbaLeaders, loadIdle, loadCup, loadCr7, loadHs, loadSmall], function () {
     runAll([loadChampBackfill, loadCrawlFull, loadPtDetails, loadStandings, loadCfpConf], function () {
     loadInjuries(function () {
       soundCheck(); panelPhotoCheck();            // upset / close-game score / Bears TD / your team won; new highlight photo
