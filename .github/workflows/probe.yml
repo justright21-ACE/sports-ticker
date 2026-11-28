@@ -1,0 +1,22 @@
+name: probe
+on: { push: { branches: [probe-espn] } }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error
+          def get(u): return json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})))
+          A='https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard'
+          for g in ['81','57','58']:
+              for d in ['20261121','20261128','20261205']:
+                  try:
+                      x=get(A+'?groups=%s&dates=%s&limit=300' % (g,d)); ev=x.get('events',[])
+                      po=[e for e in ev if (e.get('season') or {}).get('type')==3]
+                      print('G',g,d,'events',len(ev),'post',len(po))
+                      for e in po[:4]:
+                          c=e['competitions'][0]; nt=(c.get('notes') or [{}])[0].get('headline','')
+                          print('   ', e['shortName'], '|', nt, '|', e['status']['type']['shortDetail'], [ (x2['team'].get('abbreviation'), x2.get('curatedRank',{}).get('current'), x2['team'].get('logo','')[-40:]) for x2 in c['competitors']])
+                  except urllib.error.HTTPError as ex: print('ERR', g, d, ex.code)
+          PY
